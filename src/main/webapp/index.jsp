@@ -9,6 +9,7 @@
 <h2>Menu: </h2>
 <ul>
     <li><a href="./viewAllTeachers">View all teachers</a></li>
+    <li><a href="./viewAllClasses">View all classes</a></li>
 </ul>
 </body>
 </html>

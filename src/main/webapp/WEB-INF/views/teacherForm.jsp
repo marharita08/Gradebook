@@ -11,13 +11,13 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
 <head>
-    <title>Add teacher</title>
+    <title><%=request.getAttribute("title")%></title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
-    <h2 align="center">Add new Teacher:</h2>
+    <h2 align="center"><%=request.getAttribute("title")%></h2>
     <div align="center">
         <form:form>
             <br/>
@@ -32,8 +32,10 @@
                     <option value="<%=teacher.getId()%>"><%=teacher.getId() + " " + teacher.getName()%></option>
                 <% } %>
             </form:select><br/><br/>
+            <form:input path="id" type="hidden"/>
             <button onclick="history.back()" type="button">Cancel</button>
-            <button formmethod="post" formaction="saveAddedTeacher">Save</button><br/><br/>
+            <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>">Save</button>
+            <br/><br/>
         </form:form>
     </div>
 </body>

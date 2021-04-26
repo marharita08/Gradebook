@@ -42,7 +42,9 @@ public class TeacherController {
         Map<String, Object> model = new HashMap<>();
         model.put("command", new Teacher());
         model.put("list", list);
-        return new ModelAndView("addTeacher", model);
+        model.put("title", "Add teacher");
+        model.put("formAction", "saveAddedTeacher");
+        return new ModelAndView("teacherForm", model);
     }
 
     /**
@@ -67,7 +69,9 @@ public class TeacherController {
         Map<String, Object> model = new HashMap<>();
         model.put("command", dao.getTeacher(id));
         model.put("list", list);
-        return new ModelAndView("editTeacher", model);
+        model.put("title", "Edit teacher");
+        model.put("formAction", "../saveEditedTeacher");
+        return new ModelAndView("teacherForm", model);
     }
 
     /**
