@@ -26,7 +26,7 @@
         <option value="2">Position</option>
         <option value="3">Chief</option>
     </select><br/><br/>
-<table border="2" cellpadding="2" width="60%" id="myTable">
+<table id="myTable">
     <tr>
         <th>ID</th>
         <th>Name</th>

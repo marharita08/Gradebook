@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class OraclePupilClassDAO {
+public class OraclePupilClassDAO implements PupilClassDAO {
     Connection connection = ConnectionPool.getInstance().getConnection();
     ResultSet resultSet;
     PreparedStatement preparedStatement;
@@ -17,6 +17,7 @@ public class OraclePupilClassDAO {
      * Read all classes from database and put them into list.
      * @return List<PupilClass>
      */
+    @Override
     public List<PupilClass> getAllPupilClasses() {
         List<PupilClass> list = new ArrayList<>();
         try {
@@ -50,6 +51,7 @@ public class OraclePupilClassDAO {
      * @param id class id
      * @return PupilClass
      */
+    @Override
     public PupilClass getPupilClass(int id) {
         PupilClass pupilClass = null;
         try {
@@ -71,6 +73,7 @@ public class OraclePupilClassDAO {
      * Insert new class into database.
      * @param pupilClass adding class
      */
+    @Override
     public void addPupilClass(PupilClass pupilClass) {
         String sql = "Insert into LAB3_ROZGHON_CLASS "
                 + "values (LAB3_ROZGHON_CLASS_SEQ.nextval, ?, ?)";
@@ -88,8 +91,8 @@ public class OraclePupilClassDAO {
      * Update class data into database.
      * @param pupilClass editing class
      */
+    @Override
     public void updatePupilClass(PupilClass pupilClass) {
-        System.out.println("preparing statement...");
         String sql = "UPDATE LAB3_ROZGHON_CLASS "
                 + "set GRADE = ?, NAME = ? where CLASS_ID = ?";
         try {
@@ -97,9 +100,7 @@ public class OraclePupilClassDAO {
             preparedStatement.setInt(1, pupilClass.getGrade());
             preparedStatement.setString(2, pupilClass.getName());
             preparedStatement.setInt(3, pupilClass.getId());
-            System.out.println("execute update...");
             preparedStatement.executeUpdate();
-            System.out.println("update is done");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -109,8 +110,19 @@ public class OraclePupilClassDAO {
      * Delete class from database.
      * @param id class id
      */
+    @Override
     public void deletePupilClass(int id) {
-        String sql = "Delete from LAB3_ROZGHON_CLASS "
+        String sql = "update LAB3_ROZGHON_PUPILS "
+                + "set CLASS_ID = null "
+                + "where CLASS_ID = ?";
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        sql = "Delete from LAB3_ROZGHON_CLASS "
                 + "where CLASS_ID = ?";
         try {
             preparedStatement = connection.prepareStatement(sql);
@@ -120,5 +132,4 @@ public class OraclePupilClassDAO {
             throwables.printStackTrace();
         }
     }
-
 }

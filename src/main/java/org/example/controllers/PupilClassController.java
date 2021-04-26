@@ -76,7 +76,6 @@ public class PupilClassController {
      */
     @RequestMapping(value = "/saveEditedClass", method = RequestMethod.POST)
     public ModelAndView saveEditedClass(@ModelAttribute PupilClass pupilClass) {
-        System.out.println("call dao update...");
         dao.updatePupilClass(pupilClass);
         return new ModelAndView("redirect:/viewAllClasses");
     }
@@ -87,7 +86,7 @@ public class PupilClassController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/deleteClass/{id}")
-    public ModelAndView deleteTeacher(@PathVariable int id) {
+    public ModelAndView deleteClass(@PathVariable int id) {
         dao.deletePupilClass(id);
         return new ModelAndView("redirect:/viewAllClasses");
     }

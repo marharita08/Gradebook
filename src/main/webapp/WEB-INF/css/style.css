@@ -7,3 +7,14 @@ form{
 body {
     background-color: #F0F8FF;
 }
+p {
+    margin: 5px 10px;
+}
+table {
+    margin: 3px;
+    border: solid black 1px;
+}
+td, th {
+    padding: 4px;
+    border: solid black 1px;
+}
