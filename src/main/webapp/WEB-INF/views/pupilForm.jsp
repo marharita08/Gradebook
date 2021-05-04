@@ -25,7 +25,9 @@
         <form:select path="pupilClass.id">
             <option value="0">-</option>
             <% for (PupilClass pupilClass:(List<PupilClass>)request.getAttribute("list")) { %>
-                <option value="<%=pupilClass.getId()%>"><%=pupilClass.getName()%></option>
+                <option value="<%=pupilClass.getId()%>" <%=(int)request.getAttribute("selectedClass") == pupilClass.getId() ? "selected='selected'":""%>>
+                    <%=pupilClass.getName()%>
+                </option>
             <% } %>
         </form:select><br/><br/>
         Name:

@@ -39,6 +39,7 @@ public class PupilClassController {
     public ModelAndView addClass() {
         Map<String, Object> model = new HashMap<>();
         model.put("command", new PupilClass());
+        model.put("selectedGrade", 1);
         model.put("title", "Add class");
         model.put("formAction", "saveAddedClass");
         return new ModelAndView("classForm", model);
@@ -63,7 +64,9 @@ public class PupilClassController {
     @RequestMapping(value = "/editClass/{id}")
     public ModelAndView editClass(@PathVariable int id) {
         Map<String, Object> model = new HashMap<>();
-        model.put("command", dao.getPupilClass(id));
+        PupilClass pupilClass = dao.getPupilClass(id);
+        model.put("command", pupilClass);
+        model.put("selectedGrade", pupilClass.getGrade());
         model.put("title", "Edit class");
         model.put("formAction", "../saveEditedClass");
         return new ModelAndView("classForm", model);

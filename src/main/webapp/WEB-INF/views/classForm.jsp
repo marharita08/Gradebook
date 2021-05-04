@@ -23,7 +23,7 @@
         Grade:
         <form:select path="grade">
             <% for (int i = 1; i <= 11; i++) { %>
-            <option value="<%=i%>"><%=i%></option>
+            <option value="<%=i%>" <%=(int)request.getAttribute("selectedGrade") == i ? "selected='selected'":""%>><%=i%></option>
             <% } %>
         </form:select><br/><br/>
         Name:

@@ -29,7 +29,9 @@
             <form:select path="chief.id">
                 <option value="0">-</option>
                 <% for (Teacher teacher:(List<Teacher>)request.getAttribute("list")) { %>
-                    <option value="<%=teacher.getId()%>"><%=teacher.getId() + " " + teacher.getName()%></option>
+                    <option value="<%=teacher.getId()%>" <%=(int)request.getAttribute("selectedChief") == teacher.getId() ? "selected='selected'":""%>>
+                        <%=teacher.getId() + " " + teacher.getName()%>
+                    </option>
                 <% } %>
             </form:select><br/><br/>
             <form:input path="id" type="hidden"/>

@@ -41,6 +41,7 @@ public class TeacherController {
         List<Teacher> list = dao.getAllTeachers();
         Map<String, Object> model = new HashMap<>();
         model.put("command", new Teacher());
+        model.put("selectedChief", 0);
         model.put("list", list);
         model.put("title", "Add teacher");
         model.put("formAction", "saveAddedTeacher");
@@ -67,7 +68,9 @@ public class TeacherController {
     public ModelAndView editTeacher(@PathVariable int id) {
         List<Teacher> list = dao.getEnableChiefs(id);
         Map<String, Object> model = new HashMap<>();
-        model.put("command", dao.getTeacher(id));
+        Teacher teacher = dao.getTeacher(id);
+        model.put("command", teacher);
+        model.put("selectedChief", teacher.getChief().getId());
         model.put("list", list);
         model.put("title", "Edit teacher");
         model.put("formAction", "../saveEditedTeacher");
