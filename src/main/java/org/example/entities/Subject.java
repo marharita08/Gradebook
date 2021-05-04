@@ -2,18 +2,16 @@ package org.example.entities;
 
 import java.util.Objects;
 
-public class PupilClass {
+public class Subject {
     private int id;
-    private int grade;
     private String name;
 
-    public PupilClass() {
+    public Subject(int id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
-    public PupilClass(int id, int grade, String name) {
-        this.id = id;
-        this.grade = grade;
-        this.name = name;
+    public Subject() {
     }
 
     public int getId() {
@@ -22,14 +20,6 @@ public class PupilClass {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public int getGrade() {
-        return grade;
-    }
-
-    public void setGrade(int grade) {
-        this.grade = grade;
     }
 
     public String getName() {
@@ -44,20 +34,19 @@ public class PupilClass {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PupilClass that = (PupilClass) o;
-        return id == that.id && grade == that.grade && name.equals(that.name);
+        Subject subject = (Subject) o;
+        return id == subject.id && name.equals(subject.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, grade, name);
+        return Objects.hash(id, name);
     }
 
     @Override
     public String toString() {
-        return "PupilClass{" +
+        return "Subject{" +
                 "id=" + id +
-                ", grade=" + grade +
                 ", name='" + name + '\'' +
                 '}';
     }

@@ -11,6 +11,7 @@
     <li><a href="./viewAllTeachers">View all teachers</a></li>
     <li><a href="./viewAllClasses">View all classes</a></li>
     <li><a href="./viewAllPupils">View all pupils</a></li>
+    <li><a href="./viewAllSubjects">View all subject</a></li>
     <li><a href="./showClassList">View pupil list</a></li>
 </ul>
 </body>

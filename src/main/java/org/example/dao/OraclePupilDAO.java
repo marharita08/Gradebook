@@ -147,7 +147,7 @@ public class OraclePupilDAO implements PupilDAO {
         List<Pupil> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_PUPILS where CLASS_ID = ?");
+                    "SELECT * FROM LAB3_ROZGHON_PUPILS where CLASS_ID = ? order by NAME");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
