@@ -3,6 +3,7 @@ package org.example.dao;
 import org.example.entities.PupilClass;
 import org.example.entities.Subject;
 import org.example.entities.SubjectDetails;
+import org.example.entities.Teacher;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
@@ -12,7 +13,7 @@ import java.util.List;
 @Component
 public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
 
-    Connection connection = ConnectionPool.getInstance().getConnection();
+    Connection connection;
     ResultSet resultSet;
     PreparedStatement preparedStatement;
     OracleSubjectDAO oracleSubjectDAO;
@@ -33,7 +34,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
      */
     @Override
     public List<SubjectDetails> getAllSubjectDetails() {
-
+        connection = ConnectionPool.getInstance().getConnection();
         List<SubjectDetails> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
@@ -42,6 +43,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             while (resultSet.next()) {
                 list.add(parseSubjectDetails(resultSet));
             }
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -55,14 +57,17 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             int classID = resultSet.getInt("class_id");
             int teacherID = resultSet.getInt("teacher_id");
             int subjectID = resultSet.getInt("subject_id");
-            PupilClass pupilClass = oraclePupilClassDAO.getPupilClass(classID);
-            Subject subject = oracleSubjectDAO.getSubject(subjectID);
-            if(teacherID == 0) {
-                subjectDetails = new SubjectDetails(id, pupilClass, null, subject);
+            PupilClass pupilClass;
+            Subject subject;
+            Teacher teacher;
+            pupilClass = oraclePupilClassDAO.getPupilClass(classID);
+            if (teacherID == 0) {
+                teacher = null;
             } else {
-                subjectDetails = new SubjectDetails(id, pupilClass, oracleTeacherDAO.getTeacher(teacherID), subject);
+                teacher = oracleTeacherDAO.getTeacher(teacherID);
             }
-
+            subject = oracleSubjectDAO.getSubject(subjectID);
+            subjectDetails = new SubjectDetails(id, pupilClass, teacher, subject);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -76,6 +81,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
      */
     @Override
     public SubjectDetails getSubjectDetails(int id) {
+        connection = ConnectionPool.getInstance().getConnection();
         SubjectDetails subjectDetails = null;
         try {
             preparedStatement = connection.prepareStatement(
@@ -86,6 +92,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             if (resultSet.next()) {
                 subjectDetails = parseSubjectDetails(resultSet);
             }
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -98,6 +105,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
      */
     @Override
     public void addSubjectDetails(SubjectDetails subjectDetails) {
+        connection = ConnectionPool.getInstance().getConnection();
         String sql = "Insert into LAB3_ROZGHON_SUBJECT_DETAILS "
                 + "values (LAB3_ROZGHON_SUBJECT_DETAILS_SEQ.nextval, ?, ?, ?)";
         try {
@@ -110,6 +118,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             }
             preparedStatement.setInt(3, subjectDetails.getSubject().getId());
             preparedStatement.executeUpdate();
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -121,6 +130,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
      */
     @Override
     public void updateSubjectDetails(SubjectDetails subjectDetails) {
+        connection = ConnectionPool.getInstance().getConnection();
         String sql = "UPDATE LAB3_ROZGHON_SUBJECT_DETAILS "
                 + "set CLASS_ID = ?, TEACHER_ID = ?, SUBJECT_ID = ? where SUBJECT_DETAILS_ID = ?";
         try {
@@ -134,6 +144,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             preparedStatement.setInt(3, subjectDetails.getSubject().getId());
             preparedStatement.setInt(4, subjectDetails.getId());
             preparedStatement.executeUpdate();
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -145,8 +156,9 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
      */
     @Override
     public void deleteSubjectDetails(int id) {
-        String sql = "Delete from LAB3_ROZGHON_SUBJECT_DETAILS "
-                + "where SUBJECT_DETAILS_ID = ?";
+        connection = ConnectionPool.getInstance().getConnection();
+        String sql = "Delete from LAB3_ROZGHON_LESSON " +
+                "where SUBJECT_DETAILS_ID = ?";
         try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
@@ -154,6 +166,112 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+        sql = "Delete from LAB3_ROZGHON_SUBJECT_DETAILS "
+                + "where SUBJECT_DETAILS_ID = ?";
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+            connection.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
+    /**
+     * Read subject details by teacher database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    @Override
+    public List<SubjectDetails> getSubjectDetailsByTeacher(int id) {
+        connection = ConnectionPool.getInstance().getConnection();
+        List<SubjectDetails> list = new ArrayList<>();
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
+                            "where TEACHER_ID = ?");
+            preparedStatement.setInt(1, id);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseSubjectDetails(resultSet));
+            }
+            connection.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Read subject details by class database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    @Override
+    public List<SubjectDetails> getSubjectDetailsByPupilClass(int id) {
+        connection = ConnectionPool.getInstance().getConnection();
+        List<SubjectDetails> list = new ArrayList<>();
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
+                            "where CLASS_ID = ?");
+            preparedStatement.setInt(1, id);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseSubjectDetails(resultSet));
+            }
+            connection.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Read subject details by subject database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    @Override
+    public List<SubjectDetails> getSubjectDetailsBySubject(int id) {
+        connection = ConnectionPool.getInstance().getConnection();
+        List<SubjectDetails> list = new ArrayList<>();
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
+                            "where SUBJECT_ID = ?");
+            preparedStatement.setInt(1, id);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseSubjectDetails(resultSet));
+            }
+            connection.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Read subject details by subject and class database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    @Override
+    public SubjectDetails getSubjectDetailsBySubjectAndPupilClass(int subjectID, int classID) {
+        connection = ConnectionPool.getInstance().getConnection();
+        SubjectDetails subjectDetails = null;
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
+                            "where SUBJECT_ID = ? and CLASS_ID = ?");
+            preparedStatement.setInt(1, subjectID);
+            preparedStatement.setInt(2, classID);
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                subjectDetails = parseSubjectDetails(resultSet);
+            }
+            connection.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return subjectDetails;
+    }
 }

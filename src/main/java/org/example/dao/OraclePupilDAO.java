@@ -10,7 +10,7 @@ import java.util.List;
 
 @Component
 public class OraclePupilDAO implements PupilDAO {
-    Connection connection = ConnectionPool.getInstance().getConnection();
+    Connection connection;
     ResultSet resultSet;
     PreparedStatement preparedStatement;
     OraclePupilClassDAO pupilClassDAO;
@@ -25,7 +25,7 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public List<Pupil> getAllPupils() {
-
+        connection = ConnectionPool.getInstance().getConnection();
         List<Pupil> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
@@ -34,6 +34,7 @@ public class OraclePupilDAO implements PupilDAO {
             while (resultSet.next()) {
                 list.add(parsePupil(resultSet));
             }
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -41,6 +42,7 @@ public class OraclePupilDAO implements PupilDAO {
     }
 
     private Pupil parsePupil(ResultSet resultSet) {
+        connection = ConnectionPool.getInstance().getConnection();
         Pupil pupil = null;
         try {
             int id = resultSet.getInt("Pupil_ID");
@@ -52,6 +54,7 @@ public class OraclePupilDAO implements PupilDAO {
                 PupilClass pupilClass = pupilClassDAO.getPupilClass(classID);
                 pupil = new Pupil(id, name, pupilClass);
             }
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -65,6 +68,7 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public Pupil getPupil(int id) {
+        connection = ConnectionPool.getInstance().getConnection();
         Pupil pupil = null;
         try {
             preparedStatement = connection.prepareStatement(
@@ -75,6 +79,7 @@ public class OraclePupilDAO implements PupilDAO {
             if (resultSet.next()) {
                 pupil = parsePupil(resultSet);
             }
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -87,6 +92,7 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public void addPupil(Pupil pupil) {
+        connection = ConnectionPool.getInstance().getConnection();
         String sql = "Insert into LAB3_ROZGHON_PUPILS "
                 + "values (LAB3_ROZGHON_PUPILS_SEQ.nextval, ?, ?)";
         try {
@@ -98,6 +104,7 @@ public class OraclePupilDAO implements PupilDAO {
             }
             preparedStatement.setString(2, pupil.getName());
             preparedStatement.executeUpdate();
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -109,6 +116,7 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public void updatePupil(Pupil pupil) {
+        connection = ConnectionPool.getInstance().getConnection();
         String sql = "UPDATE LAB3_ROZGHON_PUPILS "
                 + "set CLASS_ID = ?, NAME = ? where PUPIL_ID = ?";
         try {
@@ -121,6 +129,7 @@ public class OraclePupilDAO implements PupilDAO {
             preparedStatement.setString(2, pupil.getName());
             preparedStatement.setInt(3, pupil.getId());
             preparedStatement.executeUpdate();
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -132,27 +141,38 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public void deletePupil(int id) {
+        connection = ConnectionPool.getInstance().getConnection();
         String sql = "Delete from LAB3_ROZGHON_PUPILS "
                 + "where PUPIL_ID = ?";
         try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
+    /**
+     * Get list of pupils who study in set class.
+     * @param id class id
+     * @return List<Pupil>
+     */
+    @Override
     public List<Pupil> getPupilsByPupilClass(int id) {
+        connection = ConnectionPool.getInstance().getConnection();
         List<Pupil> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_PUPILS where CLASS_ID = ? order by NAME");
+                    "SELECT * FROM LAB3_ROZGHON_PUPILS " +
+                            "where CLASS_ID = ? order by NAME");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(parsePupil(resultSet));
             }
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }

@@ -1,6 +1,7 @@
 package org.example.controllers;
 
 import org.example.dao.OraclePupilClassDAO;
+import org.example.dao.OracleSubjectDAO;
 import org.example.entities.PupilClass;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -16,9 +17,11 @@ import java.util.Map;
 @Controller
 public class PupilClassController {
     private OraclePupilClassDAO dao;
+    private OracleSubjectDAO subjectDAO;
 
-    public PupilClassController(OraclePupilClassDAO dao) {
+    public PupilClassController(OraclePupilClassDAO dao, OracleSubjectDAO subjectDAO) {
         this.dao = dao;
+        this.subjectDAO = subjectDAO;
     }
 
     /**
@@ -29,6 +32,31 @@ public class PupilClassController {
     public ModelAndView viewAllClasses() {
         List<PupilClass> list = dao.getAllPupilClasses();
         return new ModelAndView("viewClassList", "list", list);
+    }
+
+    /**
+     * Getting page to view all classes list.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/showClassList")
+    public ModelAndView showClassList() {
+        Map<String, Object> model = new HashMap<>();
+        model.put("list", dao.getAllPupilClasses());
+        model.put("header", "All classes");
+        return new ModelAndView("classList", model);
+    }
+
+    /**
+     * Get page to view classes which learn subject with set id.
+     * @param id subject id
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewPupilClassesBySubject/{id}")
+    public ModelAndView viewPupilClassesBySubject(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("list", dao.getPupilClassesBySubject(id));
+        model.put("header", "Classes which learn " + subjectDAO.getSubject(id).getName());
+        return new ModelAndView("classList", model);
     }
 
     /**

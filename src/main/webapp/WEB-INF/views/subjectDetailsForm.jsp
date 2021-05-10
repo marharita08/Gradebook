@@ -42,7 +42,7 @@
             <% } %>
         </form:select><br/><br/>
 
-        Class:
+        Subject:
         <form:select path="subject.id">
             <% for (Subject subject:(List<Subject>)request.getAttribute("subjectList")) { %>
             <option value="<%=subject.getId()%>" <%=(int)request.getAttribute("selectedSubject") == subject.getId() ? "selected='selected'":""%>>

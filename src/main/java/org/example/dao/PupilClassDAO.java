@@ -35,4 +35,10 @@ public interface PupilClassDAO {
      * @param id class id
      */
     void deletePupilClass(int id);
+
+    /**
+     * Read classes from database dy subjects and put them into list.
+     * @return List<PupilClass>
+     */
+    List<PupilClass> getPupilClassesBySubject(int id);
 }

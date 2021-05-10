@@ -111,8 +111,50 @@ public class SubjectDetailsController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/deleteSubjectDetails/{id}")
-    public ModelAndView deletePupil(@PathVariable int id) {
+    public ModelAndView deleteSubjectDetails(@PathVariable int id) {
         dao.deleteSubjectDetails(id);
         return new ModelAndView("redirect:/viewAllSubjectDetails");
+    }
+
+    /**
+     * Getting page to view subject details by teacher.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewSubjectDetailsByTeacher/{id}")
+    public ModelAndView viewSubjectDetailsByTeacher(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        List<SubjectDetails> list = dao.getSubjectDetailsByTeacher(id);
+        model.put("list", list);
+        model.put("param", "teacher");
+        model.put("header", "Subjects of " + teacherDAO.getTeacher(id).getName());
+        return new ModelAndView("subjectDetailsList", model);
+    }
+
+    /**
+     * Getting page to view subject details by class.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewSubjectDetailsByPupilClass/{id}")
+    public ModelAndView viewSubjectDetailsByPupilClass(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        List<SubjectDetails> list = dao.getSubjectDetailsByPupilClass(id);
+        model.put("list", list);
+        model.put("param", "class");
+        model.put("header", "Subjects of " + classDAO.getPupilClass(id).getName());
+        return new ModelAndView("subjectDetailsList", model);
+    }
+
+    /**
+     * Getting page to view subject details by subject.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewSubjectDetailsBySubject/{id}")
+    public ModelAndView viewSubjectDetailsBySubject(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        List<SubjectDetails> list = dao.getSubjectDetailsBySubject(id);
+        model.put("list", list);
+        model.put("param", "subject");
+        model.put("header", "Subject " + subjectDAO.getSubject(id).getName());
+        return new ModelAndView("subjectDetailsList", model);
     }
 }

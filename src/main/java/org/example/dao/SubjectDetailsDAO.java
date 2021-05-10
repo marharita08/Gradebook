@@ -1,6 +1,5 @@
 package org.example.dao;
 
-import org.example.entities.Subject;
 import org.example.entities.SubjectDetails;
 
 import java.util.List;
@@ -36,4 +35,28 @@ public interface SubjectDetailsDAO {
      * @param id subject details id
      */
     void deleteSubjectDetails(int id);
+
+    /**
+     * Read subject details by teacher database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    List<SubjectDetails> getSubjectDetailsByTeacher(int id);
+
+    /**
+     * Read subject details by class database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    List<SubjectDetails> getSubjectDetailsByPupilClass(int id);
+
+    /**
+     * Read subject details by subject database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    List<SubjectDetails> getSubjectDetailsBySubject(int id);
+
+    /**
+     * Read subject details by subject and class database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    SubjectDetails getSubjectDetailsBySubjectAndPupilClass(int subjectID, int classID);
 }

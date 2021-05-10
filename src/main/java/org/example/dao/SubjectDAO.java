@@ -35,4 +35,18 @@ public interface SubjectDAO {
      * @param id subject id
      */
     void deleteSubject(int id);
+
+    /**
+     * Get subjects that are learned by class with set id.
+     * @param id class id
+     * @return List<Subject>
+     */
+    List<Subject> getSubjectByPupilClass(int id);
+
+    /**
+     * Get subjects which are teacher by teacher with set id
+     * @param id teacher id
+     * @return List<Subject>
+     */
+    List<Subject> getSubjectByTeacher(int id);
 }

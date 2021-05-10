@@ -1,6 +1,8 @@
 package org.example.controllers;
 
+import org.example.dao.OraclePupilClassDAO;
 import org.example.dao.OracleSubjectDAO;
+import org.example.dao.OracleTeacherDAO;
 import org.example.entities.PupilClass;
 import org.example.entities.Subject;
 import org.springframework.stereotype.Controller;
@@ -17,9 +19,15 @@ import java.util.Map;
 @Controller
 public class SubjectController {
     private OracleSubjectDAO dao;
+    private OraclePupilClassDAO pupilClassDAO;
+    private OracleTeacherDAO teacherDAO;
 
-    public SubjectController(OracleSubjectDAO dao) {
+    public SubjectController(OracleSubjectDAO dao,
+                             OraclePupilClassDAO pupilClassDAO,
+                             OracleTeacherDAO teacherDAO) {
         this.dao = dao;
+        this.pupilClassDAO = pupilClassDAO;
+        this.teacherDAO = teacherDAO;
     }
 
     /**
@@ -30,6 +38,19 @@ public class SubjectController {
     public ModelAndView viewAllSubjects() {
         List<Subject> list = dao.getAllSubjects();
         return new ModelAndView("viewSubjectList", "list", list);
+    }
+
+    /**
+     * Getting page to view all subject list.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/showAllSubjects")
+    public ModelAndView showAllSubjects() {
+        List<Subject> list = dao.getAllSubjects();
+        Map<String, Object> model = new HashMap<>();
+        model.put("list", list);
+        model.put("header", "Whole list of subjects");
+        return new ModelAndView("subjectList", model);
     }
 
     /**
@@ -90,5 +111,34 @@ public class SubjectController {
     public ModelAndView deleteSubject(@PathVariable int id) {
         dao.deleteSubject(id);
         return new ModelAndView("redirect:/viewAllSubjects");
+    }
+
+    /**
+     * View subject list by class.
+     * @param id class id
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "viewSubjectsByPupilClass/{id}")
+    public ModelAndView viewSubjectsByPupilClass(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("header", "Subjects of " + pupilClassDAO.getPupilClass(id).getName());
+        model.put("id", pupilClassDAO.getPupilClass(id).getId());
+        model.put("list", dao.getSubjectByPupilClass(id));
+        model.put("param", "class");
+        return new ModelAndView("subjectList", model);
+    }
+
+    /**
+     * View subject list by teacher.
+     * @param id teacher id
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "viewSubjectsByTeacher/{id}")
+    public ModelAndView viewSubjectsByTeacher(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("header", "Subjects of " + teacherDAO.getTeacher(id).getName());
+        model.put("list", dao.getSubjectByTeacher(id));
+        model.put("param", "teacher");
+        return new ModelAndView("subjectList", model);
     }
 }

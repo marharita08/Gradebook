@@ -1,5 +1,7 @@
 package org.example.controllers;
 
+import org.example.dao.OraclePupilClassDAO;
+import org.example.dao.OracleSubjectDAO;
 import org.example.dao.OracleTeacherDAO;
 import org.example.entities.Teacher;
 import org.springframework.stereotype.Controller;
@@ -17,9 +19,15 @@ import java.util.Map;
 public class TeacherController {
 
     private OracleTeacherDAO dao;
+    private OraclePupilClassDAO pupilClassDAO;
+    private OracleSubjectDAO subjectDAO;
 
-    public TeacherController(OracleTeacherDAO dao) {
+    public TeacherController(OracleTeacherDAO dao,
+                             OraclePupilClassDAO pupilClassDAO,
+                             OracleSubjectDAO subjectDAO) {
         this.dao = dao;
+        this.pupilClassDAO = pupilClassDAO;
+        this.subjectDAO = subjectDAO;
     }
 
     /**
@@ -30,6 +38,18 @@ public class TeacherController {
     public ModelAndView viewAllTeachers() {
         List<Teacher> list = dao.getAllTeachers();
         return new ModelAndView("viewTeacherList", "list", list);
+    }
+
+    /**
+     * Getting page to view all teacher list.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/showAllTeachers")
+    public ModelAndView showAllTeachers() {
+        Map<String, Object> model = new HashMap<>();
+        model.put("list", dao.getAllTeachers());
+        model.put("header", "All teachers");
+        return new ModelAndView("teacherList", model);
     }
 
     /**
@@ -97,5 +117,29 @@ public class TeacherController {
     public ModelAndView deleteTeacher(@PathVariable int id) {
         dao.deleteTeacher(id);
         return new ModelAndView("redirect:/viewAllTeachers");
+    }
+
+    /**
+     * Getting page to view teachers by class.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewTeachersByPupilClass/{id}")
+    public ModelAndView viewTeachersByClass(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("list", dao.getTeachersByPupilClass(id));
+        model.put("header", "Teachers of " + pupilClassDAO.getPupilClass(id).getName());
+        return new ModelAndView("teacherList", model);
+    }
+
+    /**
+     * Getting page to view teachers by subject.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewTeachersBySubject/{id}")
+    public ModelAndView viewTeachersSubject(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("list", dao.getTeachersBySubject(id));
+        model.put("header", "Teachers who teach " + subjectDAO.getSubject(id).getName());
+        return new ModelAndView("teacherList", model);
     }
 }

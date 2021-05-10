@@ -23,6 +23,6 @@
     </table>
     <br/>
     <button onclick='location.href="../index.jsp"'>Menu</button>
-    <button onclick='location.href="../showClassList"'>To class List</button>
+    <button onclick='history.back()'>Back</button>
 </body>
 </html>

@@ -70,7 +70,11 @@ public class PupilController {
         Map<String, Object> model = new HashMap<>();
         Pupil pupil = dao.getPupil(id);
         model.put("command", pupil);
-        model.put("selectedClass", pupil.getPupilClass().getId());
+        if(pupil.getPupilClass() != null) {
+            model.put("selectedClass", pupil.getPupilClass().getId());
+        } else {
+            model.put("selectedClass", 0);
+        }
         model.put("list", classDAO.getAllPupilClasses());
         model.put("title", "Edit pupil");
         model.put("formAction", "../saveEditedPupil");
@@ -97,14 +101,6 @@ public class PupilController {
     public ModelAndView deletePupil(@PathVariable int id) {
         dao.deletePupil(id);
         return new ModelAndView("redirect:/viewAllPupils");
-    }
-
-    @RequestMapping(value = "showClassList")
-    public ModelAndView showClassList() {
-        Map<String, Object> model = new HashMap<>();
-        model.put("list", classDAO.getAllPupilClasses());
-        model.put("path", "viewPupilsByPupilClass");
-        return new ModelAndView("classList", model);
     }
 
     /**

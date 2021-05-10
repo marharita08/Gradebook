@@ -1,7 +1,6 @@
 package org.example.dao;
 
 import org.example.entities.Pupil;
-import org.example.entities.PupilClass;
 
 import java.util.List;
 

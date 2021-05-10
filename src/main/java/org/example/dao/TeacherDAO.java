@@ -43,4 +43,18 @@ public interface TeacherDAO {
      */
     List<Teacher> getEnableChiefs(int id);
 
+    /**
+     * Get list of teachers who teach some subject in class with set id.
+     * @param id class id
+     * @return List<Teacher>
+     */
+    List<Teacher> getTeachersByPupilClass(int id);
+
+    /**
+     * Get list of teachers who teach subject with set id.
+     * @param id subject id
+     * @return List<Teacher>
+     */
+    List<Teacher> getTeachersBySubject(int id);
+
 }
