@@ -6,10 +6,7 @@ import org.example.dao.OracleSubjectDetailsDAO;
 import org.example.dao.OracleTeacherDAO;
 import org.example.entities.SubjectDetails;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
@@ -18,10 +15,11 @@ import java.util.Map;
 
 @Controller
 public class SubjectDetailsController {
-    OracleSubjectDetailsDAO dao;
-    OraclePupilClassDAO classDAO;
-    OracleTeacherDAO teacherDAO;
-    OracleSubjectDAO subjectDAO;
+    private OracleSubjectDetailsDAO dao;
+    private OraclePupilClassDAO classDAO;
+    private OracleTeacherDAO teacherDAO;
+    private OracleSubjectDAO subjectDAO;
+    private int subjectDetailsPerPage = 15;
 
     public SubjectDetailsController(OracleSubjectDetailsDAO dao,
                                     OraclePupilClassDAO classDAO,
@@ -38,9 +36,19 @@ public class SubjectDetailsController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/viewAllSubjectDetails")
-    public ModelAndView viewAllSubjectDetails() {
-        List<SubjectDetails> list = dao.getAllSubjectDetails();
-        return new ModelAndView("viewSubjectDetailsList", "list", list);
+    public ModelAndView viewAllSubjectDetails(@RequestParam("page") int page) {
+        Map<String, Object> model = new HashMap<>();
+        int count = dao.getCountOfSubjectDetails();
+        PaginationController paginationController = new PaginationController(count, subjectDetailsPerPage, page);
+        List<SubjectDetails> list;
+        if(count <= subjectDetailsPerPage) {
+            list = dao.getAllSubjectDetails();
+        } else {
+            list = dao.getSubjectDetailsByPage(page, subjectDetailsPerPage);
+        }
+        model.put("list", list);
+        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllSubjectDetails"));
+        return new ModelAndView("viewSubjectDetailsList", model);
     }
 
     /**
@@ -127,6 +135,8 @@ public class SubjectDetailsController {
         model.put("list", list);
         model.put("param", "teacher");
         model.put("header", "Subjects of " + teacherDAO.getTeacher(id).getName());
+        model.put("tableHeader1", "Class");
+        model.put("tableHeader2", "Subject");
         return new ModelAndView("subjectDetailsList", model);
     }
 
@@ -141,6 +151,8 @@ public class SubjectDetailsController {
         model.put("list", list);
         model.put("param", "class");
         model.put("header", "Subjects of " + classDAO.getPupilClass(id).getName());
+        model.put("tableHeader1", "Subject");
+        model.put("tableHeader2", "Teacher");
         return new ModelAndView("subjectDetailsList", model);
     }
 
@@ -155,6 +167,8 @@ public class SubjectDetailsController {
         model.put("list", list);
         model.put("param", "subject");
         model.put("header", "Subject " + subjectDAO.getSubject(id).getName());
+        model.put("tableHeader1", "Class");
+        model.put("tableHeader2", "Teacher");
         return new ModelAndView("subjectDetailsList", model);
     }
 }

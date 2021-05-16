@@ -1,5 +1,6 @@
 package org.example.dao;
 
+import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
 import org.springframework.stereotype.Component;
 
@@ -28,9 +29,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             while (resultSet.next()) {
                 list.add(parsePupilClass(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
@@ -66,9 +68,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             if (resultSet.next()) {
                 pupilClass = parsePupilClass(resultSet);
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return pupilClass;
     }
@@ -87,9 +90,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             preparedStatement.setInt(1, pupilClass.getGrade());
             preparedStatement.setString(2, pupilClass.getName());
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -108,9 +112,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             preparedStatement.setString(2, pupilClass.getName());
             preparedStatement.setInt(3, pupilClass.getId());
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -128,37 +133,33 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        sql = "Delete from LAB3_ROZGHON_LESSON " +
+            sql = "Delete from LAB3_ROZGHON_MARK " +
+                    "where LESSON_ID in (select LESSON_ID from LAB3_ROZGHON_LESSON " +
+                    "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
+                    "from LAB3_ROZGHON_SUBJECT_DETAILS where CLASS_ID = ?))";
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+            sql = "Delete from LAB3_ROZGHON_LESSON " +
                 "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
                 "from LAB3_ROZGHON_SUBJECT_DETAILS where CLASS_ID = ?)";
-        try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        sql = "delete  from LAB3_ROZGHON_SUBJECT_DETAILS "
+            sql = "delete  from LAB3_ROZGHON_SUBJECT_DETAILS "
                 + "where CLASS_ID = ?";
-        try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        sql = "Delete from LAB3_ROZGHON_CLASS "
+            sql = "Delete from LAB3_ROZGHON_CLASS "
                 + "where CLASS_ID = ?";
-        try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        }  finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -181,10 +182,85 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             while (resultSet.next()) {
                 list.add(parsePupilClass(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
+    }
+
+    /**
+     * Get total count of classes from database.
+     * @return int
+     */
+    public int getCountOfPupilClasses() {
+        connection = ConnectionPool.getInstance().getConnection();
+        int count = 0;
+        String sql = "select count(CLASS_ID) as AMOUNT " +
+                "from LAB3_ROZGHON_CLASS ";
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            resultSet = preparedStatement.executeQuery();
+            resultSet.next();
+            count = resultSet.getInt("AMOUNT");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return count;
+    }
+
+    /**
+     * Get class list for page.
+     * @param page number of page
+     * @param range amount of teachers per page
+     * @return List<PupilClass>
+     */
+    public List<PupilClass> getPupilClassesByPage(int page, int range) {
+        List<PupilClass> list = new ArrayList<>();
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
+                            " (SELECT * FROM LAB3_ROZGHON_CLASS ORDER BY CLASS_ID) p)" +
+                            " WHERE rn BETWEEN ? AND ?");
+            preparedStatement.setInt(1, (page - 1)*range + 1);
+            preparedStatement.setInt(2, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parsePupilClass(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    private void closeAll(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -1,13 +1,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.PupilClass" %>
+<%@ page import="org.example.controllers.PaginationController" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%--
-  Created by IntelliJ IDEA.
-  User: PC
-  Date: 12.04.2021
-  Time: 16:02
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
@@ -25,6 +19,7 @@
         <option value="1">Grade</option>
         <option value="2">Name</option>
     </select><br/><br/>
+    <ul class="pagination"><%=request.getAttribute("pagination")%></ul>
     <table id="myTable">
         <tr>
             <th>ID</th>

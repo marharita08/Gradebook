@@ -43,9 +43,10 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             while (resultSet.next()) {
                 list.add(parseSubjectDetails(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
@@ -92,9 +93,10 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             if (resultSet.next()) {
                 subjectDetails = parseSubjectDetails(resultSet);
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return subjectDetails;
     }
@@ -118,9 +120,10 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             }
             preparedStatement.setInt(3, subjectDetails.getSubject().getId());
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -144,9 +147,10 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             preparedStatement.setInt(3, subjectDetails.getSubject().getId());
             preparedStatement.setInt(4, subjectDetails.getId());
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -157,24 +161,28 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
     @Override
     public void deleteSubjectDetails(int id) {
         connection = ConnectionPool.getInstance().getConnection();
-        String sql = "Delete from LAB3_ROZGHON_LESSON " +
-                "where SUBJECT_DETAILS_ID = ?";
+        String sql = "Delete from LAB3_ROZGHON_MARK " +
+                "where LESSON_ID in (SELECT LESSON_ID " +
+                "from LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID = ?)";
         try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        sql = "Delete from LAB3_ROZGHON_SUBJECT_DETAILS "
+            sql = "Delete from LAB3_ROZGHON_LESSON " +
+                    "where SUBJECT_DETAILS_ID = ?";
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+            sql = "Delete from LAB3_ROZGHON_SUBJECT_DETAILS "
                 + "where SUBJECT_DETAILS_ID = ?";
-        try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -198,6 +206,8 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
@@ -222,6 +232,8 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
@@ -246,32 +258,83 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
 
     /**
-     * Read subject details by subject and class database and put them into list.
-     * @return List<SubjectDetails>
+     * Get total count of subject details from database.
+     * @return int
      */
-    @Override
-    public SubjectDetails getSubjectDetailsBySubjectAndPupilClass(int subjectID, int classID) {
+    public int getCountOfSubjectDetails() {
         connection = ConnectionPool.getInstance().getConnection();
-        SubjectDetails subjectDetails = null;
+        int count = 0;
+        String sql = "select count(SUBJECT_DETAILS_ID) as AMOUNT " +
+                "from LAB3_ROZGHON_SUBJECT_DETAILS ";
         try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
-                            "where SUBJECT_ID = ? and CLASS_ID = ?");
-            preparedStatement.setInt(1, subjectID);
-            preparedStatement.setInt(2, classID);
+            preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                subjectDetails = parseSubjectDetails(resultSet);
-            }
-            connection.close();
+            resultSet.next();
+            count = resultSet.getInt("AMOUNT");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
-        return subjectDetails;
+        return count;
+    }
+
+    /**
+     * Get subject details list for page.
+     * @param page number of page
+     * @param range amount of subject details per page
+     * @return List<SubjectDetails>
+     */
+    public List<SubjectDetails> getSubjectDetailsByPage(int page, int range) {
+        List<SubjectDetails> list = new ArrayList<>();
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
+                            " (SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS ORDER BY SUBJECT_DETAILS_ID) p)" +
+                            " WHERE rn BETWEEN ? AND ?");
+            preparedStatement.setInt(1, (page - 1)*range + 1);
+            preparedStatement.setInt(2, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseSubjectDetails(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    private void closeAll(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

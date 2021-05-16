@@ -1,11 +1,5 @@
 <%@ page import="java.util.List" %>
-<%@ page import="org.example.entities.SubjectDetails" %><%--
-  Created by IntelliJ IDEA.
-  User: PC
-  Date: 26.04.2021
-  Time: 17:43
-  To change this template use File | Settings | File Templates.
---%>
+<%@ page import="org.example.entities.SubjectDetails" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -18,7 +12,21 @@
 <%if(request.getAttribute("header") != null) {%>
 <h2><%=request.getAttribute("header")%></h2>
 <%}%>
-<table>
+<table id="myTable">
+    <tr>
+        <th><%=request.getAttribute("tableHeader1")%></th>
+        <th><%=request.getAttribute("tableHeader2")%></th>
+        <th></th>
+        <th></th>
+        <th></th>
+    </tr>
+    <tr>
+        <th><input type="text" id="0" onkeyup="filter(id, 0)" class="filters"></th>
+        <th><input type="text" id="1" onkeyup="filter(id, 1)" class="filters"></th>
+        <th></th>
+        <th></th>
+        <th></th>
+    </tr>
     <% for (SubjectDetails subjectDetails:(List<SubjectDetails>)request.getAttribute("list")) { %>
     <tr>
         <%if(request.getAttribute("param") != "class") {%>
@@ -30,8 +38,9 @@
         <%if(request.getAttribute("param") != "teacher") {%>
             <td><%=subjectDetails.getTeacher().getName()%></td>
         <%}%>
-        <td><a href="/Gradebook/viewLessonsByPupilClassAndSubject/<%=subjectDetails.getPupilClass().getId()%>/<%=subjectDetails.getSubject().getId()%>">view lessons</a></td>
+        <td><a href="/Gradebook/viewLessonsBySubjectDetails/<%=subjectDetails.getId()%>?page=1">view lessons</a></td>
         <td><a href="/Gradebook/addLesson/<%=subjectDetails.getId()%>">add lesson</a></td>
+        <td><a href="/Gradebook/viewMarksBySubjectDetails/<%=subjectDetails.getId()%>">view marks</a></td>
     </tr>
     <% } %>
 </table>
@@ -39,5 +48,8 @@
 <button onclick='location.href="/Gradebook/index.jsp"'>Menu</button>
 <button onclick=history.back()>Back</button>
 </body>
+<script>
+    <%@include file="../js/filterAndSort.js"%>
+</script>
 </html>
 

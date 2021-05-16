@@ -5,11 +5,9 @@ import org.example.dao.OracleSubjectDAO;
 import org.example.dao.OracleTeacherDAO;
 import org.example.entities.PupilClass;
 import org.example.entities.Subject;
+import org.example.entities.Teacher;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
@@ -21,6 +19,7 @@ public class SubjectController {
     private OracleSubjectDAO dao;
     private OraclePupilClassDAO pupilClassDAO;
     private OracleTeacherDAO teacherDAO;
+    private int subjectPerPage = 15;
 
     public SubjectController(OracleSubjectDAO dao,
                              OraclePupilClassDAO pupilClassDAO,
@@ -35,9 +34,19 @@ public class SubjectController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/viewAllSubjects")
-    public ModelAndView viewAllSubjects() {
-        List<Subject> list = dao.getAllSubjects();
-        return new ModelAndView("viewSubjectList", "list", list);
+    public ModelAndView viewAllSubjects(@RequestParam("page") int page) {
+        Map<String, Object> model = new HashMap<>();
+        int count = dao.getCountOfSubjects();
+        PaginationController paginationController = new PaginationController(count, subjectPerPage, page);
+        List<Subject> list;
+        if(count <= subjectPerPage) {
+            list = dao.getAllSubjects();
+        } else {
+            list = dao.getSubjectsByPage(page, subjectPerPage);
+        }
+        model.put("list", list);
+        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllSubjects"));
+        return new ModelAndView("viewSubjectList", model);
     }
 
     /**
@@ -45,10 +54,18 @@ public class SubjectController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/showAllSubjects")
-    public ModelAndView showAllSubjects() {
-        List<Subject> list = dao.getAllSubjects();
+    public ModelAndView showAllSubjects(@RequestParam("page") int page) {
         Map<String, Object> model = new HashMap<>();
+        int count = dao.getCountOfSubjects();
+        PaginationController paginationController = new PaginationController(count, subjectPerPage, page);
+        List<Subject> list;
+        if(count <= subjectPerPage) {
+            list = dao.getAllSubjects();
+        } else {
+            list = dao.getSubjectsByPage(page, subjectPerPage);
+        }
         model.put("list", list);
+        model.put("pagination", paginationController.makePagingLinks("/Gradebook/showAllSubjects"));
         model.put("header", "Whole list of subjects");
         return new ModelAndView("subjectList", model);
     }
@@ -125,6 +142,7 @@ public class SubjectController {
         model.put("id", pupilClassDAO.getPupilClass(id).getId());
         model.put("list", dao.getSubjectByPupilClass(id));
         model.put("param", "class");
+        model.put("pagination", "");
         return new ModelAndView("subjectList", model);
     }
 
@@ -139,6 +157,7 @@ public class SubjectController {
         model.put("header", "Subjects of " + teacherDAO.getTeacher(id).getName());
         model.put("list", dao.getSubjectByTeacher(id));
         model.put("param", "teacher");
+        model.put("pagination", "");
         return new ModelAndView("subjectList", model);
     }
 }

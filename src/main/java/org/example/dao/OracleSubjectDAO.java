@@ -1,6 +1,7 @@
 package org.example.dao;
 
 import org.example.entities.Subject;
+import org.example.entities.SubjectDetails;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
@@ -28,9 +29,10 @@ public class OracleSubjectDAO implements SubjectDAO {
             while (resultSet.next()) {
                 list.add(parseSubject(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
@@ -65,9 +67,10 @@ public class OracleSubjectDAO implements SubjectDAO {
             if (resultSet.next()) {
                 subject = parseSubject(resultSet);
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return subject;
     }
@@ -85,9 +88,10 @@ public class OracleSubjectDAO implements SubjectDAO {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, subject.getName());
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -105,9 +109,10 @@ public class OracleSubjectDAO implements SubjectDAO {
             preparedStatement.setString(1, subject.getName());
             preparedStatement.setInt(2, subject.getId());
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -118,34 +123,35 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public void deleteSubject(int id) {
         connection = ConnectionPool.getInstance().getConnection();
-        String sql = "Delete from LAB3_ROZGHON_LESSON " +
-                "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
-                "from LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_ID = ?)";
+        String sql = "Delete from LAB3_ROZGHON_MARK " +
+                "where LESSON_ID in (select LESSON_ID " +
+                "from LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID in (" +
+                "select SUBJECT_DETAILS_ID from LAB3_ROZGHON_SUBJECT_DETAILS" +
+                " where SUBJECT_ID = ?))";
         try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        sql = "delete  from LAB3_ROZGHON_SUBJECT_DETAILS "
+            sql = "Delete from LAB3_ROZGHON_LESSON " +
+                    "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
+                    "from LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_ID = ?)";
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+            sql = "delete  from LAB3_ROZGHON_SUBJECT_DETAILS "
                 + "where SUBJECT_ID = ?";
-        try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        sql = "Delete from LAB3_ROZGHON_SUBJECT "
+            sql = "Delete from LAB3_ROZGHON_SUBJECT "
                 + "where SUBJECT_ID = ?";
-        try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -168,9 +174,10 @@ public class OracleSubjectDAO implements SubjectDAO {
             while (resultSet.next()) {
                 subjectList.add(parseSubject(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return subjectList;
     }
@@ -195,10 +202,85 @@ public class OracleSubjectDAO implements SubjectDAO {
             while (resultSet.next()) {
                 subjectList.add(parseSubject(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return subjectList;
+    }
+
+    /**
+     * Get total count of subject from database.
+     * @return int
+     */
+    public int getCountOfSubjects() {
+        connection = ConnectionPool.getInstance().getConnection();
+        int count = 0;
+        String sql = "select count(SUBJECT_ID) as AMOUNT " +
+                "from LAB3_ROZGHON_SUBJECT ";
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            resultSet = preparedStatement.executeQuery();
+            resultSet.next();
+            count = resultSet.getInt("AMOUNT");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return count;
+    }
+
+    /**
+     * Get subject list for page.
+     * @param page number of page
+     * @param range amount of teachers per page
+     * @return List<Subject>
+     */
+    public List<Subject> getSubjectsByPage(int page, int range) {
+        List<Subject> list = new ArrayList<>();
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
+                            " (SELECT * FROM LAB3_ROZGHON_SUBJECT ORDER BY SUBJECT_ID) p)" +
+                            " WHERE rn BETWEEN ? AND ?");
+            preparedStatement.setInt(1, (page - 1)*range + 1);
+            preparedStatement.setInt(2, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseSubject(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    private void closeAll(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

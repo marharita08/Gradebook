@@ -18,3 +18,9 @@ td, th {
     padding: 4px;
     border: solid black 1px;
 }
+button {
+    margin: 5px;
+}
+.dates{
+    writing-mode: vertical-rl;
+}

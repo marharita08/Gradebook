@@ -38,9 +38,23 @@ public interface LessonDAO {
 
     /**
      * Read lesson from database by class and subject.
-     * @param classID class id
-     * @param subjectID subject id
+     * @param id subject details id
      * @return List<Lesson>
      */
-    List<Lesson> getLessonsByPupilClassAndSubject(int classID, int subjectID);
+    List<Lesson> getLessonsBySubjectDetails(int id);
+
+    /**
+     * Get total count of lessons from database.
+     * @return int
+     */
+    int getCountOfLessons();
+
+    /**
+     * Get lesson list for page.
+     * @param page number of page
+     * @param range amount of lessons per page
+     * @param id subject details id
+     * @return List<Lesson>
+     */
+    List<Lesson> getLessonsBySubjectDetailsAndPage(int id, int page, int range);
 }

@@ -8,15 +8,14 @@
 <body>
 <h2>Menu: </h2>
 <ul>
-    <li><a href="./viewAllTeachers">View all teachers</a></li>
-    <li><a href="./viewAllClasses">View all classes</a></li>
-    <li><a href="./viewAllPupils">View all pupils</a></li>
-    <li><a href="./viewAllSubjects">View all subject</a></li>
-    <li><a href="./viewAllSubjectDetails">View all subject details</a></li>
-    <li><a href="./viewAllLessons">View all lessons</a></li>
-    <li><a href="./showClassList">View class list</a></li>
-    <li><a href="./showAllTeachers">View teachers list</a></li>
-    <li><a href="./showAllSubjects">View subject list</a></li>
+    <li><a href="./viewAllTeachers?page=1">View all teachers</a></li>
+    <li><a href="./viewAllClasses?page=1">View all classes</a></li>
+    <li><a href="./viewAllPupils?page=1">View all pupils</a></li>
+    <li><a href="./viewAllSubjects?page=1">View all subjects</a></li>
+    <li><a href="./viewAllSubjectDetails?page=1">View all subject details</a></li>
+    <li><a href="./showClassList?page=1">View class list</a></li>
+    <li><a href="./showAllTeachers?page=1">View teachers list</a></li>
+    <li><a href="./showAllSubjects?page=1">View subject list</a></li>
 </ul>
 </body>
 </html>

@@ -1,11 +1,6 @@
 <%@ page import="org.example.entities.PupilClass" %>
-<%@ page import="java.util.List" %><%--
-  Created by IntelliJ IDEA.
-  User: PC
-  Date: 26.04.2021
-  Time: 17:28
-  To change this template use File | Settings | File Templates.
---%>
+<%@ page import="java.util.List" %>
+<%@ page import="org.example.controllers.PaginationController" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -16,7 +11,15 @@
 </head>
 <body>
     <h2><%=request.getAttribute("header")%></h2>
-    <table>
+    <ul class="pagination"><%=request.getAttribute("pagination")%></ul>
+    <table id="myTable">
+        <tr>
+            <th><input type="text" id="class" onkeyup="filter(id, 0)" class="filters"></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
     <% for (PupilClass pupilClass:(List<PupilClass>)request.getAttribute("list")) { %>
         <tr>
             <td><%=pupilClass.getName()%></td>
@@ -31,4 +34,7 @@
     <button onclick='location.href="/Gradebook/index.jsp"'>Menu</button>
     <button onclick='history.back()'>Back</button>
 </body>
+<script>
+    <%@include file="../js/filterAndSort.js"%>
+</script>
 </html>

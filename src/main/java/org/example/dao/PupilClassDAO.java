@@ -41,4 +41,18 @@ public interface PupilClassDAO {
      * @return List<PupilClass>
      */
     List<PupilClass> getPupilClassesBySubject(int id);
+
+    /**
+     * Get total count of classes from database.
+     * @return int
+     */
+    int getCountOfPupilClasses();
+
+    /**
+     * Get class list for page.
+     * @param page number of page
+     * @param range amount of teachers per page
+     * @return List<PupilClass>
+     */
+    List<PupilClass> getPupilClassesByPage(int page, int range);
 }

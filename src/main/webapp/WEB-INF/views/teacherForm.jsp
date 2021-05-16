@@ -1,11 +1,5 @@
 <%@ page import="org.example.entities.Teacher" %>
-<%@ page import="java.util.List" %><%--
-  Created by IntelliJ IDEA.
-  User: PC
-  Date: 13.04.2021
-  Time: 17:16
-  To change this template use File | Settings | File Templates.
---%>
+<%@ page import="java.util.List" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>

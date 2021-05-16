@@ -55,8 +55,17 @@ public interface SubjectDetailsDAO {
     List<SubjectDetails> getSubjectDetailsBySubject(int id);
 
     /**
-     * Read subject details by subject and class database and put them into list.
+     * Get total count of subject details from database.
+     * @return int
+     */
+    int getCountOfSubjectDetails();
+
+    /**
+     * Get subject details list for page.
+     * @param page number of page
+     * @param range amount of subject details per page
      * @return List<SubjectDetails>
      */
-    SubjectDetails getSubjectDetailsBySubjectAndPupilClass(int subjectID, int classID);
+    List<SubjectDetails> getSubjectDetailsByPage(int page, int range);
+
 }

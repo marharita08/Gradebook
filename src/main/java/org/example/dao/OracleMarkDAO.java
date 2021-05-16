@@ -1,8 +1,6 @@
 package org.example.dao;
 
-import org.example.entities.Pupil;
-import org.example.entities.PupilClass;
-import org.example.entities.SubjectDetails;
+import org.example.entities.Mark;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
@@ -10,30 +8,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class OraclePupilDAO implements PupilDAO {
+public class OracleMarkDAO implements MarkDAO {
     Connection connection;
     ResultSet resultSet;
     PreparedStatement preparedStatement;
-    OraclePupilClassDAO pupilClassDAO;
+    OracleLessonDAO lessonDAO;
+    OraclePupilDAO pupilDAO;
 
-    public OraclePupilDAO(OraclePupilClassDAO pupilClassDAO) {
-        this.pupilClassDAO = pupilClassDAO;
+    public OracleMarkDAO(OracleLessonDAO lessonDAO, OraclePupilDAO pupilDAO) {
+        this.lessonDAO = lessonDAO;
+        this.pupilDAO = pupilDAO;
     }
 
     /**
-     * Read all pupils from database and put them into list.
-     * @return List<Pupil>
+     * Read all marks from database and put them into list.
+     * @return List<Mark>
      */
     @Override
-    public List<Pupil> getAllPupils() {
+    public List<Mark> getAllMarks() {
         connection = ConnectionPool.getInstance().getConnection();
-        List<Pupil> list = new ArrayList<>();
+        List<Mark> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_PUPILS");
+                    "SELECT * FROM LAB3_ROZGHON_MARK");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                list.add(parsePupil(resultSet));
+                list.add(parseMark(resultSet));
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -43,143 +43,128 @@ public class OraclePupilDAO implements PupilDAO {
         return list;
     }
 
-    private Pupil parsePupil(ResultSet resultSet) {
-        Pupil pupil = null;
+    private Mark parseMark(ResultSet resultSet) {
+        Mark mark = null;
         try {
-            int id = resultSet.getInt("Pupil_ID");
-            int classID = resultSet.getInt("class_id");
-            String name = resultSet.getString("NAME");
-            if (classID == 0) {
-                pupil = new Pupil(id, name, null);
-            } else {
-                PupilClass pupilClass = pupilClassDAO.getPupilClass(classID);
-                pupil = new Pupil(id, name, pupilClass);
-            }
+            int id = resultSet.getInt("mark_ID");
+            int lessonID = resultSet.getInt("lesson_id");
+            int pupilID = resultSet.getInt("pupil_id");
+            int markInt = resultSet.getInt("mark");
+            mark = new Mark(id, pupilDAO.getPupil(pupilID), lessonDAO.getLesson(lessonID), markInt);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-        return pupil;
+        return mark;
     }
 
     /**
-     * Read pupil from database by id.
-     * @param id pupil id
-     * @return Pupil
+     * Read mark from database by id.
+     * @param id mark id
+     * @return Mark
      */
     @Override
-    public Pupil getPupil(int id) {
+    public Mark getMark(int id) {
         connection = ConnectionPool.getInstance().getConnection();
-        Pupil pupil = null;
+        Mark mark = null;
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_PUPILS"
-                            + " where PUPIL_ID=?");
+                    "SELECT * FROM LAB3_ROZGHON_MARK"
+                            + " where MARK_ID = ?");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                pupil = parsePupil(resultSet);
+                mark = parseMark(resultSet);
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-        } finally {
+        }finally {
             closeAll(resultSet, preparedStatement, connection);
         }
-        return pupil;
+        return mark;
     }
 
     /**
-     * Insert new pupil into database.
-     * @param pupil adding pupil
+     * Insert new mark into database.
+     * @param mark adding mark
      */
     @Override
-    public void addPupil(Pupil pupil) {
+    public void addMark(Mark mark) {
         connection = ConnectionPool.getInstance().getConnection();
-        String sql = "Insert into LAB3_ROZGHON_PUPILS "
-                + "values (LAB3_ROZGHON_PUPILS_SEQ.nextval, ?, ?)";
+        String sql = "Insert into LAB3_ROZGHON_MARK "
+                + "values (LAB3_ROZGHON_MARK_SEQ.nextval, ?, ?, ?)";
         try {
             preparedStatement = connection.prepareStatement(sql);
-            if (pupil.getPupilClass().getId() != 0) {
-                preparedStatement.setInt(1, pupil.getPupilClass().getId());
-            } else {
-                preparedStatement.setNull(1, Types.INTEGER);
-            }
-            preparedStatement.setString(2, pupil.getName());
+            preparedStatement.setInt(1, mark.getPupil().getId());
+            preparedStatement.setInt(2, mark.getLesson().getId());
+            preparedStatement.setInt(3, mark.getMark());
             preparedStatement.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-        } finally {
+        }finally {
             closeAll(resultSet, preparedStatement, connection);
         }
     }
 
     /**
-     * Update class data into database.
-     * @param pupil editing pupil
+     * Update mark data into database.
+     * @param mark editing mark
      */
     @Override
-    public void updatePupil(Pupil pupil) {
+    public void updateMark(Mark mark) {
         connection = ConnectionPool.getInstance().getConnection();
-        String sql = "UPDATE LAB3_ROZGHON_PUPILS "
-                + "set CLASS_ID = ?, NAME = ? where PUPIL_ID = ?";
+        String sql = "UPDATE LAB3_ROZGHON_MARK "
+                + "set PUPIL_ID = ?, LESSON_ID = ?, MARK = ? where MARK_ID = ?";
         try {
             preparedStatement = connection.prepareStatement(sql);
-            if (pupil.getPupilClass().getId() != 0) {
-                preparedStatement.setInt(1, pupil.getPupilClass().getId());
-            } else {
-                preparedStatement.setNull(1, Types.INTEGER);
-            }
-            preparedStatement.setString(2, pupil.getName());
-            preparedStatement.setInt(3, pupil.getId());
+            preparedStatement.setInt(1, mark.getPupil().getId());
+            preparedStatement.setInt(2, mark.getLesson().getId());
+            preparedStatement.setInt(3, mark.getMark());
+            preparedStatement.setInt(4, mark.getId());
             preparedStatement.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-        } finally {
+        }finally {
             closeAll(resultSet, preparedStatement, connection);
         }
     }
 
     /**
-     * Delete pupil from database.
-     * @param id pupil id
+     * Delete mark from database.
+     * @param id mark id
      */
     @Override
-    public void deletePupil(int id) {
+    public void deleteMark(int id) {
         connection = ConnectionPool.getInstance().getConnection();
         String sql = "Delete from LAB3_ROZGHON_MARK "
-                + "where PUPIL_ID = ?";
+                + "where MARK_ID = ?";
         try {
-            preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-            sql = "Delete from LAB3_ROZGHON_PUPILS "
-                    + "where PUPIL_ID = ?";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-        } finally {
+        }finally {
             closeAll(resultSet, preparedStatement, connection);
         }
     }
 
     /**
-     * Get list of pupils who study in set class.
-     * @param id class id
-     * @return List<Pupil>
+     * Get marks for pupil with set id.
+     * @param id pupil id
+     * @return List<Mark>
      */
     @Override
-    public List<Pupil> getPupilsByPupilClass(int id) {
+    public List<Mark> getMarksByPupil(int id) {
         connection = ConnectionPool.getInstance().getConnection();
-        List<Pupil> list = new ArrayList<>();
+        List<Mark> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_PUPILS " +
-                            "where CLASS_ID = ? order by NAME");
+                    "SELECT * FROM LAB3_ROZGHON_MARK"
+                            + " where PUPIL_ID = ?");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                list.add(parsePupil(resultSet));
+                list.add(parseMark(resultSet));
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -190,46 +175,50 @@ public class OraclePupilDAO implements PupilDAO {
     }
 
     /**
-     * Get total count of pupils from database.
-     * @return int
+     * Get marks for lesson with set id.
+     * @param id lesson id
+     * @return List<Mark>
      */
-    public int getCountOfPupils() {
+    @Override
+    public List<Mark> getMarksByLesson(int id) {
         connection = ConnectionPool.getInstance().getConnection();
-        int count = 0;
-        String sql = "select count(PUPIL_ID) as AMOUNT " +
-                "from LAB3_ROZGHON_PUPILS ";
+        List<Mark> list = new ArrayList<>();
         try {
-            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM LAB3_ROZGHON_MARK"
+                            + " where LESSON_ID = ?");
+            preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
-            resultSet.next();
-            count = resultSet.getInt("AMOUNT");
+            while (resultSet.next()) {
+                list.add(parseMark(resultSet));
+            }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
-        return count;
+        return list;
     }
 
     /**
-     * Get pupil list for page.
-     * @param page number of page
-     * @param range amount of teachers per page
-     * @return List<Pupil>
+     * Get marks for subject details.
+     * @param id subject details id
+     * @return List<Mark>
      */
-    public List<Pupil> getPupilsByPage(int page, int range) {
-        List<Pupil> list = new ArrayList<>();
+    @Override
+    public List<Mark> getMarksBySubjectDetails(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        List<Mark> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-                            " (SELECT * FROM LAB3_ROZGHON_PUPILS ORDER BY PUPIL_ID) p)" +
-                            " WHERE rn BETWEEN ? AND ?");
-            preparedStatement.setInt(1, (page - 1)*range + 1);
-            preparedStatement.setInt(2, page*range);
+                    "SELECT * FROM LAB3_ROZGHON_MARK"
+                            + " where LESSON_ID in (" +
+                            "select LESSON_ID from LAB3_ROZGHON_LESSON" +
+                            " where SUBJECT_DETAILS_ID = ?)");
+            preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                list.add(parsePupil(resultSet));
+                list.add(parseMark(resultSet));
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();

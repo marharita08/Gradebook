@@ -1,11 +1,6 @@
 <%@ page import="java.util.List" %>
-<%@ page import="org.example.entities.Subject" %><%--
-  Created by IntelliJ IDEA.
-  User: PC
-  Date: 26.04.2021
-  Time: 17:43
-  To change this template use File | Settings | File Templates.
---%>
+<%@ page import="org.example.entities.Subject" %>
+<%@ page import="org.example.controllers.PaginationController" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -16,7 +11,18 @@
 </head>
 <body>
 <h2><%=request.getAttribute("header")%></h2>
-<table>
+<ul class="pagination"><%=request.getAttribute("pagination")%></ul>
+<table id="myTable">
+    <tr>
+        <th><input type="text" id="subject" onkeyup="filter(id, 0)" class="filters"></th>
+        <% if(request.getAttribute("param") == "class") {%>
+        <th></th>
+        <%}%>
+        <th></th>
+        <th></th>
+        <th></th>
+    </tr>
+
     <% for (Subject subject:(List<Subject>)request.getAttribute("list")) { %>
     <tr>
         <td>
@@ -24,7 +30,7 @@
         </td>
         <% if(request.getAttribute("param") == "class") {%>
         <td>
-            <a href="/Gradebook/viewLessonsByPupilClassAndSubject/<%=request.getAttribute("id")%>/<%=subject.getId()%>">
+            <a href="/Gradebook/viewLessonsByPupilClassAndSubject?page=1/<%=request.getAttribute("id")%>/<%=subject.getId()%>">
                 view lessons</a>
         </td>
         <%}%>
@@ -47,4 +53,7 @@
 <button onclick='location.href="/Gradebook/index.jsp"'>Menu</button>
 <button onclick=history.back()>Back</button>
 </body>
+<script>
+    <%@include file="../js/filterAndSort.js"%>
+</script>
 </html>

@@ -28,9 +28,10 @@ public class OracleTeacherDAO implements TeacherDAO  {
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
@@ -61,8 +62,8 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public Teacher getTeacher(int id) {
         Teacher teacher = null;
-        PreparedStatement preparedStatement;
-        ResultSet resultSet;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
         Connection connection = ConnectionPool.getInstance().getConnection();
         try {
             preparedStatement = connection.prepareStatement(
@@ -73,9 +74,10 @@ public class OracleTeacherDAO implements TeacherDAO  {
             if (resultSet.next()) {
                 teacher = parseTeacher(resultSet);
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return teacher;
     }
@@ -99,9 +101,10 @@ public class OracleTeacherDAO implements TeacherDAO  {
                 preparedStatement.setNull(3, Types.INTEGER);
             }
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -125,9 +128,10 @@ public class OracleTeacherDAO implements TeacherDAO  {
             }
             preparedStatement.setInt(4, teacher.getId());
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -145,28 +149,21 @@ public class OracleTeacherDAO implements TeacherDAO  {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        sql = "update LAB3_ROZGHON_SUBJECT_DETAILS " +
+            sql = "update LAB3_ROZGHON_SUBJECT_DETAILS " +
                 "set TEACHER_ID = null " +
                 "where TEACHER_ID = ?";
-        try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        sql = "Delete from LAB3_ROZGHON_TEACHER "
+            sql = "Delete from LAB3_ROZGHON_TEACHER "
                   + "where teacher_id = ?";
-        try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
     }
 
@@ -191,9 +188,10 @@ public class OracleTeacherDAO implements TeacherDAO  {
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
@@ -218,9 +216,10 @@ public class OracleTeacherDAO implements TeacherDAO  {
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
@@ -245,11 +244,85 @@ public class OracleTeacherDAO implements TeacherDAO  {
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
-            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
 
+    /**
+     * Get total count of teachers from database.
+     * @return int
+     */
+    public int getCountOfTeachers() {
+        connection = ConnectionPool.getInstance().getConnection();
+        int count = 0;
+        String sql = "select count(TEACHER_ID) as AMOUNT " +
+                "from LAB3_ROZGHON_TEACHER ";
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            resultSet = preparedStatement.executeQuery();
+            resultSet.next();
+            count = resultSet.getInt("AMOUNT");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return count;
+    }
+
+    /**
+     * Get teacher list for page.
+     * @param page number of page
+     * @param range amount of teachers per page
+     * @return List<Teacher>
+     */
+    public List<Teacher> getTeachersByPage(int page, int range) {
+        List<Teacher> list = new ArrayList<>();
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(
+                    "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
+                            " (SELECT * FROM LAB3_ROZGHON_TEACHER ORDER BY TEACHER_ID) p)" +
+                            " WHERE rn BETWEEN ? AND ?");
+            preparedStatement.setInt(1, (page - 1)*range + 1);
+            preparedStatement.setInt(2, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseTeacher(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    private void closeAll(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+        if (resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

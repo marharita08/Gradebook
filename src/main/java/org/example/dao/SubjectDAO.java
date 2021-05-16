@@ -49,4 +49,18 @@ public interface SubjectDAO {
      * @return List<Subject>
      */
     List<Subject> getSubjectByTeacher(int id);
+
+    /**
+     * Get total count of subject from database.
+     * @return int
+     */
+    int getCountOfSubjects();
+
+    /**
+     * Get subject list for page.
+     * @param page number of page
+     * @param range amount of teachers per page
+     * @return List<Subject>
+     */
+    List<Subject> getSubjectsByPage(int page, int range);
 }

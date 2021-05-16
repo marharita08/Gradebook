@@ -1,11 +1,6 @@
 <%@ page import="org.example.entities.Pupil" %>
-<%@ page import="java.util.List" %><%--
-  Created by IntelliJ IDEA.
-  User: PC
-  Date: 26.04.2021
-  Time: 17:43
-  To change this template use File | Settings | File Templates.
---%>
+<%@ page import="java.util.List" %>
+<%@ page import="org.example.entities.PupilClass" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -15,14 +10,26 @@
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
-    <h2>Pupils of <%=request.getAttribute("class")%> form</h2>
-    <table>
+    <h2>Pupils of <%=((PupilClass)request.getAttribute("class")).getName()%> form</h2>
+    <ul class="pagination"><%=request.getAttribute("pagination")%></ul>
+    <table id="myTable">
+        <tr>
+            <th><input type="text" id="pupil" onkeyup="filter(id, 0)" class="filters"></th>
+            <th></th>
+        </tr>
     <% for (Pupil pupil:(List<Pupil>)request.getAttribute("list")) { %>
-        <tr><td><%=pupil.getName()%></td></tr>
+        <tr>
+            <td><%=pupil.getName()%></td>
+            <td><a href="/Gradebook/viewMarksByPupil/<%=pupil.getId()%>">view marks</a></td>
+        </tr>
     <% } %>
     </table>
     <br/>
-    <button onclick='location.href="../index.jsp"'>Menu</button>
+    <button onclick='location.href="/Gradebook/index.jsp"'>Menu</button>
     <button onclick='history.back()'>Back</button>
+    <button onclick='location.href="/Gradebook/addPupil/<%=((PupilClass)request.getAttribute("class")).getId()%>"'>Add pupil</button>
 </body>
+<script>
+    <%@include file="../js/filterAndSort.js"%>
+</script>
 </html>

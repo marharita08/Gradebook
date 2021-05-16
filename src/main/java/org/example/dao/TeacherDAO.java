@@ -57,4 +57,17 @@ public interface TeacherDAO {
      */
     List<Teacher> getTeachersBySubject(int id);
 
+    /**
+     * Get total count of teachers from database.
+     * @return int
+     */
+    int getCountOfTeachers();
+
+    /**
+     * Get teacher list for page.
+     * @param page number of page
+     * @param range amount of teachers per page
+     * @return List<Teacher>
+     */
+    List<Teacher> getTeachersByPage(int page, int range);
 }

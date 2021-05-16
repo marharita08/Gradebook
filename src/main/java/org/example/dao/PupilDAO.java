@@ -42,4 +42,18 @@ public interface PupilDAO {
      * @return List<Pupil>
      */
     List<Pupil> getPupilsByPupilClass(int id);
+
+    /**
+     * Get total count of pupils from database.
+     * @return int
+     */
+    int getCountOfPupils();
+
+    /**
+     * Get pupil list for page.
+     * @param page number of page
+     * @param range amount of teachers per page
+     * @return List<Pupil>
+     */
+    List<Pupil> getPupilsByPage(int page, int range);
 }

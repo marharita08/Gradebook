@@ -4,10 +4,7 @@ import org.example.dao.*;
 import org.example.entities.Lesson;
 import org.example.entities.SubjectDetails;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
@@ -18,36 +15,11 @@ import java.util.Map;
 public class LessonController {
     private OracleLessonDAO dao;
     private OracleSubjectDetailsDAO subjectDetailsDAO;
+    private int lessonsPerPage = 20;
 
     public LessonController(OracleLessonDAO dao, OracleSubjectDetailsDAO subjectDetailsDAO) {
         this.dao = dao;
         this.subjectDetailsDAO = subjectDetailsDAO;
-    }
-
-    /**
-     * Getting page to view all lessons list.
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/viewAllLessons")
-    public ModelAndView viewAllPupils() {
-        List<Lesson> list = dao.getAllLessons();
-        return new ModelAndView("viewLessonList", "list", list);
-    }
-
-    /**
-     * Getting page for lesson adding.
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/addLesson")
-    public ModelAndView addLesson() {
-        Map<String, Object> model = new HashMap<>();
-        model.put("command", new Lesson());
-        model.put("list", subjectDetailsDAO.getAllSubjectDetails());
-        model.put("selectedSubjectDetails", 0);
-        model.put("title", "Add lesson");
-        model.put("formAction", "saveAddedLesson");
-        model.put("param", "unset");
-        return new ModelAndView("lessonForm", model);
     }
 
     /**
@@ -57,23 +29,25 @@ public class LessonController {
     @RequestMapping(value = "/addLesson/{id}")
     public ModelAndView addLesson(@PathVariable int id) {
         Map<String, Object> model = new HashMap<>();
-        model.put("command", new Lesson());
-        model.put("list", subjectDetailsDAO.getAllSubjectDetails());
-        model.put("selectedSubjectDetails", id);
+        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
+        model.put("command", new Lesson(subjectDetails));
+        model.put("teacher", subjectDetails.getTeacher().getName());
+        model.put("subject", subjectDetails.getSubject().getName());
+        model.put("class", subjectDetails.getPupilClass().getName());
         model.put("title", "Add lesson");
-        model.put("formAction", "saveAddedLesson");
+        model.put("formAction", "/Gradebook/saveAddedLesson");
         return new ModelAndView("lessonForm", model);
     }
 
     /**
      * Saving added lesson.
-     * @param lesson added class
+     * @param lesson added lesson
      * @return ModelAndView
      */
     @RequestMapping(value = "/saveAddedLesson", method = RequestMethod.POST)
     public ModelAndView saveAddedLesson(@ModelAttribute Lesson lesson) {
         dao.addLesson(lesson);
-        return new ModelAndView("redirect:/viewAllLessons");
+        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + lesson.getSubjectDetails().getId());
     }
 
     /**
@@ -85,12 +59,13 @@ public class LessonController {
     public ModelAndView editLesson(@PathVariable int id) {
         Map<String, Object> model = new HashMap<>();
         Lesson lesson = dao.getLesson(id);
+        SubjectDetails subjectDetails = lesson.getSubjectDetails();
         model.put("command", lesson);
-        model.put("selectedSubjectDetails", lesson.getSubjectDetails().getId());
-        model.put("list", subjectDetailsDAO.getAllSubjectDetails());
+        model.put("teacher", subjectDetails.getTeacher().getName());
+        model.put("subject", subjectDetails.getSubject().getName());
+        model.put("class", subjectDetails.getPupilClass().getName());
         model.put("title", "Edit lesson");
-        model.put("formAction", "../saveEditedLesson");
-        model.put("param", "unset");
+        model.put("formAction", "/Gradebook/saveEditedLesson");
         return new ModelAndView("lessonForm", model);
     }
 
@@ -102,7 +77,8 @@ public class LessonController {
     @RequestMapping(value = "/saveEditedLesson", method = RequestMethod.POST)
     public ModelAndView saveEditedLesson(@ModelAttribute Lesson lesson) {
         dao.updateLesson(lesson);
-        return new ModelAndView("redirect:/viewAllLessons");
+        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(lesson.getSubjectDetails().getId());
+        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + lesson.getSubjectDetails().getId());
     }
 
     /**
@@ -112,29 +88,37 @@ public class LessonController {
      */
     @RequestMapping(value = "/deleteLesson/{id}")
     public ModelAndView deleteLesson(@PathVariable int id) {
+        SubjectDetails subjectDetails = dao.getLesson(id).getSubjectDetails();
         dao.deleteLesson(id);
-        return new ModelAndView("redirect:/viewAllLessons");
+        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + subjectDetails.getId());
     }
 
     /**
-     * View lessons by class and subject
-     * @param classID class id
-     * @param subjectID subject id
+     * View lessons by subject details
+     * @param id subject details id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewLessonsByPupilClassAndSubject/{classID}/{subjectID}")
-    public ModelAndView viewLessonsByPupilClassAndSubject(@PathVariable int classID,
-                                                          @PathVariable int subjectID) {
-        List<Lesson> list = dao.getLessonsByPupilClassAndSubject(classID, subjectID);
+    @RequestMapping(value = "/viewLessonsBySubjectDetails/{id}")
+    public ModelAndView viewLessonsBySubjectDetails(@PathVariable int id, @RequestParam("page") int page) {
+        List<Lesson> list;
         Map<String, Object> model = new HashMap<>();
+        int count = dao.getCountOfLessons();
+        if (count <= lessonsPerPage) {
+            list = dao.getLessonsBySubjectDetails(id);
+        } else {
+            list = dao.getLessonsBySubjectDetailsAndPage(id, page, lessonsPerPage);
+        }
         model.put("list", list);
-        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetailsBySubjectAndPupilClass(subjectID, classID);
+        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
         model.put("header", "Lessons of "
                     + subjectDetails.getSubject().getName()
                     + " " + subjectDetails.getPupilClass().getName());
         if (subjectDetails.getTeacher() != null) {
             model.put("teacher", "Teacher: " + subjectDetails.getTeacher().getName());
         }
+        model.put("subjectDetails", subjectDetails.getId());
+        PaginationController paginationController = new PaginationController(count, lessonsPerPage, page);
+        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewLessonsBySubjectDetails/" + subjectDetails.getId()));
         return new ModelAndView("lessonList", model);
     }
 }

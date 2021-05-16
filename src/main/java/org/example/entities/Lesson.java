@@ -20,6 +20,10 @@ public class Lesson {
     public Lesson() {
     }
 
+    public Lesson(SubjectDetails subjectDetails) {
+        this.subjectDetails = subjectDetails;
+    }
+
     public int getId() {
         return id;
     }

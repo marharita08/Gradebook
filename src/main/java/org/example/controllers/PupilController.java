@@ -4,10 +4,7 @@ import org.example.dao.OraclePupilClassDAO;
 import org.example.dao.OraclePupilDAO;
 import org.example.entities.Pupil;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
@@ -16,8 +13,9 @@ import java.util.Map;
 
 @Controller
 public class PupilController {
-    OraclePupilDAO dao;
-    OraclePupilClassDAO classDAO;
+    private OraclePupilDAO dao;
+    private OraclePupilClassDAO classDAO;
+    private int pupilPerPage = 15;
 
     public PupilController(OraclePupilDAO dao, OraclePupilClassDAO classDAO) {
         this.dao = dao;
@@ -29,9 +27,19 @@ public class PupilController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/viewAllPupils")
-    public ModelAndView viewAllPupils() {
-        List<Pupil> list = dao.getAllPupils();
-        return new ModelAndView("viewPupilList", "list", list);
+    public ModelAndView viewAllPupils(@RequestParam("page") int page) {
+        Map<String, Object> model = new HashMap<>();
+        int count = dao.getCountOfPupils();
+        PaginationController paginationController = new PaginationController(count, pupilPerPage, page);
+        List<Pupil> list;
+        if(count <= pupilPerPage) {
+            list = dao.getAllPupils();
+        } else {
+            list = dao.getPupilsByPage(page, pupilPerPage);
+        }
+        model.put("list", list);
+        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllPupils"));
+        return new ModelAndView("viewPupilList", model);
     }
 
     /**
@@ -46,6 +54,21 @@ public class PupilController {
         model.put("selectedClass", 0);
         model.put("title", "Add pupil");
         model.put("formAction", "saveAddedPupil");
+        return new ModelAndView("pupilForm", model);
+    }
+
+    /**
+     * Getting page for pupil adding.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/addPupil/{id}")
+    public ModelAndView addPupil(@PathVariable int id) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("command", new Pupil());
+        model.put("list", classDAO.getAllPupilClasses());
+        model.put("selectedClass", id);
+        model.put("title", "Add pupil");
+        model.put("formAction", "/Gradebook/saveAddedPupil");
         return new ModelAndView("pupilForm", model);
     }
 
@@ -77,7 +100,7 @@ public class PupilController {
         }
         model.put("list", classDAO.getAllPupilClasses());
         model.put("title", "Edit pupil");
-        model.put("formAction", "../saveEditedPupil");
+        model.put("formAction", "/Gradebook/saveEditedPupil");
         return new ModelAndView("pupilForm", model);
     }
 
@@ -111,8 +134,9 @@ public class PupilController {
     @RequestMapping(value = "viewPupilsByPupilClass/{id}")
     public ModelAndView viewPupilsByPupilClass(@PathVariable int id) {
         Map<String, Object> model = new HashMap<>();
-        model.put("class", classDAO.getPupilClass(id).getName());
+        model.put("class", classDAO.getPupilClass(id));
         model.put("list", dao.getPupilsByPupilClass(id));
+        model.put("pagination", "");
         return new ModelAndView("classPupilList", model);
     }
 }

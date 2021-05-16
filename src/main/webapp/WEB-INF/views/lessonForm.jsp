@@ -1,12 +1,3 @@
-<%@ page import="java.util.List" %>
-<%@ page import="org.example.entities.PupilClass" %>
-<%@ page import="org.example.entities.SubjectDetails" %><%--
-  Created by IntelliJ IDEA.
-  User: PC
-  Date: 13.04.2021
-  Time: 17:16
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -20,21 +11,17 @@
 <body>
 <h2 align="center"><%=request.getAttribute("title")%></h2>
 <div align="center">
+    <p>Subject:<%=request.getAttribute("subject")%></p>
+    <p>Teacher:<%=request.getAttribute("teacher")%></p>
+    <p>Class:<%=request.getAttribute("class")%></p>
     <form:form>
         <br/>
-        Subject:
-        <form:select path="subjectDetails.id">
-            <% for (SubjectDetails subjectDetails:(List<SubjectDetails>)request.getAttribute("list")) { %>
-            <option value="<%=subjectDetails.getId()%>" <%=(int)request.getAttribute("selectedSubjectDetails") == subjectDetails.getId() ? "selected='selected'":""%>>
-                <%=subjectDetails.getPupilClass().getName() + " " + subjectDetails.getSubject().getName() + " " + subjectDetails.getTeacher().getName() %>
-            </option>
-            <% } %>
-        </form:select><br/><br/>
         Date:
         <form:input type="date" path="date" required="true"/><br/><br/>
         Topic:
         <form:input path="topic" required="true"/><br/><br/>
         <form:input path="id" type="hidden"/>
+        <form:input path="subjectDetails.id" type="hidden"/>
         <button onclick="history.back()" type="button">Cancel</button>
         <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>">Save</button><br/><br/>
     </form:form>

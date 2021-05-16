@@ -5,10 +5,7 @@ import org.example.dao.OracleSubjectDAO;
 import org.example.dao.OracleTeacherDAO;
 import org.example.entities.Teacher;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
@@ -21,6 +18,7 @@ public class TeacherController {
     private OracleTeacherDAO dao;
     private OraclePupilClassDAO pupilClassDAO;
     private OracleSubjectDAO subjectDAO;
+    private int teachersPerPage = 15;
 
     public TeacherController(OracleTeacherDAO dao,
                              OraclePupilClassDAO pupilClassDAO,
@@ -35,9 +33,19 @@ public class TeacherController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/viewAllTeachers")
-    public ModelAndView viewAllTeachers() {
-        List<Teacher> list = dao.getAllTeachers();
-        return new ModelAndView("viewTeacherList", "list", list);
+    public ModelAndView viewAllTeachers(@RequestParam("page") int page) {
+        Map<String, Object> model = new HashMap<>();
+        int count = dao.getCountOfTeachers();
+        PaginationController paginationController = new PaginationController(count, teachersPerPage, page);
+        List<Teacher> list;
+        if(count <= teachersPerPage) {
+            list = dao.getAllTeachers();
+        } else {
+            list = dao.getTeachersByPage(page, teachersPerPage);
+        }
+        model.put("list", list);
+        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllTeachers"));
+        return new ModelAndView("viewTeacherList", model);
     }
 
     /**
@@ -45,9 +53,18 @@ public class TeacherController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/showAllTeachers")
-    public ModelAndView showAllTeachers() {
+    public ModelAndView showAllTeachers(@RequestParam("page") int page) {
         Map<String, Object> model = new HashMap<>();
-        model.put("list", dao.getAllTeachers());
+        int count = dao.getCountOfTeachers();
+        PaginationController paginationController = new PaginationController(count, teachersPerPage, page);
+        List<Teacher> list;
+        if(count <= teachersPerPage) {
+            list = dao.getAllTeachers();
+        } else {
+            list = dao.getTeachersByPage(page, teachersPerPage);
+        }
+        model.put("list", list);
+        model.put("pagination", paginationController.makePagingLinks("/Gradebook/showAllTeachers"));
         model.put("header", "All teachers");
         return new ModelAndView("teacherList", model);
     }
@@ -128,6 +145,7 @@ public class TeacherController {
         Map<String, Object> model = new HashMap<>();
         model.put("list", dao.getTeachersByPupilClass(id));
         model.put("header", "Teachers of " + pupilClassDAO.getPupilClass(id).getName());
+        model.put("pagination", "");
         return new ModelAndView("teacherList", model);
     }
 
@@ -140,6 +158,7 @@ public class TeacherController {
         Map<String, Object> model = new HashMap<>();
         model.put("list", dao.getTeachersBySubject(id));
         model.put("header", "Teachers who teach " + subjectDAO.getSubject(id).getName());
+        model.put("pagination", "");
         return new ModelAndView("teacherList", model);
     }
 }
