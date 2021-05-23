@@ -1,3 +1,4 @@
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ page import="org.example.entities.Pupil" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.PupilClass" %>
@@ -10,6 +11,7 @@
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
+<%@include file="header.jsp"%>
     <h2>Pupils of <%=((PupilClass)request.getAttribute("class")).getName()%> form</h2>
     <ul class="pagination"><%=request.getAttribute("pagination")%></ul>
     <table id="myTable">
@@ -25,9 +27,12 @@
     <% } %>
     </table>
     <br/>
-    <button onclick='location.href="/Gradebook/index.jsp"'>Menu</button>
+    <button onclick='location.href="/Gradebook/"'>Menu</button>
     <button onclick='history.back()'>Back</button>
+    <sec:authorize access="hasAuthority('ADMIN')">
     <button onclick='location.href="/Gradebook/addPupil/<%=((PupilClass)request.getAttribute("class")).getId()%>"'>Add pupil</button>
+    </sec:authorize>
+<%@include file="footer.jsp"%>
 </body>
 <script>
     <%@include file="../js/filterAndSort.js"%>

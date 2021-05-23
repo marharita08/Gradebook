@@ -1,6 +1,5 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.Teacher" %>
-<%@ page import="org.example.controllers.PaginationController" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -10,6 +9,7 @@
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
+<%@include file="header.jsp"%>
 <h2><%=request.getAttribute("header")%></h2>
 <ul class="pagination"><%=request.getAttribute("pagination")%></ul>
 <table id="myTable">
@@ -27,8 +27,9 @@
     <% } %>
 </table>
 <br/>
-<button onclick='location.href="/Gradebook/index.jsp"'>Menu</button>
+<button onclick='location.href="/Gradebook/"'>Menu</button>
 <button onclick='history.back()'>Back</button>
+<%@include file="footer.jsp"%>
 </body>
 <script>
     <%@include file="../js/filterAndSort.js"%>

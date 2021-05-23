@@ -11,6 +11,7 @@
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
+<%@include file="header.jsp"%>
 <h2><%=request.getAttribute("header")%></h2>
 <p>Subject:<%=request.getAttribute("subject")%></p>
 <p>Teacher:<%=request.getAttribute("teacher")%></p>
@@ -40,7 +41,8 @@
     <% } %>
 </table>
 <br/>
-<button onclick='location.href="/Gradebook/index.jsp"'>Menu</button>
+<button onclick='location.href="/Gradebook/"'>Menu</button>
 <button onclick=history.back()>Back</button>
+<%@include file="footer.jsp"%>
 </body>
 </html>

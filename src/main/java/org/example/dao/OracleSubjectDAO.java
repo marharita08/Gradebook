@@ -214,6 +214,7 @@ public class OracleSubjectDAO implements SubjectDAO {
      * Get total count of subject from database.
      * @return int
      */
+    @Override
     public int getCountOfSubjects() {
         connection = ConnectionPool.getInstance().getConnection();
         int count = 0;
@@ -238,6 +239,7 @@ public class OracleSubjectDAO implements SubjectDAO {
      * @param range amount of teachers per page
      * @return List<Subject>
      */
+    @Override
     public List<Subject> getSubjectsByPage(int page, int range) {
         List<Subject> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();

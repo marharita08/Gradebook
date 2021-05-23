@@ -11,6 +11,7 @@
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
+<%@include file="header.jsp"%>
     <h2 align="center"><%=request.getAttribute("title")%></h2>
     <div align="center">
         <form:form>
@@ -34,5 +35,6 @@
             <br/><br/>
         </form:form>
     </div>
+<%@include file="footer.jsp"%>
 </body>
 </html>

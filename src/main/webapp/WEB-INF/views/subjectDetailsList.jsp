@@ -1,3 +1,4 @@
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.SubjectDetails" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -9,6 +10,7 @@
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
+<%@include file="header.jsp"%>
 <%if(request.getAttribute("header") != null) {%>
 <h2><%=request.getAttribute("header")%></h2>
 <%}%>
@@ -17,14 +19,18 @@
         <th><%=request.getAttribute("tableHeader1")%></th>
         <th><%=request.getAttribute("tableHeader2")%></th>
         <th></th>
+        <sec:authorize access="hasAuthority('TEACHER')">
         <th></th>
+        </sec:authorize>
         <th></th>
     </tr>
     <tr>
         <th><input type="text" id="0" onkeyup="filter(id, 0)" class="filters"></th>
         <th><input type="text" id="1" onkeyup="filter(id, 1)" class="filters"></th>
         <th></th>
+        <sec:authorize access="hasAuthority('TEACHER')">
         <th></th>
+        </sec:authorize>
         <th></th>
     </tr>
     <% for (SubjectDetails subjectDetails:(List<SubjectDetails>)request.getAttribute("list")) { %>
@@ -39,14 +45,17 @@
             <td><%=subjectDetails.getTeacher().getName()%></td>
         <%}%>
         <td><a href="/Gradebook/viewLessonsBySubjectDetails/<%=subjectDetails.getId()%>?page=1">view lessons</a></td>
+        <sec:authorize access="hasAuthority('TEACHER')">
         <td><a href="/Gradebook/addLesson/<%=subjectDetails.getId()%>">add lesson</a></td>
+        </sec:authorize>
         <td><a href="/Gradebook/viewMarksBySubjectDetails/<%=subjectDetails.getId()%>">view marks</a></td>
     </tr>
     <% } %>
 </table>
 <br/>
-<button onclick='location.href="/Gradebook/index.jsp"'>Menu</button>
+<button onclick='location.href="/Gradebook/"'>Menu</button>
 <button onclick=history.back()>Back</button>
+<%@include file="footer.jsp"%>
 </body>
 <script>
     <%@include file="../js/filterAndSort.js"%>

@@ -1,6 +1,5 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.PupilClass" %>
-<%@ page import="org.example.controllers.PaginationController" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
@@ -11,6 +10,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <body>
+<%@include file="header.jsp"%>
 <h2 align="center">Class List: </h2>
 <div align="center">
     <select OnChange="sortTable(value)">
@@ -47,10 +47,10 @@
         <% } %>
     </table>
     <br/>
-    <button onclick='location.href="index.jsp"'>Menu</button>
+    <button onclick='location.href="/Gradebook/"'>Menu</button>
     <button onclick='location.href="addClass"'>Add</button>
 </div>
-
+<%@include file="footer.jsp"%>
 
 </body>
 <script>

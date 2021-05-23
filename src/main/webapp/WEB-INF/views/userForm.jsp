@@ -14,8 +14,12 @@
 <div align="center">
     <form:form>
         <br/>
-        Name:
-        <form:input path="name" required="true"/><br/><br/>
+        Username:
+        <form:input path="username" required="true"/><br/><br/>
+        Password:
+        <form:input path="password" required="true"/><br/><br/>
+
+        <br/><br/>
         <form:input path="id" type="hidden"/>
         <button onclick="history.back()" type="button">Cancel</button>
         <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>">Save</button><br/><br/>

@@ -1,3 +1,4 @@
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
 <head>
     <title>Welcome page</title>
@@ -6,17 +7,22 @@
     <style><%@include file="/WEB-INF/css/style.css"%></style>
 </head>
 <body>
+<%@include file="WEB-INF/views/header.jsp"%>
 <h2>Menu: </h2>
 <ul>
-    <li><a href="./viewAllTeachers?page=1">View all teachers</a></li>
-    <li><a href="./viewAllClasses?page=1">View all classes</a></li>
-    <li><a href="./viewAllPupils?page=1">View all pupils</a></li>
-    <li><a href="./viewAllSubjects?page=1">View all subjects</a></li>
-    <li><a href="./viewAllSubjectDetails?page=1">View all subject details</a></li>
-    <li><a href="./showClassList?page=1">View class list</a></li>
-    <li><a href="./showAllTeachers?page=1">View teachers list</a></li>
-    <li><a href="./showAllSubjects?page=1">View subject list</a></li>
+    <sec:authorize access="hasAuthority('ADMIN')">
+    <li><a href="/Gradebook/viewAllTeachers?page=1">View all teachers</a></li>
+    <li><a href="/Gradebook/viewAllClasses?page=1">View all classes</a></li>
+    <li><a href="/Gradebook/viewAllPupils?page=1">View all pupils</a></li>
+    <li><a href="/Gradebook/viewAllSubjects?page=1">View all subjects</a></li>
+    <li><a href="/Gradebook/viewAllSubjectDetails?page=1">View all subject details</a></li>
+    <li><a href="/Gradebook/viewAllUsers?page=1">View all users</a></li>
+    </sec:authorize>
+    <li><a href="/Gradebook/showClassList?page=1">View class list</a></li>
+    <li><a href="/Gradebook/showAllTeachers?page=1">View teachers list</a></li>
+    <li><a href="/Gradebook/showAllSubjects?page=1">View subject list</a></li>
 </ul>
+<%@include file="WEB-INF/views/footer.jsp"%>
 </body>
 </html>
 

@@ -256,6 +256,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
      * Get total count of teachers from database.
      * @return int
      */
+    @Override
     public int getCountOfTeachers() {
         connection = ConnectionPool.getInstance().getConnection();
         int count = 0;
@@ -280,6 +281,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
      * @param range amount of teachers per page
      * @return List<Teacher>
      */
+    @Override
     public List<Teacher> getTeachersByPage(int page, int range) {
         List<Teacher> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();

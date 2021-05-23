@@ -12,6 +12,7 @@
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
+<%@include file="header.jsp"%>
 <h2 align="center"><%=request.getAttribute("title")%></h2>
 <div align="center">
     <p>Teacher:<%=((Mark)request.getAttribute("command")).getLesson().getSubjectDetails().getTeacher().getName()%></p>
@@ -42,5 +43,6 @@
         <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>">Save</button><br/><br/>
     </form:form>
 </div>
+<%@include file="footer.jsp"%>
 </body>
 </html>
