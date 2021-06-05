@@ -22,13 +22,13 @@ public interface UserDAO {
      * Insert new user into database.
      * @param user adding user
      */
-    void addUser(User user);
+    void addUser(User user) throws Exception;
 
     /**
      * Update user's data into database.
      * @param user editing user
      */
-    void updateUser(User user);
+    void updateUser(User user) throws Exception;
 
     /**
      * Delete user from database.
@@ -56,4 +56,27 @@ public interface UserDAO {
      * @return User
      */
     User getUserByID(int id);
+
+    /**
+     * Delete user's role from database.
+     * @param userID user's id
+     * @param roleID role's id
+     */
+    void deleteUserRole(int userID, int roleID);
+
+    /**
+     * Add user's role.
+     * @param userID user's id
+     * @param roleID role's id
+     */
+    void addUserRole(int userID, int roleID);
+
+    /**
+     * Search users by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<User>
+     * @throws Exception if set parameter is wrong
+     */
+    List<User> searchUsers(String val, String param) throws Exception;
 }

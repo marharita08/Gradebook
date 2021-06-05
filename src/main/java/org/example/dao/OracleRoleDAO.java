@@ -21,6 +21,7 @@ public class OracleRoleDAO implements RoleDAO {
      * @param id user id
      * @return Set<Role>
      */
+    @Override
     public Set<Role> getRolesByUser(int id) {
         Set<Role> set = new HashSet<>();
         connection = ConnectionPool.getInstance().getConnection();
@@ -54,36 +55,15 @@ public class OracleRoleDAO implements RoleDAO {
     }
 
     /**
-     * Get role from database by id.
-     * @param id role id
-     * @return Role
+     * Read all roles from database and put them into set.
+     * @return Set<Role>
      */
-    public Role getRoleByID(int id) {
-        connection = ConnectionPool.getInstance().getConnection();
-        Role role = null;
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_ROLE"
-                            + " where ROLE_ID=?");
-            preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                role = parseRole(resultSet);
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } finally {
-            closeAll(resultSet, preparedStatement, connection);
-        }
-        return role;
-    }
-
     public Set<Role> getAllRoles() {
         Set<Role> set = new HashSet<>();
         connection = ConnectionPool.getInstance().getConnection();
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_ROLE");
+                    "SELECT * FROM LAB3_ROZGHON_ROLE order by ROLE_ID");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 set.add(parseRole(resultSet));

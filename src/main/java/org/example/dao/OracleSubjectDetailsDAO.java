@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
@@ -38,7 +39,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
         List<SubjectDetails> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS");
+                    "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS order by  SUBJECT_DETAILS_ID");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(parseSubjectDetails(resultSet));
@@ -197,7 +198,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
-                            "where TEACHER_ID = ?");
+                            "where TEACHER_ID = ? order by  SUBJECT_DETAILS_ID");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -223,7 +224,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
-                            "where CLASS_ID = ?");
+                            "where CLASS_ID = ? order by  SUBJECT_DETAILS_ID");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -249,7 +250,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
-                            "where SUBJECT_ID = ?");
+                            "where SUBJECT_ID = ? order by  SUBJECT_DETAILS_ID");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -268,6 +269,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
      * Get total count of subject details from database.
      * @return int
      */
+    @Override
     public int getCountOfSubjectDetails() {
         connection = ConnectionPool.getInstance().getConnection();
         int count = 0;
@@ -292,6 +294,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
      * @param range amount of subject details per page
      * @return List<SubjectDetails>
      */
+    @Override
     public List<SubjectDetails> getSubjectDetailsByPage(int page, int range) {
         List<SubjectDetails> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();
@@ -302,6 +305,56 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
                             " WHERE rn BETWEEN ? AND ?");
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseSubjectDetails(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    /**
+     * Search subject details by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<SubjectDetails>
+     * @throws Exception if set parameter is wrong
+     */
+    @Override
+    public List<SubjectDetails> searchSubjectDetails(String val, String param) throws Exception {
+        List<SubjectDetails> list = new ArrayList<>();
+        String sql;
+        switch (param) {
+            case "id":
+                sql = " SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
+                        "where SUBJECT_DETAILS_ID like ? order by  SUBJECT_DETAILS_ID";
+                break;
+            case "teacher":
+                sql = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
+                        "join LAB3_ROZGHON_TEACHER using (TEACHER_ID) " +
+                        "where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
+                break;
+            case "class":
+                sql = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
+                        "join LAB3_ROZGHON_CLASS using (CLASS_ID) " +
+                        "where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
+                break;
+            case "subject":
+                sql = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
+                        "join LAB3_ROZGHON_SUBJECT using (SUBJECT_ID) " +
+                        "where NAME like ? order by  SUBJECT_DETAILS_ID";
+                break;
+            default:
+                throw new Exception("Wrong parameter");
+        }
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(parseSubjectDetails(resultSet));

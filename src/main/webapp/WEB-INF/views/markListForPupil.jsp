@@ -11,6 +11,7 @@
 </head>
 <body>
 <%@include file="header.jsp"%>
+<div align="center">
 <h2><%=request.getAttribute("header")%></h2>
 <table id="myTable">
     <tr>
@@ -35,9 +36,10 @@
 <br/>
 <button onclick='location.href="/Gradebook/"'>Menu</button>
 <button onclick=history.back()>Back</button>
+</div>
 <%@include file="footer.jsp"%>
 </body>
 <script>
-    <%@include file="../js/filterAndSort.js"%>
+    <%@include file="../js/filter.js"%>
 </script>
 </html>

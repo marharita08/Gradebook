@@ -63,4 +63,13 @@ public interface SubjectDAO {
      * @return List<Subject>
      */
     List<Subject> getSubjectsByPage(int page, int range);
+
+    /**
+     * Search subjects by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<Subject>
+     * @throws Exception if set parameter is wrong
+     */
+    List<Subject> searchSubjects(String val, String param) throws Exception;
 }

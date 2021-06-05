@@ -2,7 +2,12 @@ package org.example.controllers;
 
 import org.example.dao.OraclePupilClassDAO;
 import org.example.dao.OraclePupilDAO;
+import org.example.dao.OracleUserDAO;
 import org.example.entities.Pupil;
+import org.example.entities.PupilClass;
+import org.example.entities.Teacher;
+import org.example.entities.User;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -15,11 +20,13 @@ import java.util.Map;
 public class PupilController {
     private OraclePupilDAO dao;
     private OraclePupilClassDAO classDAO;
+    private OracleUserDAO userDAO;
     private int pupilPerPage = 15;
 
-    public PupilController(OraclePupilDAO dao, OraclePupilClassDAO classDAO) {
+    public PupilController(OraclePupilDAO dao, OraclePupilClassDAO classDAO, OracleUserDAO userDAO) {
         this.dao = dao;
         this.classDAO = classDAO;
+        this.userDAO = userDAO;
     }
 
     /**
@@ -39,6 +46,8 @@ public class PupilController {
         }
         model.put("list", list);
         model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllPupils"));
+        model.put("pageNum", page);
+        model.put("header", "Pupil List");
         return new ModelAndView("viewPupilList", model);
     }
 
@@ -80,7 +89,7 @@ public class PupilController {
     @RequestMapping(value = "/saveAddedPupil", method = RequestMethod.POST)
     public ModelAndView saveAddedPupil(@ModelAttribute Pupil pupil) {
         dao.addPupil(pupil);
-        return new ModelAndView("redirect:/viewAllPupils");
+        return new ModelAndView("redirect:/viewAllPupils?page=1");
     }
 
     /**
@@ -112,7 +121,7 @@ public class PupilController {
     @RequestMapping(value = "/saveEditedPupil", method = RequestMethod.POST)
     public ModelAndView saveEditedPupil(@ModelAttribute Pupil pupil) {
         dao.updatePupil(pupil);
-        return new ModelAndView("redirect:/viewAllPupils");
+        return new ModelAndView("redirect:/viewAllPupils?page=1");
     }
 
     /**
@@ -121,9 +130,9 @@ public class PupilController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/deletePupil/{id}")
-    public ModelAndView deletePupil(@PathVariable int id) {
+    public ModelAndView deletePupil(@PathVariable int id, @RequestParam("page") int pageNum) {
         dao.deletePupil(id);
-        return new ModelAndView("redirect:/viewAllPupils");
+        return new ModelAndView("redirect:/viewAllPupils?page=" + pageNum);
     }
 
     /**
@@ -134,9 +143,54 @@ public class PupilController {
     @RequestMapping(value = "viewPupilsByPupilClass/{id}")
     public ModelAndView viewPupilsByPupilClass(@PathVariable int id) {
         Map<String, Object> model = new HashMap<>();
-        model.put("class", classDAO.getPupilClass(id));
+        PupilClass pupilClass = classDAO.getPupilClass(id);
+        model.put("header", "Pupils of " + pupilClass.getName() + " form");
         model.put("list", dao.getPupilsByPupilClass(id));
         model.put("pagination", "");
-        return new ModelAndView("classPupilList", model);
+        model.put("pageNum", 1);
+        return new ModelAndView("viewPupilList", model);
+    }
+
+    @RequestMapping(value = "/searchPupils")
+    @ResponseBody
+    public String searchPupils(@RequestParam("page") int pageNum,
+                                 @RequestParam("val") String val,
+                                 @RequestParam("param")String param) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        List<Pupil> list;
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userDAO.getUserByUsername(username);
+        if(!val.isEmpty()) {
+            list = dao.searchPupils(val, param);
+        } else {
+            list = dao.getPupilsByPage(pageNum, pupilPerPage);
+        }
+        for (Pupil pupil:list) {
+            int id = pupil.getId();
+            sb.append("<tr>");
+            if (user.hasRole("ADMIN")) {
+                sb.append("<td>").append(id).append("</td>");
+                sb.append("<td>");
+                if (pupil.getPupilClass() != null) {
+                    sb.append(pupil.getPupilClass().getName());
+                } else {
+                    sb.append("-");
+                }
+                sb.append("</td>");
+            }
+            sb.append("<td>").append(pupil.getName()).append("</td>");
+            if (user.hasRole("ADMIN")) {
+               sb.append("<td>");
+                sb.append("<a href=\"editPupil/").append(id).append("\">Edit</a>");
+                sb.append("</td>").append("<td>");
+                sb.append("<a href=\"deletePupil/").append(id).append("?page=").append(pageNum).append("\">Delete</a></td>");
+                sb.append("</td>");
+            }
+            sb.append("<td>");
+            sb.append("<a href=\"/Gradebook/viewMarksByPupil/").append(id).append("\">view marks</a>");
+            sb.append("</td>");
+            sb.append("</tr>");
+        }
+        return sb.toString();
     }
 }

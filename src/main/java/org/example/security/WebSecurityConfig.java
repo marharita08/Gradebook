@@ -29,11 +29,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.authorizeRequests()
-                .antMatchers("/", "/view*By*", "/showAll*").authenticated()
-                .antMatchers( "/viewAll*", "/add*", "/edit*", "/delete*", "/save*").hasAuthority("ADMIN")
+                .antMatchers("/").authenticated()
+                .antMatchers(  "/add*", "/edit*", "/delete*", "/save*", "/viewAllUsers").hasAuthority("ADMIN")
                 .antMatchers("/addLesson/*", "/addMark/*",
                         "/editLesson/*", "/editMark/*", "/deleteLesson/*", "/deleteMark/*",
                         "/save*Lesson", "/save*Mark").hasAuthority("TEACHER")
+                .anyRequest().authenticated()
                 .and()
                 .formLogin()
                 .defaultSuccessUrl("/")

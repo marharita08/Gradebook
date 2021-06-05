@@ -3,9 +3,12 @@ package org.example.controllers;
 import org.example.dao.OraclePupilClassDAO;
 import org.example.dao.OracleSubjectDAO;
 import org.example.dao.OracleTeacherDAO;
+import org.example.dao.OracleUserDAO;
 import org.example.entities.PupilClass;
 import org.example.entities.Subject;
 import org.example.entities.Teacher;
+import org.example.entities.User;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,14 +22,17 @@ public class SubjectController {
     private OracleSubjectDAO dao;
     private OraclePupilClassDAO pupilClassDAO;
     private OracleTeacherDAO teacherDAO;
+    private OracleUserDAO userDAO;
     private int subjectPerPage = 15;
 
     public SubjectController(OracleSubjectDAO dao,
                              OraclePupilClassDAO pupilClassDAO,
-                             OracleTeacherDAO teacherDAO) {
+                             OracleTeacherDAO teacherDAO,
+                             OracleUserDAO userDAO) {
         this.dao = dao;
         this.pupilClassDAO = pupilClassDAO;
         this.teacherDAO = teacherDAO;
+        this.userDAO = userDAO;
     }
 
     /**
@@ -46,28 +52,9 @@ public class SubjectController {
         }
         model.put("list", list);
         model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllSubjects"));
+        model.put("header", "Subject list");
+        model.put("pageNum", page);
         return new ModelAndView("viewSubjectList", model);
-    }
-
-    /**
-     * Getting page to view all subject list.
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/showAllSubjects")
-    public ModelAndView showAllSubjects(@RequestParam("page") int page) {
-        Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfSubjects();
-        PaginationController paginationController = new PaginationController(count, subjectPerPage, page);
-        List<Subject> list;
-        if(count <= subjectPerPage) {
-            list = dao.getAllSubjects();
-        } else {
-            list = dao.getSubjectsByPage(page, subjectPerPage);
-        }
-        model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/showAllSubjects"));
-        model.put("header", "Whole list of subjects");
-        return new ModelAndView("subjectList", model);
     }
 
     /**
@@ -91,7 +78,7 @@ public class SubjectController {
     @RequestMapping(value = "/saveAddedSubject", method = RequestMethod.POST)
     public ModelAndView saveAddedSubject(@ModelAttribute Subject subject) {
         dao.addSubject(subject);
-        return new ModelAndView("redirect:/viewAllSubjects");
+        return new ModelAndView("redirect:/viewAllSubjects?page=1");
     }
 
     /**
@@ -116,7 +103,7 @@ public class SubjectController {
     @RequestMapping(value = "/saveEditedSubject", method = RequestMethod.POST)
     public ModelAndView saveEditedSubject(@ModelAttribute Subject subject) {
         dao.updateSubject(subject);
-        return new ModelAndView("redirect:/viewAllSubjects");
+        return new ModelAndView("redirect:/viewAllSubjects?page=1");
     }
 
     /**
@@ -125,9 +112,9 @@ public class SubjectController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/deleteSubject/{id}")
-    public ModelAndView deleteSubject(@PathVariable int id) {
+    public ModelAndView deleteSubject(@PathVariable int id, @RequestParam("page") int pageNum) {
         dao.deleteSubject(id);
-        return new ModelAndView("redirect:/viewAllSubjects");
+        return new ModelAndView("redirect:/viewAllSubjects?page=" + pageNum);
     }
 
     /**
@@ -143,7 +130,8 @@ public class SubjectController {
         model.put("list", dao.getSubjectByPupilClass(id));
         model.put("param", "class");
         model.put("pagination", "");
-        return new ModelAndView("subjectList", model);
+        model.put("pageNum", 1);
+        return new ModelAndView("viewSubjectList", model);
     }
 
     /**
@@ -158,6 +146,47 @@ public class SubjectController {
         model.put("list", dao.getSubjectByTeacher(id));
         model.put("param", "teacher");
         model.put("pagination", "");
-        return new ModelAndView("subjectList", model);
+        model.put("pageNum", 1);
+        return new ModelAndView("viewSubjectList", model);
+    }
+
+    @RequestMapping(value = "/searchSubjects")
+    @ResponseBody
+    public String searchSubjects(@RequestParam("page") int pageNum,
+                                 @RequestParam("val") String val,
+                                 @RequestParam("param")String param) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        List<Subject> list;
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userDAO.getUserByUsername(username);
+        if(!val.isEmpty()) {
+            list = dao.searchSubjects(val, param);
+        } else {
+            list = dao.getSubjectsByPage(pageNum, subjectPerPage);
+        }
+        for (Subject subject:list) {
+            int id = subject.getId();
+            sb.append("<tr>");
+            if (user.hasRole("ADMIN")) {
+                sb.append("<td>").append(id).append("</td>");
+            }
+            sb.append("<td>").append(subject.getName()).append("</td>");
+            if (user.hasRole("ADMIN")) {
+                sb.append("</td>").append("<td>");
+                sb.append("<a href=\"editSubject/").append(id).append("\">Edit</a>");
+                sb.append("</td>").append("<td>");
+                sb.append("<a href=\"deleteSubject/").append(id).append("?page=").append(pageNum).append("\">Delete</a></td>");
+                sb.append("</td>");
+            }
+            sb.append("<td>");
+            sb.append("<a href=\"/Gradebook/viewPupilClassesBySubject/").append(id).append("\">view classes</a>");
+            sb.append("</td>").append("<td>");
+            sb.append("<a href=\"/Gradebook/viewTeachersBySubject/").append(id).append("\">view teachers</a>");
+            sb.append("</td>").append("<td>");
+            sb.append("<a href=\"/Gradebook/viewSubjectDetailsBySubject/").append(id).append("\">view class-teacher list</a>");
+            sb.append("</td>");
+            sb.append("</tr>");
+        }
+        return sb.toString();
     }
 }

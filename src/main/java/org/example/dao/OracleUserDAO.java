@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @Component
@@ -115,25 +116,24 @@ public class OracleUserDAO implements UserDAO {
      * @param user adding user
      */
     @Override
-    public void addUser(User user) {
-        connection = ConnectionPool.getInstance().getConnection();
-        String sql = "Insert into LAB3_ROZGHON_USER "
-                + "values (LAB3_ROZGHON_USER_SEQ.nextval, ?, ?)";
-        try {
-            preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, user.getUsername());
-            preparedStatement.setString(2, user.getPassword());
-            preparedStatement.executeUpdate();
-            for (Role role:user.getRoles()) {
-                sql = "Insert into LAB3_ROZGHON_USER_ROLE values (LAB3_ROZGHON_USER_SEQ.currval, ?)";
+    public void addUser(User user) throws Exception {
+        User user1 = getUserByUsername(user.getUsername());
+        if (user1 == null) {
+            connection = ConnectionPool.getInstance().getConnection();
+            String sql = "Insert into LAB3_ROZGHON_USER "
+                    + "values (LAB3_ROZGHON_USER_SEQ.nextval, ?, ?)";
+            try {
                 preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setInt(1, role.getId());
+                preparedStatement.setString(1, user.getUsername());
+                preparedStatement.setString(2, user.getPassword());
                 preparedStatement.executeUpdate();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            } finally {
+                closeAll(resultSet, preparedStatement, connection);
             }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } finally {
-            closeAll(resultSet, preparedStatement, connection);
+        } else {
+            throw new Exception("Username already taken.");
         }
     }
 
@@ -142,20 +142,25 @@ public class OracleUserDAO implements UserDAO {
      * @param user editing user
      */
     @Override
-    public void updateUser(User user) {
-        connection = ConnectionPool.getInstance().getConnection();
-        String sql = "UPDATE LAB3_ROZGHON_USER "
-                + "set username = ?, password = ? where user_id = ?";
-        try {
-            preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, user.getUsername());
-            preparedStatement.setString(2, user.getPassword());
-            preparedStatement.setInt(3, user.getId());
-            preparedStatement.executeUpdate();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } finally {
-            closeAll(resultSet, preparedStatement, connection);
+    public void updateUser(User user) throws Exception {
+        User user1 = getUserByUsername(user.getUsername());
+        if(user1 == null || user1.getId() == user.getId()) {
+            connection = ConnectionPool.getInstance().getConnection();
+            String sql = "UPDATE LAB3_ROZGHON_USER "
+                    + "set username = ?, password = ? where user_id = ?";
+            try {
+                preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setString(1, user.getUsername());
+                preparedStatement.setString(2, user.getPassword());
+                preparedStatement.setInt(3, user.getId());
+                preparedStatement.executeUpdate();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            } finally {
+                closeAll(resultSet, preparedStatement, connection);
+            }
+        } else {
+            throw new Exception("Username already taken.");
         }
     }
 
@@ -190,7 +195,7 @@ public class OracleUserDAO implements UserDAO {
      * @param userID user's id
      * @param roleID role's id
      */
-    //@Override
+    @Override
     public void deleteUserRole(int userID, int roleID) {
         connection = ConnectionPool.getInstance().getConnection();
         String sql;
@@ -213,7 +218,7 @@ public class OracleUserDAO implements UserDAO {
      * @param userID user's id
      * @param roleID role's id
      */
-    //@Override
+    @Override
     public void addUserRole(int userID, int roleID) {
         connection = ConnectionPool.getInstance().getConnection();
         String sql;
@@ -277,10 +282,53 @@ public class OracleUserDAO implements UserDAO {
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-                            " (SELECT * FROM LAB3_ROZGHON_TEACHER ORDER BY TEACHER_ID) p)" +
+                            " (SELECT * FROM LAB3_ROZGHON_USER ORDER BY USER_ID) p)" +
                             " WHERE rn BETWEEN ? AND ?");
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseUser(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    /**
+     * Search users by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<User>
+     * @throws Exception if set parameter is wrong
+     */
+    @Override
+    public List<User> searchUsers(String val, String param) throws Exception {
+        List<User> list = new ArrayList<>();
+        String sql;
+        switch (param) {
+            case "username":
+                sql = " SELECT * FROM LAB3_ROZGHON_USER where upper(USERNAME) like ? ORDER BY USER_ID";
+                break;
+            case "id":
+                sql = " SELECT * FROM LAB3_ROZGHON_USER where user_id like ? ORDER BY USER_ID";
+                break;
+            case "roles":
+                sql = " select distinct u.* from LAB3_ROZGHON_USER u " +
+                        "join LAB3_ROZGHON_USER_ROLE ur on u.user_id=ur.user_id " +
+                        "join LAB3_ROZGHON_ROLE r on r.role_id=ur.role_id " +
+                        "where name like ? ORDER BY u.USER_ID";
+                break;
+            default:
+                throw new Exception("Wrong parameter");
+        }
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(parseUser(resultSet));

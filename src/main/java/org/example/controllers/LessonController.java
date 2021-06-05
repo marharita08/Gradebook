@@ -3,6 +3,9 @@ package org.example.controllers;
 import org.example.dao.*;
 import org.example.entities.Lesson;
 import org.example.entities.SubjectDetails;
+import org.example.entities.Teacher;
+import org.example.entities.User;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -15,11 +18,15 @@ import java.util.Map;
 public class LessonController {
     private OracleLessonDAO dao;
     private OracleSubjectDetailsDAO subjectDetailsDAO;
+    private OracleUserDAO userDAO;
     private int lessonsPerPage = 20;
 
-    public LessonController(OracleLessonDAO dao, OracleSubjectDetailsDAO subjectDetailsDAO) {
+    public LessonController(OracleLessonDAO dao,
+                            OracleSubjectDetailsDAO subjectDetailsDAO,
+                            OracleUserDAO userDAO) {
         this.dao = dao;
         this.subjectDetailsDAO = subjectDetailsDAO;
+        this.userDAO = userDAO;
     }
 
     /**
@@ -47,7 +54,7 @@ public class LessonController {
     @RequestMapping(value = "/saveAddedLesson", method = RequestMethod.POST)
     public ModelAndView saveAddedLesson(@ModelAttribute Lesson lesson) {
         dao.addLesson(lesson);
-        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + lesson.getSubjectDetails().getId());
+        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + lesson.getSubjectDetails().getId() + "?page=1");
     }
 
     /**
@@ -77,8 +84,7 @@ public class LessonController {
     @RequestMapping(value = "/saveEditedLesson", method = RequestMethod.POST)
     public ModelAndView saveEditedLesson(@ModelAttribute Lesson lesson) {
         dao.updateLesson(lesson);
-        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(lesson.getSubjectDetails().getId());
-        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + lesson.getSubjectDetails().getId());
+        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + lesson.getSubjectDetails().getId() + "?page=1");
     }
 
     /**
@@ -87,10 +93,10 @@ public class LessonController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/deleteLesson/{id}")
-    public ModelAndView deleteLesson(@PathVariable int id) {
+    public ModelAndView deleteLesson(@PathVariable int id, @RequestParam("page") int pageNum) {
         SubjectDetails subjectDetails = dao.getLesson(id).getSubjectDetails();
         dao.deleteLesson(id);
-        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + subjectDetails.getId());
+        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + subjectDetails.getId() + "?page=" + pageNum);
     }
 
     /**
@@ -102,7 +108,7 @@ public class LessonController {
     public ModelAndView viewLessonsBySubjectDetails(@PathVariable int id, @RequestParam("page") int page) {
         List<Lesson> list;
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfLessons();
+        int count = dao.getCountOfLessons(id);
         if (count <= lessonsPerPage) {
             list = dao.getLessonsBySubjectDetails(id);
         } else {
@@ -119,6 +125,48 @@ public class LessonController {
         model.put("subjectDetails", subjectDetails.getId());
         PaginationController paginationController = new PaginationController(count, lessonsPerPage, page);
         model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewLessonsBySubjectDetails/" + subjectDetails.getId()));
+        model.put("pageNum", page);
         return new ModelAndView("lessonList", model);
+    }
+
+    @RequestMapping(value = "/searchLessons")
+    @ResponseBody
+    public String searchLessons(@RequestParam("page") int pageNum,
+                                 @RequestParam("val") String val,
+                                 @RequestParam("param")String param,
+                                @RequestParam("sd") int sd) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        List<Lesson> list;
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userDAO.getUserByUsername(username);
+        if(!val.isEmpty()) {
+            list = dao.searchLessons(val, param, sd);
+        } else {
+            list = dao.getLessonsBySubjectDetailsAndPage(sd, pageNum, lessonsPerPage);
+        }
+        for (Lesson lesson:list) {
+            int id = lesson.getId();
+            sb.append("<tr>");
+            if (user.hasRole("ADMIN")) {
+                sb.append("<td>").append(id).append("</td>");
+            }
+            sb.append("<td>").append(lesson.getDate()).append("</td>");
+            sb.append("<td>").append(lesson.getTopic()).append("</td>");
+            sb.append("<td>");
+            sb.append("<a href=\"/Gradebook/viewMarksByLesson/").append(id).append("\">view marks</a>");
+            sb.append("</td>");
+            if (user.hasRole("TEACHER")) {
+                sb.append("<td>");
+                sb.append("<a href=\"/Gradebook/addMark/").append(id).append("\">add mark</a>");
+                sb.append("</td>");
+                sb.append("<td>");
+                sb.append("<a href=\"/Gradebook/editLesson/").append(id).append("\">edit lesson</a>");
+                sb.append("</td>").append("<td>");
+                sb.append("<a href=\"/Gradebook/deleteLesson/").append(id).append("?page=").append(pageNum).append("\">delete lesson</a>");
+                sb.append("</td>");
+            }
+            sb.append("</tr>");
+        }
+        return sb.toString();
     }
 }

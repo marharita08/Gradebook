@@ -68,4 +68,12 @@ public interface SubjectDetailsDAO {
      */
     List<SubjectDetails> getSubjectDetailsByPage(int page, int range);
 
+    /**
+     * Search subject details by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<SubjectDetails>
+     * @throws Exception if set parameter is wrong
+     */
+    List<SubjectDetails> searchSubjectDetails(String val, String param) throws Exception;
 }

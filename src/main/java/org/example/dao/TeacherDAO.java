@@ -70,4 +70,13 @@ public interface TeacherDAO {
      * @return List<Teacher>
      */
     List<Teacher> getTeachersByPage(int page, int range);
+
+    /**
+     * Search teachers by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<Teacher>
+     * @throws Exception if set parameter is wrong
+     */
+    List<Teacher> searchTeachers(String val, String param) throws Exception;
 }

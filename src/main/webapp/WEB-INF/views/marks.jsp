@@ -12,6 +12,7 @@
 </head>
 <body>
 <%@include file="header.jsp"%>
+<div align="center">
 <h2><%=request.getAttribute("header")%></h2>
 <p>Subject:<%=request.getAttribute("subject")%></p>
 <p>Teacher:<%=request.getAttribute("teacher")%></p>
@@ -43,6 +44,7 @@
 <br/>
 <button onclick='location.href="/Gradebook/"'>Menu</button>
 <button onclick=history.back()>Back</button>
+</div>
 <%@include file="footer.jsp"%>
 </body>
 </html>

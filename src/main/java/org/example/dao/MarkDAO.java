@@ -6,12 +6,6 @@ import java.util.List;
 
 public interface MarkDAO {
     /**
-     * Read all marks from database and put them into list.
-     * @return List<Mark>
-     */
-    List<Mark> getAllMarks();
-
-    /**
      * Read mark from database by id.
      * @param id mark id
      * @return Mark

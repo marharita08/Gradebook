@@ -12,16 +12,12 @@
 </head>
 <body>
 <%@include file="header.jsp"%>
+<div align="center">
 <h2><%=request.getAttribute("header")%></h2>
 <p>Subject:<%=request.getAttribute("subject")%></p>
 <p>Teacher:<%=request.getAttribute("teacher")%></p>
 <p>Date:<%=request.getAttribute("date")%></p>
 <p>Topic:<%=request.getAttribute("topic")%></p>
-<select OnChange="sortTable(value)">
-    <option>Sort by</option>
-    <option value="0">Pupil</option>
-    <option value="1">Mark</option>
-</select><br/><br/>
 <table id="myTable">
     <tr>
         <th>Pupil</th>
@@ -33,7 +29,7 @@
     </tr>
     <tr>
         <th><input type="text" id="pupil" onkeyup="filter(id, 0)" class="filters"></th>
-        <th><input type="text" id="mark" onkeyup="filter(id, 1)" class="filters"></th>
+        <th></th>
         <sec:authorize access="hasAuthority('TEACHER')">
         <th></th>
         <th></th>
@@ -71,9 +67,10 @@
 <sec:authorize access="hasAuthority('TEACHER')">
 <button onclick='location.href="/Gradebook/addMark/<%=request.getAttribute("lesson")%>"'>Add mark</button>
 </sec:authorize>
+</div>
 <%@include file="footer.jsp"%>
 </body>
 <script>
-    <%@include file="../js/filterAndSort.js"%>
+    <%@include file="../js/filter.js"%>
 </script>
 </html>

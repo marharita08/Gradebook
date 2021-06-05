@@ -72,3 +72,10 @@ footer{
     width: 100%;
     font-size: 16px;
 }
+.clear{
+    clear: both;
+    height: 60px;
+}
+.warning{
+    color: red;
+}

@@ -10,17 +10,15 @@
 <%@include file="WEB-INF/views/header.jsp"%>
 <h2>Menu: </h2>
 <ul>
-    <sec:authorize access="hasAuthority('ADMIN')">
+
     <li><a href="/Gradebook/viewAllTeachers?page=1">View all teachers</a></li>
     <li><a href="/Gradebook/viewAllClasses?page=1">View all classes</a></li>
-    <li><a href="/Gradebook/viewAllPupils?page=1">View all pupils</a></li>
     <li><a href="/Gradebook/viewAllSubjects?page=1">View all subjects</a></li>
     <li><a href="/Gradebook/viewAllSubjectDetails?page=1">View all subject details</a></li>
+    <sec:authorize access="hasAuthority('ADMIN')">
+    <li><a href="/Gradebook/viewAllPupils?page=1">View all pupils</a></li>
     <li><a href="/Gradebook/viewAllUsers?page=1">View all users</a></li>
     </sec:authorize>
-    <li><a href="/Gradebook/showClassList?page=1">View class list</a></li>
-    <li><a href="/Gradebook/showAllTeachers?page=1">View teachers list</a></li>
-    <li><a href="/Gradebook/showAllSubjects?page=1">View subject list</a></li>
 </ul>
 <%@include file="WEB-INF/views/footer.jsp"%>
 </body>

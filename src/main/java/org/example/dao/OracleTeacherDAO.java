@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class OracleTeacherDAO implements TeacherDAO  {
@@ -208,7 +209,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
         String sql = "select distinct TEACHER_ID, NAME, POSITION, CHIEF " +
                 "from LAB3_ROZGHON_TEACHER " +
                 "join LAB3_ROZGHON_SUBJECT_DETAILS using(teacher_id) " +
-                "where CLASS_ID = ?";
+                "where CLASS_ID = ? order by TEACHER_ID";
         try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
@@ -236,7 +237,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
         String sql = "select distinct TEACHER_ID, NAME, POSITION, CHIEF " +
                 "from LAB3_ROZGHON_TEACHER " +
                 "join LAB3_ROZGHON_SUBJECT_DETAILS using(teacher_id) " +
-                "where SUBJECT_ID = ?";
+                "where SUBJECT_ID = ? order by TEACHER_ID";
         try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
@@ -303,6 +304,53 @@ public class OracleTeacherDAO implements TeacherDAO  {
         }
         return list;
     }
+
+    /**
+     * Search teachers by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<Teacher>
+     * @throws Exception if set parameter is wrong
+     */
+    @Override
+    public List<Teacher> searchTeachers(String val, String param) throws Exception {
+        List<Teacher> list = new ArrayList<>();
+        String sql;
+        switch (param) {
+            case "name":
+                sql = " SELECT * FROM LAB3_ROZGHON_TEACHER where upper(name) like ? order by teacher_id";
+                break;
+            case "id":
+                sql = " SELECT * FROM LAB3_ROZGHON_TEACHER where teacher_id like ? order by teacher_id";
+                break;
+            case "position":
+                sql = " SELECT * FROM LAB3_ROZGHON_TEACHER where upper(position) like ? order by teacher_id";
+                break;
+            case "chief":
+                sql = " select t.* " +
+                        "from LAB3_ROZGHON_TEACHER t " +
+                        "join LAB3_ROZGHON_TEACHER ch on ch.TEACHER_ID=t.CHIEF " +
+                        "where upper(ch.NAME) like ? order by t.teacher_id";
+                break;
+            default:
+                throw new Exception("Wrong parameter");
+        }
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseTeacher(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
 
     private void closeAll(ResultSet resultSet, PreparedStatement statement, Connection connection) {
         if (resultSet != null) {

@@ -56,4 +56,13 @@ public interface PupilDAO {
      * @return List<Pupil>
      */
     List<Pupil> getPupilsByPage(int page, int range);
+
+    /**
+     * Search pupils by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<Pupil>
+     * @throws Exception if set parameter is wrong
+     */
+    List<Pupil> searchPupils(String val, String param) throws Exception;
 }

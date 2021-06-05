@@ -2,6 +2,7 @@
 <%@ page import="org.example.entities.User" %>
 <%@ page import="org.example.entities.Role" %>
 <%@ page import="java.util.Set" %>
+<%@ page import="org.example.controllers.PaginationController" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
@@ -15,14 +16,9 @@
 <%@include file="header.jsp"%>
 <h2 align="center">User List: </h2>
 <div align="center">
-    <select OnChange="sortTable(value)">
-        <option>Sort by</option>
-        <option value="0">ID</option>
-        <option value="1">Username</option>
-        <option value="2">Password</option>
-        <option value="3">Roles</option>
-    </select><br/>
-    <ul class="pagination"><%=request.getAttribute("pagination")%></ul>
+    <%PaginationController paginationController = (PaginationController) request.getAttribute("pagination");
+        int pageNum = paginationController.getCurrentPageNumber();%>
+    <ul class="pagination"><%=paginationController.makePagingLinks("/Gradebook/viewAllUsers")%></ul>
     <table id="myTable">
         <tr>
             <th>ID</th>
@@ -34,15 +30,15 @@
             <th>DELETE</th>
         </tr>
         <tr>
-            <th><input type="text" id="id" onkeyup="filter(id, 0)" class="filters"></th>
-            <th><input type="text" id="username" onkeyup="filter(id, 1)" class="filters"></th>
-            <th><input type="text" id="password" onkeyup="filter(id, 2)" class="filters"></th>
-            <th><input type="text" id="roles" onkeyup="filter(id, 3)" class="filters"></th>
+            <th><input type="text" id="id" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="filters"></th>
+            <th><input type="text" id="username" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="filters"></th>
+            <th></th>
+            <th><input type="text" id="roles" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="filters"></th>
             <th></th>
             <th></th>
             <th></th>
         </tr>
-
+<tbody id="placeToShow">
         <% for (User user:(List<User>)request.getAttribute("list")) { %>
         <tr>
             <td><%=user.getId()%></td>
@@ -53,7 +49,7 @@
                 <p>
                 <%=role.getName() + " "%>
                     <% if(role.getId()!=1 || user.getId()!=1) {%>
-                    <a href="/deleteRole/<%=user.getId()%>/<%=role.getId()%>">Delete</a>
+                    <a href="deleteRole/<%=user.getId()%>/<%=role.getId()%>">Delete</a>
                     <%}%>
                 </p>
                 <%}%>
@@ -65,9 +61,10 @@
 
             </td>
             <td><a href="editUser/<%=user.getId()%>">Edit</a></td>
-            <td><%=user.getId() == 1 ? "" : "<a href=\"deleteUser/" + user.getId() + "\">Delete</a>"%></td>
+            <td><%=user.getId() == 1 ? "" : "<a href=\"deleteUser/" + user.getId() + "?page=" + pageNum + "\">Delete</a>"%></td>
         </tr>
         <% } %>
+</tbody>
     </table>
     <br/>
     <button onclick='location.href="/Gradebook/"'>Menu</button>
@@ -77,6 +74,6 @@
 
 </body>
 <script>
-    <%@include file="../js/filterAndSort.js"%>
+    <%@include file="../js/search.js"%>
 </script>
 </html>

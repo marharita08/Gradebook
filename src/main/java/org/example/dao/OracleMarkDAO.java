@@ -20,29 +20,6 @@ public class OracleMarkDAO implements MarkDAO {
         this.pupilDAO = pupilDAO;
     }
 
-    /**
-     * Read all marks from database and put them into list.
-     * @return List<Mark>
-     */
-    @Override
-    public List<Mark> getAllMarks() {
-        connection = ConnectionPool.getInstance().getConnection();
-        List<Mark> list = new ArrayList<>();
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_MARK");
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                list.add(parseMark(resultSet));
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } finally {
-            closeAll(resultSet, preparedStatement, connection);
-        }
-        return list;
-    }
-
     private Mark parseMark(ResultSet resultSet) {
         Mark mark = null;
         try {

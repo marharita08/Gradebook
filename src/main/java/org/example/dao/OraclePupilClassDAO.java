@@ -1,12 +1,12 @@
 package org.example.dao;
 
-import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class OraclePupilClassDAO implements PupilClassDAO {
@@ -194,6 +194,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * Get total count of classes from database.
      * @return int
      */
+    @Override
     public int getCountOfPupilClasses() {
         connection = ConnectionPool.getInstance().getConnection();
         int count = 0;
@@ -218,16 +219,59 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @param range amount of teachers per page
      * @return List<PupilClass>
      */
+    @Override
     public List<PupilClass> getPupilClassesByPage(int page, int range) {
         List<PupilClass> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-                            " (SELECT * FROM LAB3_ROZGHON_CLASS ORDER BY CLASS_ID) p)" +
+                            " (SELECT * FROM LAB3_ROZGHON_CLASS order by GRADE, NAME) p)" +
                             " WHERE rn BETWEEN ? AND ?");
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parsePupilClass(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    /**
+     * Search classes by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<PupilClass>
+     * @throws Exception if set parameter is wrong
+     */
+    @Override
+    public List<PupilClass> searchPupilClasses(String val, String param) throws Exception {
+        List<PupilClass> list = new ArrayList<>();
+        String sql;
+        switch (param) {
+            case "id":
+                sql = " SELECT * FROM LAB3_ROZGHON_CLASS where CLASS_ID like ? order by GRADE, NAME";
+                break;
+            case "name":
+                sql = "SELECT * FROM LAB3_ROZGHON_CLASS " +
+                        "where upper(NAME) like ? order by GRADE, NAME";
+                break;
+            case "grade":
+                sql = "SELECT * FROM LAB3_ROZGHON_CLASS " +
+                        "where upper(GRADE) like ? order by GRADE, NAME";
+                break;
+            default:
+                throw new Exception("Wrong parameter");
+        }
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(parsePupilClass(resultSet));

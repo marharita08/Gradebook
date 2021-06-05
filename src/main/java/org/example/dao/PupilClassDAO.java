@@ -55,4 +55,13 @@ public interface PupilClassDAO {
      * @return List<PupilClass>
      */
     List<PupilClass> getPupilClassesByPage(int page, int range);
+
+    /**
+     * Search classes by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<PupilClass>
+     * @throws Exception if set parameter is wrong
+     */
+    List<PupilClass> searchPupilClasses(String val, String param) throws Exception;
 }

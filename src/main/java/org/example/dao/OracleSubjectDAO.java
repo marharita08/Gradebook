@@ -2,11 +2,13 @@ package org.example.dao;
 
 import org.example.entities.Subject;
 import org.example.entities.SubjectDetails;
+import org.example.entities.Teacher;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class OracleSubjectDAO implements SubjectDAO {
@@ -24,7 +26,7 @@ public class OracleSubjectDAO implements SubjectDAO {
         List<Subject> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_SUBJECT");
+                    "SELECT * FROM LAB3_ROZGHON_SUBJECT order by SUBJECT_ID");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(parseSubject(resultSet));
@@ -168,7 +170,7 @@ public class OracleSubjectDAO implements SubjectDAO {
             preparedStatement = connection.prepareStatement(
                     "select * from LAB3_ROZGHON_SUBJECT " +
                     "join LAB3_ROZGHON_SUBJECT_DETAILS using(subject_id)" +
-                    "where CLASS_ID = ?");
+                    "where CLASS_ID = ? order by SUBJECT_ID");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -196,7 +198,7 @@ public class OracleSubjectDAO implements SubjectDAO {
                     "select distinct SUBJECT_ID, NAME " +
                     "from LAB3_ROZGHON_SUBJECT " +
                     "join LAB3_ROZGHON_SUBJECT_DETAILS using(subject_id)" +
-                    "where TEACHER_ID = ?");
+                    "where TEACHER_ID = ? order by SUBJECT_ID");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -250,6 +252,42 @@ public class OracleSubjectDAO implements SubjectDAO {
                             " WHERE rn BETWEEN ? AND ?");
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseSubject(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    /**
+     * Search subjects by set parameter.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @return List<Subject>
+     * @throws Exception if set parameter is wrong
+     */
+    @Override
+    public List<Subject> searchSubjects(String val, String param) throws Exception {
+        List<Subject> list = new ArrayList<>();
+        String sql;
+        if (param.equals("name")) {
+            sql = " SELECT * FROM LAB3_ROZGHON_SUBJECT " +
+                    "where upper(name) like ? order by SUBJECT_ID";
+        } else if (param.equals("id")) {
+            sql = " SELECT * FROM LAB3_ROZGHON_SUBJECT " +
+                    "where subject_id like ? order by SUBJECT_ID";
+        }  else {
+            throw new Exception("Wrong parameter");
+        }
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(parseSubject(resultSet));

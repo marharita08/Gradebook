@@ -1,11 +1,13 @@
 package org.example.dao;
 
 import org.example.entities.Lesson;
+import org.example.entities.Pupil;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class OracleLessonDAO implements LessonDAO {
@@ -16,29 +18,6 @@ public class OracleLessonDAO implements LessonDAO {
 
     public OracleLessonDAO(OracleSubjectDetailsDAO subjectDetailsDAO) {
         this.subjectDetailsDAO = subjectDetailsDAO;
-    }
-
-    /**
-     * Read all lessons from database and put them into list.
-     * @return List<Lesson>
-     */
-    @Override
-    public List<Lesson> getAllLessons() {
-        connection = ConnectionPool.getInstance().getConnection();
-        List<Lesson> list = new ArrayList<>();
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_LESSON");
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                list.add(parseLesson(resultSet));
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } finally {
-            closeAll(resultSet, preparedStatement, connection);
-        }
-        return list;
     }
 
     private Lesson parseLesson(ResultSet resultSet) {
@@ -179,16 +158,19 @@ public class OracleLessonDAO implements LessonDAO {
     }
 
     /**
-     * Get total count of lessons from database.
+     * Get count of lessons for set subject details from database.
+     * @param id subject details id
      * @return int
      */
-    public int getCountOfLessons() {
+    @Override
+    public int getCountOfLessons(int id) {
         connection = ConnectionPool.getInstance().getConnection();
         int count = 0;
         String sql = "select count(LESSON_ID) as AMOUNT " +
-                "from LAB3_ROZGHON_LESSON ";
+                "from LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID = ?";
         try {
             preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
             resultSet.next();
             count = resultSet.getInt("AMOUNT");
@@ -207,17 +189,67 @@ public class OracleLessonDAO implements LessonDAO {
      * @param id subject details id
      * @return List<Lesson>
      */
+    @Override
     public List<Lesson> getLessonsBySubjectDetailsAndPage(int id, int page, int range) {
         List<Lesson> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-                            " (SELECT * FROM LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID = ? ORDER BY LESSON_ID) p)" +
+                            " (SELECT * FROM LAB3_ROZGHON_LESSON " +
+                            "where SUBJECT_DETAILS_ID = ? order by LESSON_DATE) p)" +
                             " WHERE rn BETWEEN ? AND ?");
             preparedStatement.setInt(1, id);
             preparedStatement.setInt(2, (page - 1) * range + 1);
             preparedStatement.setInt(3, page*range);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                list.add(parseLesson(resultSet));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        } finally {
+            closeAll(resultSet, preparedStatement, connection);
+        }
+        return list;
+    }
+
+    /**
+     * Search lessons by set parameter and subject details.
+     * @param val text of searching
+     * @param param parameter of searching
+     * @param id subject details id
+     * @return List<PupilClass>
+     * @throws Exception if set parameter is wrong
+     */
+    @Override
+    public List<Lesson> searchLessons(String val, String param, int id) throws Exception {
+        List<Lesson> list = new ArrayList<>();
+        String sql;
+        switch (param) {
+            case "id":
+                sql = "SELECT * FROM LAB3_ROZGHON_LESSON " +
+                        "where SUBJECT_DETAILS_ID = ? and LESSON_ID like ? " +
+                        "order by LESSON_DATE";
+                break;
+            case "date":
+                sql = "SELECT * FROM LAB3_ROZGHON_LESSON " +
+                        "where SUBJECT_DETAILS_ID = ? and LESSON_DATE like ? " +
+                        "order by LESSON_DATE";
+                break;
+            case "topic":
+                sql = "SELECT * FROM LAB3_ROZGHON_LESSON " +
+                        "where SUBJECT_DETAILS_ID = ? and upper(TOPIC) like ? " +
+                        "order by LESSON_DATE";
+                break;
+            default:
+                throw new Exception("Wrong parameter");
+        }
+        connection = ConnectionPool.getInstance().getConnection();
+        try {
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            preparedStatement.setString(2, "%" + val.toUpperCase(Locale.ROOT) + "%");
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 list.add(parseLesson(resultSet));

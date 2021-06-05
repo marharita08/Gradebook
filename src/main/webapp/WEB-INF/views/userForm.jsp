@@ -1,3 +1,4 @@
+<%@ page import="org.example.entities.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -11,13 +12,16 @@
 <body>
 <%@include file="header.jsp"%>
 <h2 align="center"><%=request.getAttribute("title")%></h2>
+<% int id = ((User)request.getAttribute("command")).getId();
+    String func = "checkUsername(" + id + ")";%>
 <div align="center">
     <form:form>
         <br/>
+        <p id="placeToShow" class="warning"></p>
         Username:
-        <form:input path="username" required="true"/><br/><br/>
+        <form:input path="username" required="true" onkeyup="<%=func%>" id="username"/><br/><br/>
         Password:
-        <form:input path="password" required="true"/><br/><br/>
+        <form:input path="password" required="true" type="password"/>
 
         <br/><br/>
         <form:input path="id" type="hidden"/>
@@ -27,4 +31,7 @@
 </div>
 <%@include file="footer.jsp"%>
 </body>
+<script>
+    <%@include file="../js/checkUsername.js"%>
+</script>
 </html>
