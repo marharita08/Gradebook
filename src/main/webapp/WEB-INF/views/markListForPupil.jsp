@@ -19,7 +19,7 @@
         <th>Marks</th>
     </tr>
     <tr>
-        <th><input type="text" id="subject" onkeyup="filter(id, 0)" class="filters"></th>
+        <th><input type="text" id="subject" onkeyup="filter(id, 0)"></th>
         <th></th>
     </tr>
     <% for (Subject subject:(List<Subject>)request.getAttribute("subjectList")) { %>

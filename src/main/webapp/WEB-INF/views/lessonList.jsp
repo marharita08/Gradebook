@@ -46,20 +46,20 @@
             }
         %>
         <sec:authorize access="hasAuthority('ADMIN')">
-        <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="filters"></th>
+        <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="slim"></th>
     <%
         if(pagination.equals("")) {
             searchFunc = "filter(id," + i++ + ")";
         }
     %>
         </sec:authorize>
-        <th><input type="text" id="date" onkeyup="<%=searchFunc%>" class="filters"></th>
+        <th><input type="text" id="date" onkeyup="<%=searchFunc%>"></th>
         <%
             if(pagination.equals("")) {
                 searchFunc = "filter(id," + i++ + ")";
             }
         %>
-        <th><input type="text" id="topic" onkeyup="<%=searchFunc%>" class="filters"></th>
+        <th><input type="text" id="topic" onkeyup="<%=searchFunc%>"></th>
         <th></th>
         <sec:authorize access="hasAuthority('TEACHER')">
         <th></th>

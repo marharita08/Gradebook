@@ -1,12 +1,11 @@
 package org.example.controllers;
 
+import org.apache.log4j.Logger;
 import org.example.dao.OraclePupilClassDAO;
 import org.example.dao.OracleSubjectDAO;
 import org.example.dao.OracleUserDAO;
-import org.example.entities.Pupil;
-import org.example.entities.PupilClass;
-import org.example.entities.Teacher;
-import org.example.entities.User;
+import org.example.entities.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +21,7 @@ public class PupilClassController {
     private OracleSubjectDAO subjectDAO;
     private OracleUserDAO userDAO;
     private int pupilClassPerPage = 15;
+    private static final Logger LOGGER = Logger.getLogger(PupilClassController.class.getName());
 
     public PupilClassController(OraclePupilClassDAO dao,
                                 OracleSubjectDAO subjectDAO,
@@ -37,6 +37,8 @@ public class PupilClassController {
      */
     @RequestMapping(value = "/viewAllClasses")
     public ModelAndView viewAllClasses(@RequestParam("page") int page) {
+        LOGGER.info("Getting list of classes for " + page + " page.");
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         int count = dao.getCountOfPupilClasses();
         PaginationController paginationController = new PaginationController(count, pupilClassPerPage, page);
@@ -50,6 +52,7 @@ public class PupilClassController {
         model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllClasses"));
         model.put("header", "All classes");
         model.put("pageNum", page);
+        LOGGER.info("Printing class list.");
         return new ModelAndView("viewClassList", model);
     }
 
@@ -60,11 +63,19 @@ public class PupilClassController {
      */
     @RequestMapping(value = "/viewPupilClassesBySubject/{id}")
     public ModelAndView viewPupilClassesBySubject(@PathVariable int id) {
+        LOGGER.info("Getting list of classes by " + id + " subject.");
+        Subject subject = subjectDAO.getSubject(id);
+        if (subject == null) {
+            LOGGER.error("Subject " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("list", dao.getPupilClassesBySubject(id));
-        model.put("header", "Classes which learn " + subjectDAO.getSubject(id).getName());
+        model.put("header", "Classes which learn " + subject.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        LOGGER.info("Printing class list.");
         return new ModelAndView("viewClassList", model);
     }
 
@@ -74,11 +85,14 @@ public class PupilClassController {
      */
     @RequestMapping(value = "/addClass")
     public ModelAndView addClass() {
+        LOGGER.info("Add new class.");
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", new PupilClass());
         model.put("selectedGrade", 1);
         model.put("title", "Add class");
         model.put("formAction", "saveAddedClass");
+        LOGGER.info("Printing form for input class data.");
         return new ModelAndView("classForm", model);
     }
 
@@ -89,7 +103,9 @@ public class PupilClassController {
      */
     @RequestMapping(value = "/saveAddedClass", method = RequestMethod.POST)
     public ModelAndView saveAddedClass(@ModelAttribute PupilClass pupilClass) {
+        LOGGER.info("Saving added class.");
         dao.addPupilClass(pupilClass);
+        LOGGER.info("Redirect to list of classes.");
         return new ModelAndView("redirect:/viewAllClasses?page=1");
     }
 
@@ -100,12 +116,19 @@ public class PupilClassController {
      */
     @RequestMapping(value = "/editClass/{id}")
     public ModelAndView editClass(@PathVariable int id) {
-        Map<String, Object> model = new HashMap<>();
+        LOGGER.info("Edit class.");
         PupilClass pupilClass = dao.getPupilClass(id);
+        if (pupilClass == null) {
+            LOGGER.error("Class " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
         model.put("command", pupilClass);
         model.put("selectedGrade", pupilClass.getGrade());
         model.put("title", "Edit class");
         model.put("formAction", "../saveEditedClass");
+        LOGGER.info("Printing form for changing class data.");
         return new ModelAndView("classForm", model);
     }
 
@@ -116,7 +139,9 @@ public class PupilClassController {
      */
     @RequestMapping(value = "/saveEditedClass", method = RequestMethod.POST)
     public ModelAndView saveEditedClass(@ModelAttribute PupilClass pupilClass) {
+        LOGGER.info("Saving edited class.");
         dao.updatePupilClass(pupilClass);
+        LOGGER.info("Redirect to list of classes.");
         return new ModelAndView("redirect:/viewAllClasses?page=1");
     }
 
@@ -127,7 +152,14 @@ public class PupilClassController {
      */
     @RequestMapping(value = "/deleteClass/{id}")
     public ModelAndView deleteClass(@PathVariable int id, @RequestParam("page") int pageNum) {
+        LOGGER.info("Deleting class " + id + ".");
+        PupilClass pupilClass = dao.getPupilClass(id);
+        if (pupilClass == null) {
+            LOGGER.error("Class " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
         dao.deletePupilClass(id);
+        LOGGER.info("Redirect to list of classes on page " + pageNum + ".");
         return new ModelAndView("redirect:/viewAllClasses?page=" + pageNum);
     }
 
@@ -136,6 +168,7 @@ public class PupilClassController {
     public String searchPupilClasses(@RequestParam("page") int pageNum,
                                  @RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
+        LOGGER.info("Searching classes by " + param + ".");
         StringBuilder sb = new StringBuilder();
         List<PupilClass> list;
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -145,6 +178,7 @@ public class PupilClassController {
         } else {
             list = dao.getPupilClassesByPage(pageNum, pupilClassPerPage);
         }
+        LOGGER.info("Forming response.");
         for (PupilClass pupilClass:list) {
             int id = pupilClass.getId();
             sb.append("<tr>");
@@ -172,6 +206,7 @@ public class PupilClassController {
             sb.append("</td>");
             sb.append("</tr>");
         }
+        LOGGER.info("Printing response.");
         return sb.toString();
     }
 }

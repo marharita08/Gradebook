@@ -16,13 +16,13 @@ public interface MarkDAO {
      * Insert new mark into database.
      * @param mark adding mark
      */
-    void addMark(Mark mark);
+    void addMark(Mark mark) throws Exception;
 
     /**
      * Update mark data into database.
      * @param mark editing mark
      */
-    void updateMark(Mark mark);
+    void updateMark(Mark mark) throws Exception;
 
     /**
      * Delete mark from database.

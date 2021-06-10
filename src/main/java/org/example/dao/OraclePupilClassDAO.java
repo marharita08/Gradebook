@@ -1,5 +1,6 @@
 package org.example.dao;
 
+import org.apache.log4j.Logger;
 import org.example.entities.PupilClass;
 import org.springframework.stereotype.Component;
 
@@ -10,9 +11,10 @@ import java.util.Locale;
 
 @Component
 public class OraclePupilClassDAO implements PupilClassDAO {
-    Connection connection;
-    ResultSet resultSet;
-    PreparedStatement preparedStatement;
+    private Connection connection;
+    private ResultSet resultSet;
+    private PreparedStatement preparedStatement;
+    private static final Logger LOGGER = Logger.getLogger(OraclePupilClassDAO.class.getName());
 
     /**
      * Read all classes from database and put them into list.
@@ -21,18 +23,21 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     @Override
     public List<PupilClass> getAllPupilClasses() {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading all classes from database.");
         List<PupilClass> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM LAB3_ROZGHON_CLASS order by GRADE, NAME");
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing classes and put them into list.");
             while (resultSet.next()) {
                 list.add(parsePupilClass(resultSet));
             }
+            LOGGER.info("List of classes complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return list;
     }
@@ -40,12 +45,14 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     private PupilClass parsePupilClass(ResultSet resultSet) {
         PupilClass pupilClass = null;
         try {
+            LOGGER.info("Parsing result set into PupilClass.");
             int id = resultSet.getInt("Class_ID");
             int grade = resultSet.getInt("grade");
             String name = resultSet.getString("NAME");
             pupilClass = new PupilClass(id, grade, name);
+            LOGGER.info("Parsing complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         }
         return pupilClass;
     }
@@ -58,6 +65,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     @Override
     public PupilClass getPupilClass(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading class " + id + " from database.");
         PupilClass pupilClass = null;
         try {
             preparedStatement = connection.prepareStatement(
@@ -68,10 +76,11 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             if (resultSet.next()) {
                 pupilClass = parsePupilClass(resultSet);
             }
+            LOGGER.info("Reading complete");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return pupilClass;
     }
@@ -83,6 +92,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     @Override
     public void addPupilClass(PupilClass pupilClass) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Inserting pupil " + pupilClass.getName() + " into database.");
         String sql = "Insert into LAB3_ROZGHON_CLASS "
                 + "values (LAB3_ROZGHON_CLASS_SEQ.nextval, ?, ?)";
         try {
@@ -90,10 +100,11 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             preparedStatement.setInt(1, pupilClass.getGrade());
             preparedStatement.setString(2, pupilClass.getName());
             preparedStatement.executeUpdate();
+            LOGGER.info("Inserting complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
     }
 
@@ -104,6 +115,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     @Override
     public void updatePupilClass(PupilClass pupilClass) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Updating pupil " + pupilClass.getName() + " into database.");
         String sql = "UPDATE LAB3_ROZGHON_CLASS "
                 + "set GRADE = ?, NAME = ? where CLASS_ID = ?";
         try {
@@ -112,10 +124,11 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             preparedStatement.setString(2, pupilClass.getName());
             preparedStatement.setInt(3, pupilClass.getId());
             preparedStatement.executeUpdate();
+            LOGGER.info("Updating complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
     }
 
@@ -126,6 +139,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     @Override
     public void deletePupilClass(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Setting class_id=null for pupils from " + id + " class.");
         String sql = "update LAB3_ROZGHON_PUPILS "
                 + "set CLASS_ID = null "
                 + "where CLASS_ID = ?";
@@ -133,6 +147,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting marks for " + id + " class.");
             sql = "Delete from LAB3_ROZGHON_MARK " +
                     "where LESSON_ID in (select LESSON_ID from LAB3_ROZGHON_LESSON " +
                     "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
@@ -140,26 +155,30 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting lessons for " + id + " class.");
             sql = "Delete from LAB3_ROZGHON_LESSON " +
                 "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
                 "from LAB3_ROZGHON_SUBJECT_DETAILS where CLASS_ID = ?)";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting subject details for " + id + " class.");
             sql = "delete  from LAB3_ROZGHON_SUBJECT_DETAILS "
                 + "where CLASS_ID = ?";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting " + id + " class.");
             sql = "Delete from LAB3_ROZGHON_CLASS "
                 + "where CLASS_ID = ?";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+           LOGGER.error(throwables.getMessage(), throwables);
         }  finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
     }
 
@@ -170,6 +189,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     @Override
     public List<PupilClass> getPupilClassesBySubject(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading classes for " + id + " subject.");
         List<PupilClass> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
@@ -179,13 +199,15 @@ public class OraclePupilClassDAO implements PupilClassDAO {
                             "order by GRADE, NAME");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing classes and put them into list.");
             while (resultSet.next()) {
                 list.add(parsePupilClass(resultSet));
             }
+            LOGGER.info("List of classes complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return list;
     }
@@ -197,6 +219,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     @Override
     public int getCountOfPupilClasses() {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Counting classes.");
         int count = 0;
         String sql = "select count(CLASS_ID) as AMOUNT " +
                 "from LAB3_ROZGHON_CLASS ";
@@ -205,10 +228,11 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             resultSet = preparedStatement.executeQuery();
             resultSet.next();
             count = resultSet.getInt("AMOUNT");
+            LOGGER.info("Counting complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return count;
     }
@@ -223,6 +247,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     public List<PupilClass> getPupilClassesByPage(int page, int range) {
         List<PupilClass> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading classes for page " + page + ".");
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
@@ -231,13 +256,15 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing classes and put them into list.");
             while (resultSet.next()) {
                 list.add(parsePupilClass(resultSet));
             }
+            LOGGER.info("List of classes complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return list;
     }
@@ -253,6 +280,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     public List<PupilClass> searchPupilClasses(String val, String param) throws Exception {
         List<PupilClass> list = new ArrayList<>();
         String sql;
+        LOGGER.info("Checking parameter of searching.");
         switch (param) {
             case "id":
                 sql = " SELECT * FROM LAB3_ROZGHON_CLASS where CLASS_ID like ? order by GRADE, NAME";
@@ -266,44 +294,55 @@ public class OraclePupilClassDAO implements PupilClassDAO {
                         "where upper(GRADE) like ? order by GRADE, NAME";
                 break;
             default:
-                throw new Exception("Wrong parameter");
+                Exception e = new Exception("Wrong parameter");
+                LOGGER.error(e.getMessage(), e);
+                throw e;
         }
         connection = ConnectionPool.getInstance().getConnection();
         try {
+            LOGGER.info("Searching classes by " + param + ".");
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing classes and put them into list.");
             while (resultSet.next()) {
                 list.add(parsePupilClass(resultSet));
             }
+            LOGGER.info("List of classes complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return list;
     }
 
-    private void closeAll(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+    private void closeAll() {
         if (resultSet != null) {
             try {
+                LOGGER.info("Closing result set.");
                 resultSet.close();
+                LOGGER.info("Result set closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
-        if (statement != null) {
+        if (preparedStatement != null) {
             try {
-                statement.close();
+                LOGGER.info("Closing statement.");
+                preparedStatement.close();
+                LOGGER.info("Statement closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
         if (connection != null) {
             try {
+                LOGGER.info("Closing connection.");
                 connection.close();
+                LOGGER.info("Connection closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
     }

@@ -30,10 +30,10 @@
             <th>DELETE</th>
         </tr>
         <tr>
-            <th><input type="text" id="id" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="filters"></th>
-            <th><input type="text" id="username" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="filters"></th>
+            <th><input type="text" id="id" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="slim"></th>
+            <th><input type="text" id="username" onkeyup="search(id, <%=pageNum%>, 'searchUsers')"></th>
             <th></th>
-            <th><input type="text" id="roles" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="filters"></th>
+            <th><input type="text" id="roles" onkeyup="search(id, <%=pageNum%>, 'searchUsers')"></th>
             <th></th>
             <th></th>
             <th></th>

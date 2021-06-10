@@ -1,8 +1,7 @@
 package org.example.dao;
 
+import org.apache.log4j.Logger;
 import org.example.entities.Subject;
-import org.example.entities.SubjectDetails;
-import org.example.entities.Teacher;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
@@ -12,9 +11,10 @@ import java.util.Locale;
 
 @Component
 public class OracleSubjectDAO implements SubjectDAO {
-    Connection connection;
-    ResultSet resultSet;
-    PreparedStatement preparedStatement;
+    private Connection connection;
+    private ResultSet resultSet;
+    private PreparedStatement preparedStatement;
+    private static final Logger LOGGER = Logger.getLogger(OracleSubjectDAO.class.getName());
 
     /**
      * Read all subjects from database and put them into list.
@@ -23,18 +23,21 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public List<Subject> getAllSubjects() {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading all subjects from database.");
         List<Subject> list = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM LAB3_ROZGHON_SUBJECT order by SUBJECT_ID");
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing subjects and put them into list.");
             while (resultSet.next()) {
                 list.add(parseSubject(resultSet));
             }
+            LOGGER.info("List of subjects complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return list;
     }
@@ -42,11 +45,13 @@ public class OracleSubjectDAO implements SubjectDAO {
     private Subject parseSubject(ResultSet resultSet) {
         Subject subject = null;
         try {
+            LOGGER.info("Parsing result set into Subject.");
             int id = resultSet.getInt("subject_ID");
             String name = resultSet.getString("NAME");
             subject = new Subject(id, name);
+            LOGGER.info("Parsing complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         }
         return subject;
     }
@@ -59,6 +64,7 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public Subject getSubject(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading subject " + id + " from database.");
         Subject subject = null;
         try {
             preparedStatement = connection.prepareStatement(
@@ -69,10 +75,11 @@ public class OracleSubjectDAO implements SubjectDAO {
             if (resultSet.next()) {
                 subject = parseSubject(resultSet);
             }
+            LOGGER.info("Reading complete");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return subject;
     }
@@ -84,16 +91,18 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public void addSubject(Subject subject) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Inserting subject  " + subject.getName() + " into database.");
         String sql = "Insert into LAB3_ROZGHON_SUBJECT "
                 + "values (LAB3_ROZGHON_SUBJECT_SEQ.nextval, ?)";
         try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, subject.getName());
             preparedStatement.executeUpdate();
+            LOGGER.info("Inserting complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
     }
 
@@ -104,6 +113,7 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public void updateSubject(Subject subject) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Updating subject " + subject.getName() + ".");
         String sql = "UPDATE LAB3_ROZGHON_SUBJECT "
                 + "set NAME = ? where SUBJECT_ID = ?";
         try {
@@ -111,10 +121,11 @@ public class OracleSubjectDAO implements SubjectDAO {
             preparedStatement.setString(1, subject.getName());
             preparedStatement.setInt(2, subject.getId());
             preparedStatement.executeUpdate();
+            LOGGER.info("Updating complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
     }
 
@@ -125,6 +136,7 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public void deleteSubject(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Deleting marks for subject " + id);
         String sql = "Delete from LAB3_ROZGHON_MARK " +
                 "where LESSON_ID in (select LESSON_ID " +
                 "from LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID in (" +
@@ -134,26 +146,30 @@ public class OracleSubjectDAO implements SubjectDAO {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting lessons for subject " + id + ".");
             sql = "Delete from LAB3_ROZGHON_LESSON " +
                     "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
                     "from LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_ID = ?)";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting subject details for subject " + id + ".");
             sql = "delete  from LAB3_ROZGHON_SUBJECT_DETAILS "
                 + "where SUBJECT_ID = ?";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting subject " + id + ".");
             sql = "Delete from LAB3_ROZGHON_SUBJECT "
                 + "where SUBJECT_ID = ?";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
     }
 
@@ -165,6 +181,7 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public List<Subject> getSubjectByPupilClass(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading subjects for class " + id + ".");
         List<Subject> subjectList = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
@@ -173,13 +190,15 @@ public class OracleSubjectDAO implements SubjectDAO {
                     "where CLASS_ID = ? order by SUBJECT_ID");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing subjects and put them into list.");
             while (resultSet.next()) {
                 subjectList.add(parseSubject(resultSet));
             }
+            LOGGER.info("List of subjects complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return subjectList;
     }
@@ -192,6 +211,7 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public List<Subject> getSubjectByTeacher(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading subject details for teacher " + id + ".");
         List<Subject> subjectList = new ArrayList<>();
         try {
             preparedStatement = connection.prepareStatement(
@@ -201,13 +221,15 @@ public class OracleSubjectDAO implements SubjectDAO {
                     "where TEACHER_ID = ? order by SUBJECT_ID");
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing subjects and put them into list.");
             while (resultSet.next()) {
                 subjectList.add(parseSubject(resultSet));
             }
+            LOGGER.info("List of subjects complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return subjectList;
     }
@@ -219,6 +241,7 @@ public class OracleSubjectDAO implements SubjectDAO {
     @Override
     public int getCountOfSubjects() {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Counting subjects.");
         int count = 0;
         String sql = "select count(SUBJECT_ID) as AMOUNT " +
                 "from LAB3_ROZGHON_SUBJECT ";
@@ -227,10 +250,11 @@ public class OracleSubjectDAO implements SubjectDAO {
             resultSet = preparedStatement.executeQuery();
             resultSet.next();
             count = resultSet.getInt("AMOUNT");
+            LOGGER.info("Counting complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return count;
     }
@@ -245,6 +269,7 @@ public class OracleSubjectDAO implements SubjectDAO {
     public List<Subject> getSubjectsByPage(int page, int range) {
         List<Subject> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading subjects for page " + page + ".");
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
@@ -253,13 +278,15 @@ public class OracleSubjectDAO implements SubjectDAO {
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing subjects and put them into list.");
             while (resultSet.next()) {
                 list.add(parseSubject(resultSet));
             }
+            LOGGER.info("List of subjects complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return list;
     }
@@ -275,6 +302,7 @@ public class OracleSubjectDAO implements SubjectDAO {
     public List<Subject> searchSubjects(String val, String param) throws Exception {
         List<Subject> list = new ArrayList<>();
         String sql;
+        LOGGER.info("Checking parameter of searching.");
         if (param.equals("name")) {
             sql = " SELECT * FROM LAB3_ROZGHON_SUBJECT " +
                     "where upper(name) like ? order by SUBJECT_ID";
@@ -282,44 +310,55 @@ public class OracleSubjectDAO implements SubjectDAO {
             sql = " SELECT * FROM LAB3_ROZGHON_SUBJECT " +
                     "where subject_id like ? order by SUBJECT_ID";
         }  else {
-            throw new Exception("Wrong parameter");
+            Exception e = new Exception("Wrong parameter");
+            LOGGER.error(e.getMessage(), e);
+            throw e;
         }
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Searching subjects by " + param + ".");
         try {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing subjects and put them into list.");
             while (resultSet.next()) {
                 list.add(parseSubject(resultSet));
             }
+            LOGGER.info("List of subjects complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
-            closeAll(resultSet, preparedStatement, connection);
+            closeAll();
         }
         return list;
     }
 
-    private void closeAll(ResultSet resultSet, PreparedStatement statement, Connection connection) {
+    private void closeAll() {
         if (resultSet != null) {
             try {
+                LOGGER.info("Closing result set.");
                 resultSet.close();
+                LOGGER.info("Result set closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
-        if (statement != null) {
+        if (preparedStatement != null) {
             try {
-                statement.close();
+                LOGGER.info("Closing statement.");
+                preparedStatement.close();
+                LOGGER.info("Statement closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
         if (connection != null) {
             try {
+                LOGGER.info("Closing connection.");
                 connection.close();
+                LOGGER.info("Connection closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
     }

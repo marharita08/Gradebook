@@ -1,5 +1,6 @@
 package org.example.dao;
 
+import org.apache.log4j.Logger;
 import org.example.entities.Teacher;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     private PreparedStatement preparedStatement = null;
     private ResultSet resultSet = null;
     private Connection connection;
+    private static final Logger LOGGER = Logger.getLogger(OracleTeacherDAO.class.getName());
 
     /**
      * Read all teachers from database and put them into list.
@@ -23,14 +25,17 @@ public class OracleTeacherDAO implements TeacherDAO  {
         List<Teacher> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();
         try {
+            LOGGER.info("Reading all teachers from database");
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM LAB3_ROZGHON_TEACHER order by teacher_id");
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing teachers and put them into list.");
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
+            LOGGER.info("List of teachers complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -40,6 +45,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     private Teacher parseTeacher(ResultSet resultSet) {
         Teacher teacher = null;
         try {
+            LOGGER.info("Parsing result set into Teacher.");
             int id = resultSet.getInt("TEACHER_ID");
             String name = resultSet.getString("NAME");
             String position = resultSet.getString("POSITION");
@@ -49,8 +55,9 @@ public class OracleTeacherDAO implements TeacherDAO  {
             } else {
                 teacher = new Teacher(id, name, position, getTeacher(chiefID));
             }
+            LOGGER.info("Parsing complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         }
         return teacher;
     }
@@ -66,6 +73,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         Connection connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading teacher " + id + " from database.");
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM LAB3_ROZGHON_TEACHER"
@@ -75,8 +83,9 @@ public class OracleTeacherDAO implements TeacherDAO  {
             if (resultSet.next()) {
                 teacher = parseTeacher(resultSet);
             }
+            LOGGER.info("Reading complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -90,6 +99,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public void addTeacher(Teacher teacher) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Inserting teacher " + teacher.getName() + " into database.");
         String sql = "Insert into LAB3_ROZGHON_TEACHER "
                + "values (LAB3_ROZGHON_TEACHER_SEQ.nextval, ?, ?, ?)";
         try {
@@ -102,8 +112,9 @@ public class OracleTeacherDAO implements TeacherDAO  {
                 preparedStatement.setNull(3, Types.INTEGER);
             }
             preparedStatement.executeUpdate();
+            LOGGER.info("Inserting complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -116,6 +127,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public void updateTeacher(Teacher teacher) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Updating teacher " + teacher.getName() + ".");
         String sql = "UPDATE LAB3_ROZGHON_TEACHER "
                + "set name = ?, position = ?, chief = ? where teacher_id = ?";
         try {
@@ -129,8 +141,9 @@ public class OracleTeacherDAO implements TeacherDAO  {
             }
             preparedStatement.setInt(4, teacher.getId());
             preparedStatement.executeUpdate();
+            LOGGER.info("Updating complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -143,6 +156,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public void deleteTeacher(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Setting chief=null where chief was teacher " + id + ".");
         String sql = "update LAB3_ROZGHON_TEACHER "
                       + "set CHIEF = null "
                     + "where CHIEF = ?";
@@ -150,19 +164,22 @@ public class OracleTeacherDAO implements TeacherDAO  {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Setting teacher_id=null in subject details where teacher_id was " + id + ".");
             sql = "update LAB3_ROZGHON_SUBJECT_DETAILS " +
                 "set TEACHER_ID = null " +
                 "where TEACHER_ID = ?";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting teacher " + id + "from database.");
             sql = "Delete from LAB3_ROZGHON_TEACHER "
                   + "where teacher_id = ?";
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            LOGGER.info("Deleting complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -176,6 +193,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public List<Teacher> getEnableChiefs(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading teachers who enable to be chief to teacher " + id + ".");
         List<Teacher> list = new ArrayList<>();
         String sql = "select * from (select * from LAB3_ROZGHON_TEACHER minus " +
                 "select * from LAB3_ROZGHON_TEACHER" +
@@ -186,11 +204,13 @@ public class OracleTeacherDAO implements TeacherDAO  {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing teachers and put them into list.");
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
+            LOGGER.info("List of teachers complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -205,6 +225,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public List<Teacher> getTeachersByPupilClass(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading teachers who teach into " + id + " class.");
         List<Teacher> list = new ArrayList<>();
         String sql = "select distinct TEACHER_ID, NAME, POSITION, CHIEF " +
                 "from LAB3_ROZGHON_TEACHER " +
@@ -214,11 +235,13 @@ public class OracleTeacherDAO implements TeacherDAO  {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing teachers and put them into list.");
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
+            LOGGER.info("List of teachers complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -233,6 +256,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public List<Teacher> getTeachersBySubject(int id) {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading teachers who teach " + id + " subject.");
         List<Teacher> list = new ArrayList<>();
         String sql = "select distinct TEACHER_ID, NAME, POSITION, CHIEF " +
                 "from LAB3_ROZGHON_TEACHER " +
@@ -242,11 +266,13 @@ public class OracleTeacherDAO implements TeacherDAO  {
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing teachers and put them into list.");
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
+            LOGGER.info("List of teachers complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -260,6 +286,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public int getCountOfTeachers() {
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Counting teachers.");
         int count = 0;
         String sql = "select count(TEACHER_ID) as AMOUNT " +
                 "from LAB3_ROZGHON_TEACHER ";
@@ -268,8 +295,9 @@ public class OracleTeacherDAO implements TeacherDAO  {
             resultSet = preparedStatement.executeQuery();
             resultSet.next();
             count = resultSet.getInt("AMOUNT");
+            LOGGER.info("Counting complete");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -286,6 +314,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     public List<Teacher> getTeachersByPage(int page, int range) {
         List<Teacher> list = new ArrayList<>();
         connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading teachers for " + page + " page.");
         try {
             preparedStatement = connection.prepareStatement(
                     "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
@@ -294,11 +323,13 @@ public class OracleTeacherDAO implements TeacherDAO  {
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing teachers and put them into list.");
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
+            LOGGER.info("List of teachers complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
@@ -316,6 +347,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     public List<Teacher> searchTeachers(String val, String param) throws Exception {
         List<Teacher> list = new ArrayList<>();
         String sql;
+        LOGGER.info("Checking parameter of searching.");
         switch (param) {
             case "name":
                 sql = " SELECT * FROM LAB3_ROZGHON_TEACHER where upper(name) like ? order by teacher_id";
@@ -333,45 +365,55 @@ public class OracleTeacherDAO implements TeacherDAO  {
                         "where upper(ch.NAME) like ? order by t.teacher_id";
                 break;
             default:
-                throw new Exception("Wrong parameter");
+                Exception e = new Exception("Wrong parameter");
+                LOGGER.error(e.getMessage(), e);
+                throw e;
         }
         connection = ConnectionPool.getInstance().getConnection();
         try {
+            LOGGER.info("Searching teachers by " + param + ".");
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             resultSet = preparedStatement.executeQuery();
+            LOGGER.info("Parsing teachers and put them into list.");
             while (resultSet.next()) {
                 list.add(parseTeacher(resultSet));
             }
+            LOGGER.info("List of teachers complete.");
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error(throwables.getMessage(), throwables);
         } finally {
             closeAll(resultSet, preparedStatement, connection);
         }
         return list;
     }
 
-
     private void closeAll(ResultSet resultSet, PreparedStatement statement, Connection connection) {
         if (resultSet != null) {
             try {
+                LOGGER.info("Closing result set.");
                 resultSet.close();
+                LOGGER.info("Result set closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
         if (statement != null) {
             try {
+                LOGGER.info("Closing statement.");
                 statement.close();
+                LOGGER.info("Statement closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
         if (connection != null) {
             try {
+                LOGGER.info("Closing connection.");
                 connection.close();
+                LOGGER.info("Connection closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error(e.getMessage(), e);
             }
         }
     }

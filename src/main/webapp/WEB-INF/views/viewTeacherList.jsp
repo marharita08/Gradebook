@@ -43,22 +43,22 @@
                 searchFunc = "search(id, " + pageNum + ", 'searchTeachers')";
             }
         %>
-<sec:authorize access="hasAuthority('ADMIN')">
-        <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="filters"></th>
+        <sec:authorize access="hasAuthority('ADMIN')">
+        <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="slim"></th>
     <%
         if(pagination.equals("")) {
             searchFunc = "filter(id," + i++ + ")";
         }
     %>
-</sec:authorize>
+        </sec:authorize>
 
-        <th><input type="text" id="name" onkeyup="<%=searchFunc%>" class="filters"></th>
+        <th><input type="text" id="name" onkeyup="<%=searchFunc%>"></th>
         <%
             if(pagination.equals("")) {
                 searchFunc = "filter(id," + i++ + ")";
             }
         %>
-        <th><input type="text" id="position" onkeyup="<%=searchFunc%>" class="filters"></th>
+        <th><input type="text" id="position" onkeyup="<%=searchFunc%>"></th>
 
         <sec:authorize access="hasAuthority('ADMIN')">
             <%
@@ -66,10 +66,10 @@
                     searchFunc = "filter(id," + i++ + ")";
                 }
             %>
-        <th><input type="text" id="chief" onkeyup="<%=searchFunc%>" class="filters"></th>
+        <th><input type="text" id="chief" onkeyup="<%=searchFunc%>"></th>
          <th></th>
         <th></th>
-</sec:authorize>
+        </sec:authorize>
         <th></th>
         <th></th>
     </tr>
@@ -78,9 +78,9 @@
         for (Teacher teacher:(List<Teacher>)request.getAttribute("list")) {
 %>
 <tr>
-<sec:authorize access="hasAuthority('ADMIN')">
+    <sec:authorize access="hasAuthority('ADMIN')">
     <td><%=teacher.getId()%></td>
-</sec:authorize>
+    </sec:authorize>
     <td><%=teacher.getName()%></td>
     <td><%=teacher.getPosition()%></td>
     <sec:authorize access="hasAuthority('ADMIN')">
@@ -91,7 +91,7 @@
     <%}%>
     <td><a href="editTeacher/<%=teacher.getId()%>">Edit</a></td>
     <td><a href="deleteTeacher/<%=teacher.getId()%>?page=<%=pageNum%>">Delete</a></td>
-</sec:authorize>
+    </sec:authorize>
     <td><a href="/Gradebook/viewSubjectsByTeacher/<%=teacher.getId()%>">view subjects</a></td>
     <td><a href="/Gradebook/viewSubjectDetailsByTeacher/<%=teacher.getId()%>">view subject-class list</a></td>
 </tr>

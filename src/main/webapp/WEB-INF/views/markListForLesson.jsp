@@ -28,7 +28,7 @@
         </sec:authorize>
     </tr>
     <tr>
-        <th><input type="text" id="pupil" onkeyup="filter(id, 0)" class="filters"></th>
+        <th><input type="text" id="pupil" onkeyup="filter(id, 0)"></th>
         <th></th>
         <sec:authorize access="hasAuthority('TEACHER')">
         <th></th>

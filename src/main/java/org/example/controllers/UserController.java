@@ -1,9 +1,11 @@
 package org.example.controllers;
 
+import org.apache.log4j.Logger;
 import org.example.dao.OracleRoleDAO;
 import org.example.dao.OracleUserDAO;
 import org.example.entities.Role;
 import org.example.entities.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,7 @@ public class UserController {
     private OracleRoleDAO roleDAO;
     private int userPerPage = 10;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger LOGGER = Logger.getLogger(UserController.class.getName());
 
     public UserController(OracleUserDAO dao, OracleRoleDAO roleDAO, PasswordEncoder passwordEncoder) {
         this.dao = dao;
@@ -33,6 +36,8 @@ public class UserController {
      */
     @RequestMapping(value = "/viewAllUsers")
     public ModelAndView viewAllUsers(@RequestParam("page") int page) {
+        LOGGER.info("Getting list of users for " + page + " page.");
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         int count = dao.getCountOfUsers();
         PaginationController paginationController = new PaginationController(count, userPerPage, page);
@@ -45,6 +50,7 @@ public class UserController {
         model.put("roles", roleDAO.getAllRoles());
         model.put("list", list);
         model.put("pagination", paginationController);
+        LOGGER.info("Printing users list.");
         return new ModelAndView("viewUserList", model);
     }
 
@@ -54,11 +60,14 @@ public class UserController {
      */
     @RequestMapping(value = "/addUser")
     public ModelAndView addUser() {
+        LOGGER.info("Add new user.");
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         User user = new User();
         model.put("command", user);
         model.put("title", "Add user");
         model.put("formAction", "saveAddedUser");
+        LOGGER.info("Printing form for input user data.");
         return new ModelAndView("userForm", model);
     }
 
@@ -69,8 +78,10 @@ public class UserController {
      */
     @RequestMapping(value = "/saveAddedUser", method = RequestMethod.POST)
     public ModelAndView saveAddedUser(@ModelAttribute User user) throws Exception {
+        LOGGER.info("Saving added user.");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         dao.addUser(user);
+        LOGGER.info("Redirect to user list.");
         return new ModelAndView("redirect:/viewAllUsers?page=1");
     }
 
@@ -81,12 +92,19 @@ public class UserController {
      */
     @RequestMapping(value = "/editUser/{id}")
     public ModelAndView editUser(@PathVariable int id) {
-        Map<String, Object> model = new HashMap<>();
+        LOGGER.info("Edit user.");
         User user = dao.getUserByID(id);
+        if (user == null) {
+            LOGGER.error("User " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
         user.setPassword("");
         model.put("command", user);
         model.put("title", "Edit user");
         model.put("formAction", "../saveEditedUser");
+        LOGGER.info("Printing form for changing user data.");
         return new ModelAndView("userForm", model);
     }
 
@@ -97,8 +115,10 @@ public class UserController {
      */
     @RequestMapping(value = "/saveEditedUser", method = RequestMethod.POST)
     public ModelAndView saveEditedUser(@ModelAttribute User user) throws Exception {
+        LOGGER.info("Saving edited user.");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         dao.updateUser(user);
+        LOGGER.info("Redirect to user list.");
         return new ModelAndView("redirect:/viewAllUsers?page=1");
     }
 
@@ -109,7 +129,14 @@ public class UserController {
      */
     @RequestMapping(value = "/deleteUser/{id}")
     public ModelAndView deleteUser(@PathVariable int id, @RequestParam("page") int pageNum) {
+        LOGGER.info("Deleting user " + id + ".");
+        User user = dao.getUserByID(id);
+        if (user == null) {
+            LOGGER.error("User " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
         dao.deleteUser(id);
+        LOGGER.info("Redirect to user list on page " + pageNum + ".");
         return new ModelAndView("redirect:/viewAllUsers?page=" + pageNum);
     }
 
@@ -121,7 +148,19 @@ public class UserController {
      */
     @RequestMapping(value = "/addRole/{userID}/{roleID}")
     public ModelAndView addRole(@PathVariable int userID, @PathVariable int roleID) {
+        LOGGER.info("Add role " + roleID + " to user " + userID + ".");
+        User user = dao.getUserByID(userID);
+        if (user == null) {
+            LOGGER.error("User " + userID + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        Role role = roleDAO.getRoleByID(roleID);
+        if (role == null) {
+            LOGGER.error("Role " + roleID + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
         dao.addUserRole(userID, roleID);
+        LOGGER.info("Redirect to user list.");
         return new ModelAndView("redirect:/viewAllUsers?page=1");
     }
 
@@ -133,7 +172,19 @@ public class UserController {
      */
     @RequestMapping(value = "/deleteRole/{userID}/{roleID}")
     public ModelAndView deleteRole(@PathVariable int userID, @PathVariable int roleID) {
+        LOGGER.info("Deleting role " + roleID + " from user " + userID + ".");
+        User user = dao.getUserByID(userID);
+        if (user == null) {
+            LOGGER.error("User " + userID + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        Role role = roleDAO.getRoleByID(roleID);
+        if (role == null) {
+            LOGGER.error("Role " + roleID + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
         dao.deleteUserRole(userID, roleID);
+        LOGGER.info("Redirect to user list.");
         return new ModelAndView("redirect:/viewAllUsers?page=1");
     }
 
@@ -155,6 +206,7 @@ public class UserController {
     public String searchUsers(@RequestParam("page") int pageNum,
                               @RequestParam("val") String val,
                               @RequestParam("param")String param) throws Exception {
+        LOGGER.info("Searching users by " + param + ".");
         StringBuilder sb = new StringBuilder();
         List<User> list;
         Set<Role> roles = roleDAO.getAllRoles();
@@ -163,6 +215,7 @@ public class UserController {
         } else {
             list = dao.getUsersByPage(pageNum, userPerPage);
         }
+        LOGGER.info("Forming response.");
         for (User user:list) {
             sb.append("<tr>");
             sb.append("<td>").append(user.getId()).append("</td>");
@@ -193,6 +246,7 @@ public class UserController {
             sb.append("</td>");
             sb.append("</tr>");
         }
+        LOGGER.info("Printing response.");
         return sb.toString();
     }
 }

@@ -1,9 +1,12 @@
 package org.example.controllers;
 
+import org.apache.log4j.Logger;
 import org.example.dao.*;
 import org.example.entities.Lesson;
 import org.example.entities.Mark;
+import org.example.entities.Pupil;
 import org.example.entities.SubjectDetails;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +24,7 @@ public class MarkController {
     OraclePupilDAO pupilDAO;
     OracleSubjectDAO subjectDAO;
     OracleSubjectDetailsDAO subjectDetailsDAO;
+    private static final Logger LOGGER = Logger.getLogger(MarkController.class.getName());
 
     public MarkController(OracleMarkDAO dao,
                           OracleLessonDAO lessonDAO,
@@ -40,14 +44,21 @@ public class MarkController {
      */
     @RequestMapping(value = "/addMark/{id}")
     public ModelAndView addMark(@PathVariable int id) {
-        Map<String, Object> model = new HashMap<>();
+        LOGGER.info("Add new mark for lesson " + id + ".");
         Lesson lesson = lessonDAO.getLesson(id);
+        if (lesson == null) {
+            LOGGER.error("Lesson " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
         model.put("command", new Mark(lesson));
         model.put("list", pupilDAO.getPupilsByPupilClass(lesson.getSubjectDetails().getPupilClass().getId()));
         model.put("selectedPupil", 0);
         model.put("selectedMark", 0);
         model.put("title", "Add mark");
         model.put("formAction", "/Gradebook/saveAddedMark/");
+        LOGGER.info("Printing form for input mark's data.");
         return new ModelAndView("markForm", model);
     }
 
@@ -57,8 +68,10 @@ public class MarkController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/saveAddedMark", method = RequestMethod.POST)
-    public ModelAndView saveAddedMark(@ModelAttribute Mark mark) {
+    public ModelAndView saveAddedMark(@ModelAttribute Mark mark) throws Exception {
+        LOGGER.info("Saving added mark.");
         dao.addMark(mark);
+        LOGGER.info("Redirect to list of marks for " + mark.getLesson().getId() + " lesson.");
         return new ModelAndView("redirect:/viewMarksByLesson/" + mark.getLesson().getId());
     }
 
@@ -69,15 +82,22 @@ public class MarkController {
      */
     @RequestMapping(value = "/editMark/{id}")
     public ModelAndView editMark(@PathVariable int id) {
-        Map<String, Object> model = new HashMap<>();
+        LOGGER.info("Edit mark " + id + ".");
         Mark mark = dao.getMark(id);
+        if (mark == null) {
+            LOGGER.error("Mark " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
         model.put("command", mark);
         model.put("selectedPupil", mark.getPupil().getId());
         model.put("selectedMark", mark.getMark());
         model.put("list", pupilDAO.getPupilsByPupilClass(mark.getPupil().getPupilClass().getId()));
         model.put("title", "Edit mark");
         model.put("formAction", "/Gradebook/saveEditedMark/");
-            return new ModelAndView("markForm", model);
+        LOGGER.info("Printing form for changing mark's data.");
+        return new ModelAndView("markForm", model);
     }
 
     /**
@@ -86,8 +106,10 @@ public class MarkController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/saveEditedMark", method = RequestMethod.POST)
-    public ModelAndView saveEditedMark(@ModelAttribute Mark mark) {
+    public ModelAndView saveEditedMark(@ModelAttribute Mark mark) throws Exception {
+        LOGGER.info("Saving edited mark.");
         dao.updateMark(mark);
+        LOGGER.info("Redirect to list of marks for " + mark.getLesson().getId() + " lesson.");
         return new ModelAndView("redirect:/viewMarksByLesson/" + mark.getLesson().getId());
     }
 
@@ -98,8 +120,15 @@ public class MarkController {
      */
     @RequestMapping(value = "/deleteMark/{id}")
     public ModelAndView deleteMark(@PathVariable int id) {
-        int lessonID = dao.getMark(id).getLesson().getId();
+        LOGGER.info("Deleting mark " + id + ".");
+        Mark mark = dao.getMark(id);
+        if (mark == null) {
+            LOGGER.error("Mark " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        int lessonID = mark.getLesson().getId();
         dao.deleteMark(id);
+        LOGGER.info("Redirect to list of marks for " + lessonID + " lesson.");
         return new ModelAndView("redirect:/viewMarksByLesson/" + lessonID);
     }
 
@@ -110,10 +139,18 @@ public class MarkController {
      */
     @RequestMapping(value = "/viewMarksByPupil/{id}")
     public ModelAndView viewMarksByPupil(@PathVariable int id) {
+        LOGGER.info("Getting list of marks for " + id + " pupil.");
+        Pupil pupil = pupilDAO.getPupil(id);
+        if (pupil == null) {
+            LOGGER.error("Pupil " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("list", dao.getMarksByPupil(id));
-        model.put("header", "Marks for " + pupilDAO.getPupil(id).getName());
+        model.put("header", "Marks for " + pupil.getName());
         model.put("subjectList", subjectDAO.getSubjectByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
+        LOGGER.info("Printing marks.");
         return new ModelAndView("markListForPupil", model);
     }
 
@@ -124,10 +161,16 @@ public class MarkController {
      */
     @RequestMapping(value = "/viewMarksByLesson/{id}")
     public ModelAndView viewMarksByLesson(@PathVariable int id) {
+        LOGGER.info("Getting list of marks for " + id + " lesson.");
+        Lesson lesson = lessonDAO.getLesson(id);
+        if (lesson == null) {
+            LOGGER.error("Lesson " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("list", dao.getMarksByLesson(id));
         model.put("header", "Marks for lesson");
-        Lesson lesson = lessonDAO.getLesson(id);
         model.put("pupilList", pupilDAO.getPupilsByPupilClass(lesson.getSubjectDetails().getPupilClass().getId()));
         model.put("subject", lesson.getSubjectDetails().getSubject().getName());
         model.put("teacher", lesson.getSubjectDetails().getTeacher().getName());
@@ -135,6 +178,7 @@ public class MarkController {
         model.put("topic", lesson.getTopic());
         model.put("lesson", id);
         model.put("subjectList", subjectDAO.getSubjectByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
+        LOGGER.info("Printing marks.");
         return new ModelAndView("markListForLesson", model);
     }
 
@@ -145,8 +189,14 @@ public class MarkController {
      */
     @RequestMapping(value = "/viewMarksBySubjectDetails/{id}")
     public ModelAndView viewMarksBySubjectDetails(@PathVariable int id) {
-        Map<String, Object> model = new HashMap<>();
+        LOGGER.info("Getting list of marks for " + id + " subject details.");
         SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
+        if (subjectDetails == null) {
+            LOGGER.error("Subject details " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
         model.put("header", "Mark list");
         model.put("lessonList", lessonDAO.getLessonsBySubjectDetails(subjectDetails.getId()));
         model.put("pupilList", pupilDAO.getPupilsByPupilClass(subjectDetails.getPupilClass().getId()));
@@ -154,6 +204,7 @@ public class MarkController {
         model.put("subject", subjectDetails.getSubject().getName());
         model.put("teacher", subjectDetails.getTeacher().getName());
         model.put("class", subjectDetails.getPupilClass().getName());
+        LOGGER.info("Printing marks.");
         return new ModelAndView("marks", model);
     }
 }

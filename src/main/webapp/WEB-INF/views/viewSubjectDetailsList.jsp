@@ -53,7 +53,7 @@
                 }
             %>
             <sec:authorize access="hasAuthority('ADMIN')">
-            <th><input type="text" id="id" onkeyup="<%=searchFunc%>"></th>
+            <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="slim"></th>
     <%
         if(pagination.equals("")) {
             searchFunc = "filter(id," + i++ + ")";
@@ -61,7 +61,7 @@
     %>
             </sec:authorize>
             <%if(request.getAttribute("param") != "class") {%>
-            <th><input type="text" id="class" onkeyup="<%=searchFunc%>"></th>
+            <th><input type="text" id="class" onkeyup="<%=searchFunc%>" class="slim"></th>
             <%
                 if(pagination.equals("")) {
                     searchFunc = "filter(id," + i++ + ")";

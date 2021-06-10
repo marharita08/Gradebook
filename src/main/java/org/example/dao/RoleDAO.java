@@ -18,4 +18,11 @@ public interface RoleDAO {
      */
     Set<Role> getAllRoles();
 
+    /**
+     * Get role from database by id.
+     * @param id role id
+     * @return Role
+     */
+    Role getRoleByID(int id);
+
 }

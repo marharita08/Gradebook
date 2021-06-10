@@ -14,10 +14,12 @@
         <h2>Exception occurred while processing the request</h2>
     <%
         if (exception == null){
-            Throwable e = (Throwable) request.getAttribute("javax.servlet.error.exception");%>
-            <p>Type: <%= e.getClass()%></p>
-            <p>Message: <%= e.getMessage() %></p>
+            Throwable e = (Throwable) request.getAttribute("javax.servlet.error.exception");
+            if (e != null) {%>
+                <p>Type: <%= e.getClass()%></p>
+                <p>Message: <%= e.getMessage() %></p>
     <%
+            }
         } else {%>
             <p>Type: <%= exception.getClass()%></p>
             <p>Message: <%= exception.getMessage() %></p>
@@ -25,11 +27,11 @@
         }
     } else if (status == 403) {%>
         <h2>Error: <%=status%></h2>
-        <p>forbidden</p>
+        <p>Forbidden.</p>
     <%
     } else if (status == 404) {%>
         <h2>Error: <%=status%></h2>
-        <p>page not found</p>
+        <p>Resource not found.</p>
 <%
     } else {%>
         <h2>Error: <%=status%></h2>

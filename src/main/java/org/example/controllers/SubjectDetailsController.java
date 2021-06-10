@@ -1,9 +1,9 @@
 package org.example.controllers;
 
+import org.apache.log4j.Logger;
 import org.example.dao.*;
-import org.example.entities.SubjectDetails;
-import org.example.entities.Teacher;
-import org.example.entities.User;
+import org.example.entities.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +21,7 @@ public class SubjectDetailsController {
     private OracleSubjectDAO subjectDAO;
     private OracleUserDAO userDAO;
     private int subjectDetailsPerPage = 15;
+    private static final Logger LOGGER = Logger.getLogger(SubjectDetailsController.class.getName());
 
     public SubjectDetailsController(OracleSubjectDetailsDAO dao,
                                     OraclePupilClassDAO classDAO,
@@ -40,6 +41,8 @@ public class SubjectDetailsController {
      */
     @RequestMapping(value = "/viewAllSubjectDetails")
     public ModelAndView viewAllSubjectDetails(@RequestParam("page") int page) {
+        LOGGER.info("Getting list of subject details for " + page + " page.");
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         int count = dao.getCountOfSubjectDetails();
         PaginationController paginationController = new PaginationController(count, subjectDetailsPerPage, page);
@@ -54,6 +57,7 @@ public class SubjectDetailsController {
         model.put("header", "Subject Details List");
         model.put("pageNum", page);
         model.put("param", "all");
+        LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
 
@@ -63,6 +67,8 @@ public class SubjectDetailsController {
      */
     @RequestMapping(value = "/addSubjectDetails")
     public ModelAndView addSubjectDetails() {
+        LOGGER.info("Add new subject details.");
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", new SubjectDetails());
         model.put("selectedClass", 0);
@@ -73,6 +79,7 @@ public class SubjectDetailsController {
         model.put("subjectList", subjectDAO.getAllSubjects());
         model.put("title", "Add Subject Details");
         model.put("formAction", "saveAddedSubjectDetails");
+        LOGGER.info("Printing form for input subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
     }
 
@@ -82,8 +89,10 @@ public class SubjectDetailsController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/saveAddedSubjectDetails", method = RequestMethod.POST)
-    public ModelAndView saveAddedSubjectDetails(@ModelAttribute SubjectDetails subjectDetails) {
+    public ModelAndView saveAddedSubjectDetails(@ModelAttribute SubjectDetails subjectDetails) throws Exception {
+        LOGGER.info("Saving added subject details.");
         dao.addSubjectDetails(subjectDetails);
+        LOGGER.info("Redirect to subject details list.");
         return new ModelAndView("redirect:/viewAllSubjectDetails?page=1");
     }
 
@@ -94,8 +103,14 @@ public class SubjectDetailsController {
      */
     @RequestMapping(value = "/editSubjectDetails/{id}", method = RequestMethod.GET)
     public ModelAndView editSubjectDetails(@PathVariable int id) {
-        Map<String, Object> model = new HashMap<>();
+        LOGGER.info("Edit subject details.");
         SubjectDetails subjectDetails = dao.getSubjectDetails(id);
+        if (subjectDetails == null) {
+            LOGGER.error("Subject details" + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
         model.put("command", subjectDetails);
         model.put("selectedClass", subjectDetails.getPupilClass().getId());
         model.put("selectedTeacher", subjectDetails.getTeacher().getId());
@@ -105,6 +120,7 @@ public class SubjectDetailsController {
         model.put("subjectList", subjectDAO.getAllSubjects());
         model.put("title", "Edit subject details");
         model.put("formAction", "../saveEditedSubjectDetails");
+        LOGGER.info("Printing form for changing subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
     }
 
@@ -114,8 +130,10 @@ public class SubjectDetailsController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/saveEditedSubjectDetails", method = RequestMethod.POST)
-    public ModelAndView saveEditedSubjectDetails(@ModelAttribute SubjectDetails subjectDetails) {
+    public ModelAndView saveEditedSubjectDetails(@ModelAttribute SubjectDetails subjectDetails) throws Exception {
+        LOGGER.info("Saving edited subject details.");
         dao.updateSubjectDetails(subjectDetails);
+        LOGGER.info("Redirect to subject details list.");
         return new ModelAndView("redirect:/viewAllSubjectDetails?page=1");
     }
 
@@ -126,7 +144,14 @@ public class SubjectDetailsController {
      */
     @RequestMapping(value = "/deleteSubjectDetails/{id}")
     public ModelAndView deleteSubjectDetails(@PathVariable int id, @RequestParam("page") int pageNum) {
+        LOGGER.info("Deleting subject details " + id + ".");
+        SubjectDetails subjectDetails = dao.getSubjectDetails(id);
+        if (subjectDetails == null) {
+            LOGGER.error("Subject details" + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
         dao.deleteSubjectDetails(id);
+        LOGGER.info("Redirect to subject details list on page " + pageNum + ".");
         return new ModelAndView("redirect:/viewAllSubjectDetails?page=" + pageNum);
     }
 
@@ -136,13 +161,21 @@ public class SubjectDetailsController {
      */
     @RequestMapping(value = "/viewSubjectDetailsByTeacher/{id}")
     public ModelAndView viewSubjectDetailsByTeacher(@PathVariable int id) {
+        LOGGER.info("Getting list of subject details by " + id + " teacher.");
+        Teacher teacher = teacherDAO.getTeacher(id);
+        if (teacher == null) {
+            LOGGER.error("Teacher " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsByTeacher(id);
         model.put("list", list);
         model.put("param", "teacher");
-        model.put("header", "Subjects of " + teacherDAO.getTeacher(id).getName());
+        model.put("header", "Subjects of " + teacher.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
 
@@ -152,13 +185,21 @@ public class SubjectDetailsController {
      */
     @RequestMapping(value = "/viewSubjectDetailsByPupilClass/{id}")
     public ModelAndView viewSubjectDetailsByPupilClass(@PathVariable int id) {
+        LOGGER.info("Getting list of subject details by " + id + " class.");
+        PupilClass pupilClass = classDAO.getPupilClass(id);
+        if (pupilClass == null) {
+            LOGGER.error("Class " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsByPupilClass(id);
         model.put("list", list);
         model.put("param", "class");
-        model.put("header", "Subjects of " + classDAO.getPupilClass(id).getName());
+        model.put("header", "Subjects of " + pupilClass.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
 
@@ -168,13 +209,21 @@ public class SubjectDetailsController {
      */
     @RequestMapping(value = "/viewSubjectDetailsBySubject/{id}")
     public ModelAndView viewSubjectDetailsBySubject(@PathVariable int id) {
+        LOGGER.info("Getting list of subject details by " + id + " subject.");
+        Subject subject = subjectDAO.getSubject(id);
+        if (subject == null) {
+            LOGGER.error("Subject " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsBySubject(id);
         model.put("list", list);
         model.put("param", "subject");
-        model.put("header", "Subject " + subjectDAO.getSubject(id).getName());
+        model.put("header", "Subject " + subject.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
 
@@ -183,6 +232,7 @@ public class SubjectDetailsController {
     public String searchSubjectDetails(@RequestParam("page") int pageNum,
                                  @RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
+        LOGGER.info("Searching subject details by " + param + ".");
         StringBuilder sb = new StringBuilder();
         List<SubjectDetails> list;
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -192,6 +242,7 @@ public class SubjectDetailsController {
         } else {
             list = dao.getSubjectDetailsByPage(pageNum, subjectDetailsPerPage);
         }
+        LOGGER.info("Forming response.");
         for (SubjectDetails subjectDetails:list) {
             int id = subjectDetails.getId();
             sb.append("<tr>");
@@ -227,6 +278,7 @@ public class SubjectDetailsController {
             sb.append("</td>");
             sb.append("</tr>");
         }
+        LOGGER.info("Printing response.");
         return sb.toString();
     }
 }

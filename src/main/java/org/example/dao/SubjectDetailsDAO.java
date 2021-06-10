@@ -22,13 +22,13 @@ public interface SubjectDetailsDAO {
      * Insert new subject details into database.
      * @param subjectDetails adding subject details
      */
-    void addSubjectDetails(SubjectDetails subjectDetails);
+    void addSubjectDetails(SubjectDetails subjectDetails) throws Exception;
 
     /**
      * Update subject details data into database.
      * @param subjectDetails editing subject
      */
-    void updateSubjectDetails(SubjectDetails subjectDetails);
+    void updateSubjectDetails(SubjectDetails subjectDetails) throws Exception;
 
     /**
      * Delete subject details from database.
