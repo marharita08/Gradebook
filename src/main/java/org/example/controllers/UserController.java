@@ -1,8 +1,8 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.OracleRoleDAO;
-import org.example.dao.OracleUserDAO;
+import org.example.dao.RoleDAO;
+import org.example.dao.UserDAO;
 import org.example.entities.Role;
 import org.example.entities.User;
 import org.springframework.http.HttpStatus;
@@ -18,13 +18,13 @@ import java.util.Set;
 
 @Controller
 public class UserController {
-    private OracleUserDAO dao;
-    private OracleRoleDAO roleDAO;
+    private final UserDAO dao;
+    private final RoleDAO roleDAO;
     private int userPerPage = 10;
     private final PasswordEncoder passwordEncoder;
     private static final Logger LOGGER = Logger.getLogger(UserController.class.getName());
 
-    public UserController(OracleUserDAO dao, OracleRoleDAO roleDAO, PasswordEncoder passwordEncoder) {
+    public UserController(UserDAO dao, RoleDAO roleDAO, PasswordEncoder passwordEncoder) {
         this.dao = dao;
         this.roleDAO = roleDAO;
         this.passwordEncoder = passwordEncoder;

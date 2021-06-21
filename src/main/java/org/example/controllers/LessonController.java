@@ -17,15 +17,15 @@ import java.util.Map;
 
 @Controller
 public class LessonController {
-    private OracleLessonDAO dao;
-    private OracleSubjectDetailsDAO subjectDetailsDAO;
-    private OracleUserDAO userDAO;
+    private final LessonDAO dao;
+    private final SubjectDetailsDAO subjectDetailsDAO;
+    private final UserDAO userDAO;
     private int lessonsPerPage = 20;
     private static final Logger LOGGER = Logger.getLogger(LessonController.class.getName());
 
-    public LessonController(OracleLessonDAO dao,
-                            OracleSubjectDetailsDAO subjectDetailsDAO,
-                            OracleUserDAO userDAO) {
+    public LessonController(LessonDAO dao,
+                            SubjectDetailsDAO subjectDetailsDAO,
+                            UserDAO userDAO) {
         this.dao = dao;
         this.subjectDetailsDAO = subjectDetailsDAO;
         this.userDAO = userDAO;

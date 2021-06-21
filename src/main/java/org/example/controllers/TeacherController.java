@@ -1,10 +1,7 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.OraclePupilClassDAO;
-import org.example.dao.OracleSubjectDAO;
-import org.example.dao.OracleTeacherDAO;
-import org.example.dao.OracleUserDAO;
+import org.example.dao.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,22 +12,21 @@ import org.springframework.web.servlet.ModelAndView;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Controller
 public class TeacherController {
 
-    private OracleTeacherDAO dao;
-    private OraclePupilClassDAO pupilClassDAO;
-    private OracleSubjectDAO subjectDAO;
-    private OracleUserDAO userDAO;
+    private final TeacherDAO dao;
+    private final PupilClassDAO pupilClassDAO;
+    private final SubjectDAO subjectDAO;
+    private final UserDAO userDAO;
     private int teachersPerPage = 15;
     private static final Logger LOGGER = Logger.getLogger(TeacherController.class.getName());
 
-    public TeacherController(OracleTeacherDAO dao,
-                             OraclePupilClassDAO pupilClassDAO,
-                             OracleSubjectDAO subjectDAO,
-                             OracleUserDAO userDAO) {
+    public TeacherController(TeacherDAO dao,
+                             PupilClassDAO pupilClassDAO,
+                             SubjectDAO subjectDAO,
+                             UserDAO userDAO) {
         this.dao = dao;
         this.pupilClassDAO = pupilClassDAO;
         this.subjectDAO = subjectDAO;

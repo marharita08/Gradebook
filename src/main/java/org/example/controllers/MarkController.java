@@ -19,18 +19,18 @@ import java.util.Map;
 
 @Controller
 public class MarkController {
-    OracleMarkDAO dao;
-    OracleLessonDAO lessonDAO;
-    OraclePupilDAO pupilDAO;
-    OracleSubjectDAO subjectDAO;
-    OracleSubjectDetailsDAO subjectDetailsDAO;
+    private final MarkDAO dao;
+    private final LessonDAO lessonDAO;
+    private final PupilDAO pupilDAO;
+    private final SubjectDAO subjectDAO;
+    private final SubjectDetailsDAO subjectDetailsDAO;
     private static final Logger LOGGER = Logger.getLogger(MarkController.class.getName());
 
-    public MarkController(OracleMarkDAO dao,
-                          OracleLessonDAO lessonDAO,
-                          OraclePupilDAO pupilDAO,
-                          OracleSubjectDAO subjectDAO,
-                          OracleSubjectDetailsDAO subjectDetailsDAO) {
+    public MarkController(MarkDAO dao,
+                          LessonDAO lessonDAO,
+                          PupilDAO pupilDAO,
+                          SubjectDAO subjectDAO,
+                          SubjectDetailsDAO subjectDetailsDAO) {
         this.dao = dao;
         this.lessonDAO = lessonDAO;
         this.pupilDAO = pupilDAO;

@@ -15,19 +15,19 @@ import java.util.Map;
 
 @Controller
 public class SubjectDetailsController {
-    private OracleSubjectDetailsDAO dao;
-    private OraclePupilClassDAO classDAO;
-    private OracleTeacherDAO teacherDAO;
-    private OracleSubjectDAO subjectDAO;
-    private OracleUserDAO userDAO;
+    private final SubjectDetailsDAO dao;
+    private final PupilClassDAO classDAO;
+    private final TeacherDAO teacherDAO;
+    private final SubjectDAO subjectDAO;
+    private final UserDAO userDAO;
     private int subjectDetailsPerPage = 15;
     private static final Logger LOGGER = Logger.getLogger(SubjectDetailsController.class.getName());
 
-    public SubjectDetailsController(OracleSubjectDetailsDAO dao,
-                                    OraclePupilClassDAO classDAO,
-                                    OracleTeacherDAO teacherDAO,
-                                    OracleSubjectDAO subjectDAO,
-                                    OracleUserDAO userDAO) {
+    public SubjectDetailsController(SubjectDetailsDAO dao,
+                                    PupilClassDAO classDAO,
+                                    TeacherDAO teacherDAO,
+                                    SubjectDAO subjectDAO,
+                                    UserDAO userDAO) {
         this.dao = dao;
         this.classDAO = classDAO;
         this.teacherDAO = teacherDAO;

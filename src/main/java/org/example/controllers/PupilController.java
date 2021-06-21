@@ -1,9 +1,7 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.OraclePupilClassDAO;
-import org.example.dao.OraclePupilDAO;
-import org.example.dao.OracleUserDAO;
+import org.example.dao.*;
 import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
 import org.example.entities.User;
@@ -19,13 +17,13 @@ import java.util.Map;
 
 @Controller
 public class PupilController {
-    private OraclePupilDAO dao;
-    private OraclePupilClassDAO classDAO;
-    private OracleUserDAO userDAO;
+    private final PupilDAO dao;
+    private final PupilClassDAO classDAO;
+    private final UserDAO userDAO;
     private int pupilPerPage = 15;
     private static final Logger LOGGER = Logger.getLogger(PupilController.class.getName());
 
-    public PupilController(OraclePupilDAO dao, OraclePupilClassDAO classDAO, OracleUserDAO userDAO) {
+    public PupilController(PupilDAO dao, PupilClassDAO classDAO, UserDAO userDAO) {
         this.dao = dao;
         this.classDAO = classDAO;
         this.userDAO = userDAO;

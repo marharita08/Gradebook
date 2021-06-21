@@ -1,7 +1,6 @@
 package org.example.services;
 
-import org.example.dao.OracleUserDAO;
-import org.example.entities.User;
+import org.example.dao.UserDAO;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,9 +8,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService implements UserDetailsService {
-    private OracleUserDAO dao;
+    private final UserDAO dao;
 
-    public UserService(OracleUserDAO dao) {
+    public UserService(UserDAO dao) {
         this.dao = dao;
     }
 

@@ -1,9 +1,7 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.OraclePupilClassDAO;
-import org.example.dao.OracleSubjectDAO;
-import org.example.dao.OracleUserDAO;
+import org.example.dao.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,15 +15,15 @@ import java.util.Map;
 
 @Controller
 public class PupilClassController {
-    private OraclePupilClassDAO dao;
-    private OracleSubjectDAO subjectDAO;
-    private OracleUserDAO userDAO;
+    private final PupilClassDAO dao;
+    private final SubjectDAO subjectDAO;
+    private final UserDAO userDAO;
     private int pupilClassPerPage = 15;
     private static final Logger LOGGER = Logger.getLogger(PupilClassController.class.getName());
 
-    public PupilClassController(OraclePupilClassDAO dao,
-                                OracleSubjectDAO subjectDAO,
-                                OracleUserDAO userDAO) {
+    public PupilClassController(PupilClassDAO dao,
+                                SubjectDAO subjectDAO,
+                                UserDAO userDAO) {
         this.dao = dao;
         this.subjectDAO = subjectDAO;
         this.userDAO = userDAO;

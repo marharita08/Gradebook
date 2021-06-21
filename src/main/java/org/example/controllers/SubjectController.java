@@ -1,10 +1,7 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.OraclePupilClassDAO;
-import org.example.dao.OracleSubjectDAO;
-import org.example.dao.OracleTeacherDAO;
-import org.example.dao.OracleUserDAO;
+import org.example.dao.*;
 import org.example.entities.PupilClass;
 import org.example.entities.Subject;
 import org.example.entities.Teacher;
@@ -21,17 +18,17 @@ import java.util.Map;
 
 @Controller
 public class SubjectController {
-    private OracleSubjectDAO dao;
-    private OraclePupilClassDAO pupilClassDAO;
-    private OracleTeacherDAO teacherDAO;
-    private OracleUserDAO userDAO;
+    private final SubjectDAO dao;
+    private final PupilClassDAO pupilClassDAO;
+    private final TeacherDAO teacherDAO;
+    private final UserDAO userDAO;
     private int subjectPerPage = 15;
     private static final Logger LOGGER = Logger.getLogger(SubjectController.class.getName());
 
-    public SubjectController(OracleSubjectDAO dao,
-                             OraclePupilClassDAO pupilClassDAO,
-                             OracleTeacherDAO teacherDAO,
-                             OracleUserDAO userDAO) {
+    public SubjectController(SubjectDAO dao,
+                             PupilClassDAO pupilClassDAO,
+                             TeacherDAO teacherDAO,
+                             UserDAO userDAO) {
         this.dao = dao;
         this.pupilClassDAO = pupilClassDAO;
         this.teacherDAO = teacherDAO;
