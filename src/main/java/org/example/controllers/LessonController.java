@@ -50,7 +50,7 @@ public class LessonController {
         model.put("subject", subjectDetails.getSubject().getName());
         model.put("class", subjectDetails.getPupilClass().getName());
         model.put("title", "Add lesson");
-        model.put("formAction", "/Gradebook/saveAddedLesson");
+        model.put("formAction", "../saveAddedLesson");
         LOGGER.info("Printing form for input lesson's data.");
         return new ModelAndView("lessonForm", model);
     }
@@ -89,7 +89,7 @@ public class LessonController {
         model.put("subject", subjectDetails.getSubject().getName());
         model.put("class", subjectDetails.getPupilClass().getName());
         model.put("title", "Edit lesson");
-        model.put("formAction", "/Gradebook/saveEditedLesson");
+        model.put("formAction", "../saveEditedLesson");
         LOGGER.info("Printing form for changing lesson's data.");
         return new ModelAndView("lessonForm", model);
     }

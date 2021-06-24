@@ -75,21 +75,21 @@
         </sec:authorize>
         <td><%=lesson.getDate()%></td>
         <td><%=lesson.getTopic()%></td>
-        <td><a href="/Gradebook/viewMarksByLesson/<%=lesson.getId()%>">view marks</a></td>
+        <td><a href="../viewMarksByLesson/<%=lesson.getId()%>">view marks</a></td>
         <sec:authorize access="hasAuthority('TEACHER')">
-        <td><a href="/Gradebook/addMark/<%=lesson.getId()%>">add mark</a></td>
-        <td><a href="/Gradebook/editLesson/<%=lesson.getId()%>">edit lesson</a></td>
-        <td><a href="/Gradebook/deleteLesson/<%=lesson.getId()%>?page=<%=pageNum%>">delete lesson</a></td>
+        <td><a href="../addMark/<%=lesson.getId()%>">add mark</a></td>
+        <td><a href="../editLesson/<%=lesson.getId()%>">edit lesson</a></td>
+        <td><a href="../deleteLesson/<%=lesson.getId()%>?page=<%=pageNum%>">delete lesson</a></td>
         </sec:authorize>
     </tr>
     <% } %>
     </tbody>
 </table>
 <br/>
-<button onclick='location.href="/Gradebook/"'>Menu</button>
+<button onclick='location.href="../index.jsp"'>Menu</button>
 <button onclick=history.back()>Back</button>
 <sec:authorize access="hasAuthority('TEACHER')">
-<button onclick='location.href="/Gradebook/addLesson/<%=sd%>"'>Add</button>
+<button onclick='location.href="../addLesson/<%=sd%>"'>Add</button>
 </sec:authorize>
 </div>
 <%@include file="footer.jsp"%>

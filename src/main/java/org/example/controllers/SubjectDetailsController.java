@@ -175,6 +175,7 @@ public class SubjectDetailsController {
         model.put("header", "Subjects of " + teacher.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -199,6 +200,7 @@ public class SubjectDetailsController {
         model.put("header", "Subjects of " + pupilClass.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -223,6 +225,7 @@ public class SubjectDetailsController {
         model.put("header", "Subject " + subject.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }

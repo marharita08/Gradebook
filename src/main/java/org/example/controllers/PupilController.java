@@ -50,6 +50,7 @@ public class PupilController {
         model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllPupils"));
         model.put("pageNum", page);
         model.put("header", "Pupil List");
+        model.put("toRoot", "");
         LOGGER.info("Printing pupil list.");
         return new ModelAndView("viewPupilList", model);
     }
@@ -108,7 +109,7 @@ public class PupilController {
         }
         model.put("list", classDAO.getAllPupilClasses());
         model.put("title", "Edit pupil");
-        model.put("formAction", "/Gradebook/saveEditedPupil");
+        model.put("formAction", "../saveEditedPupil");
         LOGGER.info("Printing form for changing pupil data.");
         return new ModelAndView("pupilForm", model);
     }
@@ -163,6 +164,7 @@ public class PupilController {
         model.put("list", dao.getPupilsByPupilClass(id));
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing pupil list.");
         return new ModelAndView("viewPupilList", model);
     }

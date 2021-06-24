@@ -45,8 +45,8 @@
                    i++;%>
                 <td><%=mark.getMark()%></td>
                 <sec:authorize access="hasAuthority('TEACHER')">
-                <td><a href="/Gradebook/editMark/<%=mark.getId()%>">edit mark</a></td>
-                <td><a href="/Gradebook/deleteMark/<%=mark.getId()%>">delete mark</a></td>
+                <td><a href="../editMark/<%=mark.getId()%>">edit mark</a></td>
+                <td><a href="../deleteMark/<%=mark.getId()%>">delete mark</a></td>
                 </sec:authorize>
             <% }}
             if(i == 0) { %>
@@ -62,10 +62,10 @@
     <% } %>
 </table>
 <br/>
-<button onclick='location.href="/Gradebook/"'>Menu</button>
+<button onclick='location.href="../index.jsp"'>Menu</button>
 <button onclick=history.back()>Back</button>
 <sec:authorize access="hasAuthority('TEACHER')">
-<button onclick='location.href="/Gradebook/addMark/<%=request.getAttribute("lesson")%>"'>Add mark</button>
+<button onclick='location.href="../addMark/<%=request.getAttribute("lesson")%>"'>Add mark</button>
 </sec:authorize>
 </div>
 <%@include file="footer.jsp"%>

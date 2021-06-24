@@ -16,6 +16,7 @@
 <div align="center">
     <%int pageNum = (int)request.getAttribute("pageNum");
         String pagination = (String) request.getAttribute("pagination");
+        String toRoot = (String) request.getAttribute("toRoot");
     %>
     <ul class="pagination"><%=pagination%></ul>
 <table id="myTable">
@@ -89,11 +90,11 @@
     <% } else { %>
     <td>-</td>
     <%}%>
-    <td><a href="editTeacher/<%=teacher.getId()%>">Edit</a></td>
-    <td><a href="deleteTeacher/<%=teacher.getId()%>?page=<%=pageNum%>">Delete</a></td>
+    <td><a href="<%=toRoot%>editTeacher/<%=teacher.getId()%>">Edit</a></td>
+    <td><a href="<%=toRoot%>deleteTeacher/<%=teacher.getId()%>?page=<%=pageNum%>">Delete</a></td>
     </sec:authorize>
-    <td><a href="/Gradebook/viewSubjectsByTeacher/<%=teacher.getId()%>">view subjects</a></td>
-    <td><a href="/Gradebook/viewSubjectDetailsByTeacher/<%=teacher.getId()%>">view subject-class list</a></td>
+    <td><a href="<%=toRoot%>viewSubjectsByTeacher/<%=teacher.getId()%>">view subjects</a></td>
+    <td><a href="<%=toRoot%>viewSubjectDetailsByTeacher/<%=teacher.getId()%>">view subject-class list</a></td>
 </tr>
 <%
 }
@@ -101,10 +102,10 @@
 </tbody>
 </table>
     <br/>
-    <button onclick='location.href="/Gradebook/"'>Menu</button>
+    <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
     <button onclick='history.back()'>Back</button>
     <sec:authorize access="hasAuthority('ADMIN')">
-    <button onclick='location.href="/Gradebook/addTeacher"'>Add</button>
+    <button onclick='location.href="<%=toRoot%>addTeacher"'>Add</button>
     </sec:authorize>
 </div>
 <%@include file="footer.jsp"%>

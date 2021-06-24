@@ -54,6 +54,7 @@ public class TeacherController {
         model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllTeachers"));
         model.put("header", "Teacher list");
         model.put("pageNum", page);
+        model.put("toRoot", "");
         LOGGER.info("Printing teachers list.");
         return new ModelAndView("viewTeacherList", model);
     }
@@ -168,6 +169,7 @@ public class TeacherController {
         model.put("header", "Teachers of " + pupilClass.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing teachers list.");
         return new ModelAndView("viewTeacherList", model);
     }
@@ -190,6 +192,7 @@ public class TeacherController {
         model.put("header", "Teachers who teach " + subject.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing teachers list.");
         return new ModelAndView("viewTeacherList", model);
     }

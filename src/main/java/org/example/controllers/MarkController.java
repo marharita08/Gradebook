@@ -57,7 +57,7 @@ public class MarkController {
         model.put("selectedPupil", 0);
         model.put("selectedMark", 0);
         model.put("title", "Add mark");
-        model.put("formAction", "/Gradebook/saveAddedMark/");
+        model.put("formAction", "../saveAddedMark/");
         LOGGER.info("Printing form for input mark's data.");
         return new ModelAndView("markForm", model);
     }
@@ -95,7 +95,7 @@ public class MarkController {
         model.put("selectedMark", mark.getMark());
         model.put("list", pupilDAO.getPupilsByPupilClass(mark.getPupil().getPupilClass().getId()));
         model.put("title", "Edit mark");
-        model.put("formAction", "/Gradebook/saveEditedMark/");
+        model.put("formAction", "../saveEditedMark/");
         LOGGER.info("Printing form for changing mark's data.");
         return new ModelAndView("markForm", model);
     }

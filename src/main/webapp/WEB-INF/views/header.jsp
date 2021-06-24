@@ -6,12 +6,12 @@
     <nav class="navbar-fixed-top  bg-primary">
         <ul>
             <li><a href="/Gradebook/" class="fa fa-home">Home</a></li>
-            <li><a href="/Gradebook/viewAllClasses?page=1" class="fa fa-users">Class list</a></li>
-            <li><a href="/Gradebook/viewAllTeachers?page=1" class="fa fa-graduation-cap">Teachers list</a></li>
-            <li><a href="/Gradebook/viewAllSubjects?page=1" class="fa fa-leanpub">Subject list</a></li>
+            <li><a href="viewAllClasses?page=1" class="fa fa-users">Class list</a></li>
+            <li><a href="viewAllTeachers?page=1" class="fa fa-graduation-cap">Teachers list</a></li>
+            <li><a href="viewAllSubjects?page=1" class="fa fa-leanpub">Subject list</a></li>
             <sec:authorize access="isAuthenticated()">
             <li class="logout fa fa-user"><%=" " + SecurityContextHolder.getContext().getAuthentication().getName() + " "%>
-                <a href="/Gradebook/logout" class="fa fa-sign-out">Logout</a></li>
+                <a href="logout" class="fa fa-sign-out">Logout</a></li>
             </sec:authorize>
         </ul>
     </nav>

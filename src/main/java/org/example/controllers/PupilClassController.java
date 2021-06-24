@@ -73,6 +73,7 @@ public class PupilClassController {
         model.put("header", "Classes which learn " + subject.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing class list.");
         return new ModelAndView("viewClassList", model);
     }

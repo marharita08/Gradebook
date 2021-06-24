@@ -56,6 +56,7 @@ public class SubjectController {
         model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllSubjects"));
         model.put("header", "Subject list");
         model.put("pageNum", page);
+        model.put("toRoot", "");
         LOGGER.info("Printing subject list.");
         return new ModelAndView("viewSubjectList", model);
     }
@@ -163,6 +164,7 @@ public class SubjectController {
         model.put("param", "class");
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing subject list.");
         return new ModelAndView("viewSubjectList", model);
     }
@@ -187,6 +189,7 @@ public class SubjectController {
         model.put("param", "teacher");
         model.put("pagination", "");
         model.put("pageNum", 1);
+        model.put("toRoot", "../");
         LOGGER.info("Printing subject list.");
         return new ModelAndView("viewSubjectList", model);
     }

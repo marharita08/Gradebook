@@ -16,6 +16,7 @@
 
     <%int pageNum = (int)request.getAttribute("pageNum");
         String pagination = (String) request.getAttribute("pagination");
+        String toRoot = (String) request.getAttribute("toRoot");
     %>
     <ul class="pagination"><%=pagination%></ul>
     <table id="myTable">
@@ -77,22 +78,22 @@
             </sec:authorize>
             <td><%=pupilClass.getName()%></td>
             <sec:authorize access="hasAuthority('ADMIN')">
-            <td><a href="editClass/<%=pupilClass.getId()%>">Edit</a></td>
-            <td><a href="deleteClass/<%=pupilClass.getId()%>?page=<%=pageNum%>">Delete</a></td>
+            <td><a href="<%=toRoot%>editClass/<%=pupilClass.getId()%>">Edit</a></td>
+            <td><a href="<%=toRoot%>deleteClass/<%=pupilClass.getId()%>?page=<%=pageNum%>">Delete</a></td>
             </sec:authorize>
-            <td><a href="<%= "/Gradebook/viewPupilsByPupilClass/" + pupilClass.getId()%>">view pupil list</a></td>
-            <td><a href="<%= "/Gradebook/viewSubjectsByPupilClass/" + pupilClass.getId()%>">view subjects</a></td>
-            <td><a href="<%= "/Gradebook/viewTeachersByPupilClass/" + pupilClass.getId()%>">view teacher list</a></td>
-            <td><a href="<%= "/Gradebook/viewSubjectDetailsByPupilClass/" + pupilClass.getId()%>">view teacher-subject list</a></td>
+            <td><a href="<%=toRoot%>viewPupilsByPupilClass/<%=pupilClass.getId()%>">view pupil list</a></td>
+            <td><a href="<%=toRoot%>viewSubjectsByPupilClass/ <%=pupilClass.getId()%>">view subjects</a></td>
+            <td><a href="<%=toRoot%>viewTeachersByPupilClass/ <%= pupilClass.getId()%>">view teacher list</a></td>
+            <td><a href="<%=toRoot%>viewSubjectDetailsByPupilClass/<%= pupilClass.getId()%>">view teacher-subject list</a></td>
         </tr>
         <% } %>
         </tbody>
     </table>
     <br/>
-    <button onclick='location.href="/Gradebook/"'>Menu</button>
+    <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
     <button onclick='history.back()'>Back</button>
     <sec:authorize access="hasAuthority('ADMIN')">
-    <button onclick='location.href="/Gradebook/addClass"'>Add</button>
+    <button onclick='location.href="<%=toRoot%>addClass"'>Add</button>
     </sec:authorize>
 </div>
 <%@include file="footer.jsp"%>

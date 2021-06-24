@@ -34,7 +34,7 @@
     <% } %>
 </table>
 <br/>
-<button onclick='location.href="/Gradebook/"'>Menu</button>
+<button onclick='location.href="../index.jsp"'>Menu</button>
 <button onclick=history.back()>Back</button>
 </div>
 <%@include file="footer.jsp"%>
