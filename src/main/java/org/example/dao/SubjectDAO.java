@@ -41,14 +41,14 @@ public interface SubjectDAO {
      * @param id class id
      * @return List<Subject>
      */
-    List<Subject> getSubjectByPupilClass(int id);
+    List<Subject> getSubjectsByPupilClass(int id);
 
     /**
      * Get subjects which are teacher by teacher with set id
      * @param id teacher id
      * @return List<Subject>
      */
-    List<Subject> getSubjectByTeacher(int id);
+    List<Subject> getSubjectsByTeacher(int id);
 
     /**
      * Get total count of subject from database.

@@ -149,7 +149,7 @@ public class MarkController {
         Map<String, Object> model = new HashMap<>();
         model.put("list", dao.getMarksByPupil(id));
         model.put("header", "Marks for " + pupil.getName());
-        model.put("subjectList", subjectDAO.getSubjectByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
+        model.put("subjectList", subjectDAO.getSubjectsByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForPupil", model);
     }
@@ -177,7 +177,7 @@ public class MarkController {
         model.put("date", lesson.getDate());
         model.put("topic", lesson.getTopic());
         model.put("lesson", id);
-        model.put("subjectList", subjectDAO.getSubjectByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
+        model.put("subjectList", subjectDAO.getSubjectsByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForLesson", model);
     }

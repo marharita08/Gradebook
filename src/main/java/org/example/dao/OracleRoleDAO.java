@@ -3,20 +3,24 @@ package org.example.dao;
 import org.apache.log4j.Logger;
 import org.example.entities.Role;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@Component
+@Repository
 public class OracleRoleDAO implements RoleDAO {
-    private PreparedStatement preparedStatement = null;
-    private ResultSet resultSet = null;
-    private Connection connection;
+    private static final String GET_ROLES_BY_USER = "SELECT * FROM LAB3_ROZGHON_ROLE" +
+            " join LAB3_ROZGHON_USER_ROLE using(ROLE_ID) where USER_ID=?";
+    private static final String GET_ROLE = "SELECT * FROM LAB3_ROZGHON_ROLE where ROLE_ID=?";
+    private static final String GET_ALL_ROLES = "SELECT * FROM LAB3_ROZGHON_ROLE order by ROLE_ID";
+    private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OracleRoleDAO.class.getName());
+
+    public OracleRoleDAO(ConnectionPool connectionPool) {
+        this.connectionPool = connectionPool;
+    }
 
     /**
      * Read roles for user from database and put them into set.
@@ -25,24 +29,19 @@ public class OracleRoleDAO implements RoleDAO {
      */
     @Override
     public Set<Role> getRolesByUser(int id) {
-        Set<Role> set = new HashSet<>();
-        connection = ConnectionPool.getInstance().getConnection();
         LOGGER.info("Reading roles for user " + id + " from database.");
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_ROLE" +
-                            " join LAB3_ROZGHON_USER_ROLE using(ROLE_ID) where USER_ID=?");
+        Set<Role> set = new HashSet<>();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_ROLES_BY_USER)) {
             preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-            LOGGER.info("Parsing roles and put them into set.");
-            while (resultSet.next()) {
-                set.add(parseRole(resultSet));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    set.add(parseRole(resultSet));
+                }
+                LOGGER.info("Set of roles complete.");
             }
-            LOGGER.info("Set of roles complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
         return set;
     }
@@ -50,11 +49,9 @@ public class OracleRoleDAO implements RoleDAO {
     private Role parseRole(ResultSet resultSet) {
         Role role = null;
         try {
-            LOGGER.info("Parsing result set into Role.");
             int id = resultSet.getInt("ROLE_ID");
             String name = resultSet.getString("NAME");
             role = new Role(id, name);
-            LOGGER.info("Parsing complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -68,21 +65,18 @@ public class OracleRoleDAO implements RoleDAO {
      */
     @Override
     public Role getRoleByID(int id) {
-        connection = ConnectionPool.getInstance().getConnection();
+        LOGGER.info("Reading role " + id + " from database.");
         Role role = null;
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_ROLE"
-                            + " where ROLE_ID=?");
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_ROLE)) {
             preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                role = parseRole(resultSet);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    role = parseRole(resultSet);
+                }
             }
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        } finally {
-            closeAll();
+            LOGGER.error(throwables.getMessage(), throwables);
         }
         return role;
     }
@@ -93,52 +87,17 @@ public class OracleRoleDAO implements RoleDAO {
      */
     public Set<Role> getAllRoles() {
         Set<Role> set = new HashSet<>();
-        connection = ConnectionPool.getInstance().getConnection();
         LOGGER.info("Reading all roles from database.");
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_ROLE order by ROLE_ID");
-            resultSet = preparedStatement.executeQuery();
-            LOGGER.info("Parsing roles and put them into set.");
+        try (Connection connection = connectionPool.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(GET_ALL_ROLES)) {
             while (resultSet.next()) {
                 set.add(parseRole(resultSet));
             }
             LOGGER.info("Set of roles complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
         return set;
-    }
-
-    private void closeAll() {
-        if (resultSet != null) {
-            try {
-                LOGGER.info("Closing result set.");
-                resultSet.close();
-                LOGGER.info("Result set closed.");
-            } catch (SQLException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
-        if (preparedStatement != null) {
-            try {
-                LOGGER.info("Closing statement.");
-                preparedStatement.close();
-                LOGGER.info("Statement closed.");
-            } catch (SQLException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
-        if (connection != null) {
-            try {
-                LOGGER.info("Closing connection.");
-                connection.close();
-                LOGGER.info("Connection closed.");
-            } catch (SQLException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
     }
 }

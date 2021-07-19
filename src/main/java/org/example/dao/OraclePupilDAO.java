@@ -4,22 +4,37 @@ import org.apache.log4j.Logger;
 import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-@Component
+@Repository
 public class OraclePupilDAO implements PupilDAO {
-    private Connection connection;
-    private ResultSet resultSet;
-    private PreparedStatement preparedStatement;
-    private OraclePupilClassDAO pupilClassDAO;
+    private static final String GET_ALL_PUPILS = "SELECT * FROM LAB3_ROZGHON_PUPILS order by PUPIL_ID";
+    private static final String GET_PUPIL = "SELECT * FROM LAB3_ROZGHON_PUPILS where PUPIL_ID=?";
+    private static final String INSERT_PUPIL = "Insert into LAB3_ROZGHON_PUPILS values (LAB3_ROZGHON_PUPILS_SEQ.nextval, ?, ?)";
+    private static final String UPDATE_PUPIL = "UPDATE LAB3_ROZGHON_PUPILS set CLASS_ID = ?, NAME = ? where PUPIL_ID = ?";
+    private static final String DELETE_MARKS_FOR_DELETING_PUPIL = "Delete from LAB3_ROZGHON_MARK where PUPIL_ID = ?";
+    private static final String DELETE_PUPIL = "Delete from LAB3_ROZGHON_PUPILS where PUPIL_ID = ?";
+    private static final String GET_PUPILS_BY_CLASS = "SELECT * FROM LAB3_ROZGHON_PUPILS where CLASS_ID = ? order by NAME";
+    private static final String GET_COUNT_OF_PUPILS = "select count(PUPIL_ID) as AMOUNT from LAB3_ROZGHON_PUPILS ";
+    private static final String GET_PUPILS_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
+            " (SELECT * FROM LAB3_ROZGHON_PUPILS ORDER BY PUPIL_ID) p) WHERE rn BETWEEN ? AND ?";
+    private static final String SEARCH_PUPIL_BY_ID = " SELECT * FROM LAB3_ROZGHON_PUPILS where PUPIL_ID like ? order by PUPIL_ID";
+    private static final String SEARCH_PUPIL_BY_NAME = "SELECT * FROM LAB3_ROZGHON_PUPILS where upper(NAME) like ? order by PUPIL_ID";
+    private static final String SEARCH_PUPIL_BY_CLASS = "SELECT * FROM LAB3_ROZGHON_PUPILS " +
+            "join LAB3_ROZGHON_CLASS c using (CLASS_ID) where upper(c.NAME) like ? order by PUPIL_ID";
+    private final OraclePupilClassDAO pupilClassDAO;
+    private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OraclePupilDAO.class.getName());
 
-    public OraclePupilDAO(OraclePupilClassDAO pupilClassDAO) {
+    public OraclePupilDAO(OraclePupilClassDAO pupilClassDAO,
+                          ConnectionPool connectionPool) {
         this.pupilClassDAO = pupilClassDAO;
+        this.connectionPool = connectionPool;
     }
 
     /**
@@ -28,22 +43,17 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public List<Pupil> getAllPupils() {
-        connection = ConnectionPool.getInstance().getConnection();
         LOGGER.info("Reading all pupils from database.");
         List<Pupil> list = new ArrayList<>();
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_PUPILS order by PUPIL_ID");
-            resultSet = preparedStatement.executeQuery();
-            LOGGER.info("Parsing pupils and put them into list.");
+        try (Connection connection = connectionPool.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(GET_ALL_PUPILS)) {
             while (resultSet.next()) {
                 list.add(parsePupil(resultSet));
             }
             LOGGER.info("List of pupils complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
         return list;
     }
@@ -51,7 +61,6 @@ public class OraclePupilDAO implements PupilDAO {
     private Pupil parsePupil(ResultSet resultSet) {
         Pupil pupil = null;
         try {
-            LOGGER.info("Parsing result set into Pupil.");
             int id = resultSet.getInt("Pupil_ID");
             int classID = resultSet.getInt("class_id");
             String name = resultSet.getString("NAME");
@@ -61,7 +70,6 @@ public class OraclePupilDAO implements PupilDAO {
                 PupilClass pupilClass = pupilClassDAO.getPupilClass(classID);
                 pupil = new Pupil(id, name, pupilClass);
             }
-            LOGGER.info("Parsing complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -75,23 +83,19 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public Pupil getPupil(int id) {
-        connection = ConnectionPool.getInstance().getConnection();
         LOGGER.info("Reading pupil " + id + " from database.");
         Pupil pupil = null;
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_PUPILS"
-                            + " where PUPIL_ID=?");
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_PUPIL)) {
             preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                pupil = parsePupil(resultSet);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    pupil = parsePupil(resultSet);
+                }
+                LOGGER.info("Reading complete");
             }
-            LOGGER.info("Reading complete");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
         return pupil;
     }
@@ -102,12 +106,9 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public void addPupil(Pupil pupil) {
-        connection = ConnectionPool.getInstance().getConnection();
         LOGGER.info("Inserting pupil " + pupil.getName() + " into database.");
-        String sql = "Insert into LAB3_ROZGHON_PUPILS "
-                + "values (LAB3_ROZGHON_PUPILS_SEQ.nextval, ?, ?)";
-        try {
-            preparedStatement = connection.prepareStatement(sql);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_PUPIL)) {
             if (pupil.getPupilClass().getId() != 0) {
                 preparedStatement.setInt(1, pupil.getPupilClass().getId());
             } else {
@@ -118,8 +119,6 @@ public class OraclePupilDAO implements PupilDAO {
             LOGGER.info("Inserting complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
     }
 
@@ -129,12 +128,9 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public void updatePupil(Pupil pupil) {
-        connection = ConnectionPool.getInstance().getConnection();
         LOGGER.info("Updating pupil " + pupil.getName() + " into database.");
-        String sql = "UPDATE LAB3_ROZGHON_PUPILS "
-                + "set CLASS_ID = ?, NAME = ? where PUPIL_ID = ?";
-        try {
-            preparedStatement = connection.prepareStatement(sql);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_PUPIL)) {
             if (pupil.getPupilClass().getId() != 0) {
                 preparedStatement.setInt(1, pupil.getPupilClass().getId());
             } else {
@@ -146,8 +142,6 @@ public class OraclePupilDAO implements PupilDAO {
             LOGGER.info("Updating complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
     }
 
@@ -157,25 +151,19 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public void deletePupil(int id) {
-        connection = ConnectionPool.getInstance().getConnection();
-        LOGGER.info("Deleting marks for pupil " + id + ".");
-        String sql = "Delete from LAB3_ROZGHON_MARK "
-                + "where PUPIL_ID = ?";
-        try {
-            preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_PUPIL)) {
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_MARKS_FOR_DELETING_PUPIL)) {
+                LOGGER.info("Deleting marks for pupil " + id + ".");
+                preparedStatement1.setInt(1, id);
+                preparedStatement1.executeUpdate();
+            }
             LOGGER.info("Deleting pupil " + id + ".");
-            sql = "Delete from LAB3_ROZGHON_PUPILS "
-                    + "where PUPIL_ID = ?";
-            preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
             LOGGER.info("Deleting complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
     }
 
@@ -186,24 +174,19 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public List<Pupil> getPupilsByPupilClass(int id) {
-        connection = ConnectionPool.getInstance().getConnection();
-        List<Pupil> list = new ArrayList<>();
         LOGGER.info("Reading pupils for class " + id + ".");
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM LAB3_ROZGHON_PUPILS " +
-                            "where CLASS_ID = ? order by NAME");
+        List<Pupil> list = new ArrayList<>();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_PUPILS_BY_CLASS)) {
             preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-            LOGGER.info("Parsing pupils and put them into list.");
-            while (resultSet.next()) {
-                list.add(parsePupil(resultSet));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    list.add(parsePupil(resultSet));
+                }
+                LOGGER.info("List of pupils complete.");
             }
-            LOGGER.info("List of pupils complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
         return list;
     }
@@ -214,21 +197,16 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public int getCountOfPupils() {
-        connection = ConnectionPool.getInstance().getConnection();
         LOGGER.info("Counting pupils.");
         int count = 0;
-        String sql = "select count(PUPIL_ID) as AMOUNT " +
-                "from LAB3_ROZGHON_PUPILS ";
-        try {
-            preparedStatement = connection.prepareStatement(sql);
-            resultSet = preparedStatement.executeQuery();
+        try (Connection connection = connectionPool.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_PUPILS)) {
             resultSet.next();
             count = resultSet.getInt("AMOUNT");
             LOGGER.info("Counting complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
         return count;
     }
@@ -241,26 +219,20 @@ public class OraclePupilDAO implements PupilDAO {
      */
     @Override
     public List<Pupil> getPupilsByPage(int page, int range) {
-        List<Pupil> list = new ArrayList<>();
-        connection = ConnectionPool.getInstance().getConnection();
         LOGGER.info("Reading pupils for page " + page + ".");
-        try {
-            preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-                            " (SELECT * FROM LAB3_ROZGHON_PUPILS ORDER BY PUPIL_ID) p)" +
-                            " WHERE rn BETWEEN ? AND ?");
+        List<Pupil> list = new ArrayList<>();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_PUPILS_BY_PAGE)) {
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
-            resultSet = preparedStatement.executeQuery();
-            LOGGER.info("Parsing pupils and put them into list.");
-            while (resultSet.next()) {
-                list.add(parsePupil(resultSet));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    list.add(parsePupil(resultSet));
+                }
+                LOGGER.info("List of pupils complete.");
             }
-            LOGGER.info("List of pupils complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
         return list;
     }
@@ -279,69 +251,32 @@ public class OraclePupilDAO implements PupilDAO {
         LOGGER.info("Checking parameter of searching.");
         switch (param) {
             case "id":
-                sql = " SELECT * FROM LAB3_ROZGHON_PUPILS where PUPIL_ID like ?" +
-                        "order by PUPIL_ID";
+                sql = SEARCH_PUPIL_BY_ID;
                 break;
             case "name":
-                sql = "SELECT * FROM LAB3_ROZGHON_PUPILS " +
-                        "where upper(NAME) like ? order by PUPIL_ID";
+                sql = SEARCH_PUPIL_BY_NAME;
                 break;
             case "class":
-                sql = "SELECT * FROM LAB3_ROZGHON_PUPILS " +
-                        "join LAB3_ROZGHON_CLASS c using (CLASS_ID) " +
-                        "where upper(c.NAME) like ? order by PUPIL_ID";
+                sql = SEARCH_PUPIL_BY_CLASS;
                 break;
             default:
                 Exception e = new Exception("Wrong parameter");
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        connection = ConnectionPool.getInstance().getConnection();
-        try {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching pupils by " + param + ".");
-            preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
-            resultSet = preparedStatement.executeQuery();
-            LOGGER.info("Parsing pupils and put them into list.");
-            while (resultSet.next()) {
-                list.add(parsePupil(resultSet));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    list.add(parsePupil(resultSet));
+                }
+                LOGGER.info("List of pupils complete.");
             }
-            LOGGER.info("List of pupils complete.");
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
-        } finally {
-            closeAll();
         }
         return list;
-    }
-
-    private void closeAll() {
-        if (resultSet != null) {
-            try {
-                LOGGER.info("Closing result set.");
-                resultSet.close();
-                LOGGER.info("Result set closed.");
-            } catch (SQLException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
-        if (preparedStatement != null) {
-            try {
-                LOGGER.info("Closing statement.");
-                preparedStatement.close();
-                LOGGER.info("Statement closed.");
-            } catch (SQLException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
-        if (connection != null) {
-            try {
-                LOGGER.info("Closing connection.");
-                connection.close();
-                LOGGER.info("Connection closed.");
-            } catch (SQLException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
     }
 }

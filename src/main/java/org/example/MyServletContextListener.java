@@ -1,6 +1,7 @@
 package org.example;
 
 import org.apache.log4j.PropertyConfigurator;
+import org.example.dao.ConnectionPool;
 import org.example.dao.GenerateTables;
 
 import javax.servlet.ServletContextEvent;
@@ -10,6 +11,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class MyServletContextListener implements ServletContextListener {
+
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         InputStream stream =
@@ -21,8 +23,9 @@ public class MyServletContextListener implements ServletContextListener {
             e.printStackTrace();
         }
         PropertyConfigurator.configure(properties);
-        GenerateTables generateTables = new GenerateTables();
+        GenerateTables generateTables = new GenerateTables(new ConnectionPool());
         generateTables.generate();
+
     }
 
     @Override

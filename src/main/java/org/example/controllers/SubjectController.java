@@ -160,7 +160,7 @@ public class SubjectController {
         Map<String, Object> model = new HashMap<>();
         model.put("header", "Subjects of " + pupilClass.getName());
         model.put("id", pupilClass.getId());
-        model.put("list", dao.getSubjectByPupilClass(id));
+        model.put("list", dao.getSubjectsByPupilClass(id));
         model.put("param", "class");
         model.put("pagination", "");
         model.put("pageNum", 1);
@@ -185,7 +185,7 @@ public class SubjectController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("header", "Subjects of " + teacherDAO.getTeacher(id).getName());
-        model.put("list", dao.getSubjectByTeacher(id));
+        model.put("list", dao.getSubjectsByTeacher(id));
         model.put("param", "teacher");
         model.put("pagination", "");
         model.put("pageNum", 1);
