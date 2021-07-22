@@ -6,14 +6,16 @@
 <html>
 <head>
     <title><%=request.getAttribute("title")%></title>
+    <link rel="icon" type="img/png" href="images/icon.png">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
 <%@include file="header.jsp"%>
+<div align="center">
+    <div align="center" class="box">
     <h2 align="center"><%=request.getAttribute("title")%></h2>
-    <div align="center">
         <form:form>
             <br/>
             Name:
@@ -35,6 +37,7 @@
             <br/><br/>
         </form:form>
     </div>
+</div>
 <%@include file="footer.jsp"%>
 </body>
 </html>

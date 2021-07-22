@@ -50,6 +50,7 @@ public class PupilClassController {
         model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllClasses"));
         model.put("header", "All classes");
         model.put("pageNum", page);
+        model.put("toRoot", "");
         LOGGER.info("Printing class list.");
         return new ModelAndView("viewClassList", model);
     }

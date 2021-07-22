@@ -6,6 +6,7 @@
 <html>
 <head>
     <title>Mark list</title>
+    <link rel="icon" type="img/png" href="images/icon.png">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style><%@include file="../css/style.css"%></style>
@@ -13,6 +14,7 @@
 <body>
 <%@include file="header.jsp"%>
 <div align="center">
+    <div align="center" class="box">
 <h2><%=request.getAttribute("header")%></h2>
 <p>Subject:<%=request.getAttribute("subject")%></p>
 <p>Teacher:<%=request.getAttribute("teacher")%></p>
@@ -44,6 +46,7 @@
 <br/>
 <button onclick='location.href="../index.jsp"'>Menu</button>
 <button onclick=history.back()>Back</button>
+</div>
 </div>
 <%@include file="footer.jsp"%>
 </body>

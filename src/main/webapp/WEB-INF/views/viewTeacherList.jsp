@@ -9,11 +9,13 @@
     <style><%@include file="../css/style.css"%></style>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
+    <link rel="icon" type="img/png" href="images/icon.png">
 </head>
 <body>
 <%@include file="header.jsp"%>
-<h2 align="center"><%=request.getAttribute("header")%></h2>
 <div align="center">
+<div align="center" class="box">
+    <h2 align="center"><%=request.getAttribute("header")%></h2>
     <%int pageNum = (int)request.getAttribute("pageNum");
         String pagination = (String) request.getAttribute("pagination");
         String toRoot = (String) request.getAttribute("toRoot");
@@ -45,7 +47,7 @@
             }
         %>
         <sec:authorize access="hasAuthority('ADMIN')">
-        <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="slim"></th>
+        <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="search-slim"></th>
     <%
         if(pagination.equals("")) {
             searchFunc = "filter(id," + i++ + ")";
@@ -53,13 +55,13 @@
     %>
         </sec:authorize>
 
-        <th><input type="text" id="name" onkeyup="<%=searchFunc%>"></th>
+        <th><input type="text" id="name" onkeyup="<%=searchFunc%>" class="search-middle"></th>
         <%
             if(pagination.equals("")) {
                 searchFunc = "filter(id," + i++ + ")";
             }
         %>
-        <th><input type="text" id="position" onkeyup="<%=searchFunc%>"></th>
+        <th><input type="text" id="position" onkeyup="<%=searchFunc%>" class="search-middle"></th>
 
         <sec:authorize access="hasAuthority('ADMIN')">
             <%
@@ -67,7 +69,7 @@
                     searchFunc = "filter(id," + i++ + ")";
                 }
             %>
-        <th><input type="text" id="chief" onkeyup="<%=searchFunc%>"></th>
+        <th><input type="text" id="chief" onkeyup="<%=searchFunc%>" class="search-middle"></th>
          <th></th>
         <th></th>
         </sec:authorize>
@@ -107,6 +109,7 @@
     <sec:authorize access="hasAuthority('ADMIN')">
     <button onclick='location.href="<%=toRoot%>addTeacher"'>Add</button>
     </sec:authorize>
+</div>
 </div>
 <%@include file="footer.jsp"%>
 </body>

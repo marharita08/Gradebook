@@ -6,6 +6,7 @@
 <html>
 <head>
     <title>Mark list</title>
+    <link rel="icon" type="img/png" href="images/icon.png">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style><%@include file="../css/style.css"%></style>
@@ -13,6 +14,7 @@
 <body>
 <%@include file="header.jsp"%>
 <div align="center">
+    <div align="center" class="box">
 <h2><%=request.getAttribute("header")%></h2>
 <p>Subject:<%=request.getAttribute("subject")%></p>
 <p>Teacher:<%=request.getAttribute("teacher")%></p>
@@ -28,7 +30,7 @@
         </sec:authorize>
     </tr>
     <tr>
-        <th><input type="text" id="pupil" onkeyup="filter(id, 0)"></th>
+        <th><input type="text" id="pupil" onkeyup="filter(id, 0)" class="search"></th>
         <th></th>
         <sec:authorize access="hasAuthority('TEACHER')">
         <th></th>
@@ -67,6 +69,7 @@
 <sec:authorize access="hasAuthority('TEACHER')">
 <button onclick='location.href="../addMark/<%=request.getAttribute("lesson")%>"'>Add mark</button>
 </sec:authorize>
+</div>
 </div>
 <%@include file="footer.jsp"%>
 </body>

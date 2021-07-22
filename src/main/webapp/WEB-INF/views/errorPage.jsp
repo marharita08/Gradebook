@@ -2,12 +2,15 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <link rel="icon" type="img/png" href="images/icon.png">
     <title>Error Page</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
 <%@include file="header.jsp"%>
+<div align="center">
+    <div align="left" class="box">
 <%
     int status = response.getStatus();
     if(status == 500){ %>
@@ -37,6 +40,8 @@
         <h2>Error: <%=status%></h2>
 <%}%>
 <button onclick='history.back()'>Back</button>
+    </div>
+</div>
 <%@include file="footer.jsp"%>
 </body>
 </html>

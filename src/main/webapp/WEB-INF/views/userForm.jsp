@@ -6,15 +6,18 @@
 <head>
     <title><%=request.getAttribute("title")%></title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="icon" type="img/png" href="images/icon.png">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style><%@include file="../css/style.css"%></style>
 </head>
 <body>
 <%@include file="header.jsp"%>
+<div align="center">
+    <div align="center" class="box">
 <h2 align="center"><%=request.getAttribute("title")%></h2>
 <% int id = ((User)request.getAttribute("command")).getId();
     String func = "checkUsername(" + id + ")";%>
-<div align="center">
+
     <form:form>
         <br/>
         <p id="placeToShow" class="warning"></p>
@@ -28,6 +31,7 @@
         <button onclick="history.back()" type="button">Cancel</button>
         <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>">Save</button><br/><br/>
     </form:form>
+</div>
 </div>
 <%@include file="footer.jsp"%>
 </body>

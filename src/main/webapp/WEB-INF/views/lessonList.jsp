@@ -5,6 +5,7 @@
 <html>
 <head>
     <title>Lessons list</title>
+    <link rel="icon" type="img/png" href="images/icon.png">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style><%@include file="../css/style.css"%></style>
@@ -12,6 +13,7 @@
 <body>
 <%@include file="header.jsp"%>
 <div align="center">
+    <div align="center" class="box">
 <h2><%=request.getAttribute("header")%></h2>
 <%if(request.getAttribute("teacher") != null) {%>
 <p><%=request.getAttribute("teacher")%></p>
@@ -46,20 +48,20 @@
             }
         %>
         <sec:authorize access="hasAuthority('ADMIN')">
-        <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="slim"></th>
+        <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="search-slim"></th>
     <%
         if(pagination.equals("")) {
             searchFunc = "filter(id," + i++ + ")";
         }
     %>
         </sec:authorize>
-        <th><input type="text" id="date" onkeyup="<%=searchFunc%>"></th>
+        <th><input type="text" id="date" onkeyup="<%=searchFunc%>" class="search"></th>
         <%
             if(pagination.equals("")) {
                 searchFunc = "filter(id," + i++ + ")";
             }
         %>
-        <th><input type="text" id="topic" onkeyup="<%=searchFunc%>"></th>
+        <th><input type="text" id="topic" onkeyup="<%=searchFunc%>" class="search"></th>
         <th></th>
         <sec:authorize access="hasAuthority('TEACHER')">
         <th></th>
@@ -91,6 +93,7 @@
 <sec:authorize access="hasAuthority('TEACHER')">
 <button onclick='location.href="../addLesson/<%=sd%>"'>Add</button>
 </sec:authorize>
+</div>
 </div>
 <%@include file="footer.jsp"%>
 </body>

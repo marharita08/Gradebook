@@ -57,6 +57,7 @@ public class SubjectDetailsController {
         model.put("header", "Subject Details List");
         model.put("pageNum", page);
         model.put("param", "all");
+        model.put("toRoot", "");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }

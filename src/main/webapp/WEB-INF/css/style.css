@@ -5,7 +5,8 @@ form{
     border: 1px solid #000066;
 }
 body {
-    background-color: #F0F8FF;
+    background-image:url(images/blackboard.jpg);
+
 }
 p {
     margin: 5px 10px;
@@ -74,11 +75,99 @@ footer{
 }
 .clear{
     clear: both;
-    height: 60px;
+    height: 52px;
 }
 .warning{
     color: red;
 }
-.slim{
+.search-slim {
     width: 50px;
+}
+.search {
+    width: 150px;
+}
+.box {
+    background-color: #F0F8FF;
+    width: 80%;
+    padding: 10px;
+}
+.push {
+    padding: 5px;
+}
+.push a {
+    position: relative;
+    padding: 20px 0 20px 40px;
+    cursor: pointer;
+    display: list-item;
+    list-style: none;
+}
+.push a:before {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4F5151;
+    content: "";
+    left: 0;
+    transition: .3s ease-in-out;
+    top: 27px;
+}
+.push a:after {
+    position: absolute;
+    border-left: 1px dotted #4F5151;
+    width: 1px;
+    bottom: -12px;
+    content: "";
+    left: 3px;
+    top: 48px;
+}
+.push a:hover:before{box-shadow: 0 0 0 10px rgba(0,0,0,.2)}
+.push a:last-child:after {content: none;}
+.push a:hover {
+    text-decoration: none;
+}
+.menu {
+    width: 300px;
+    padding: 5px;
+    margin: 5px;
+    font-size: 16px;
+}
+.school {
+    width: 500px;
+    padding: 10px;
+}
+.school-div {
+    padding: 10px;
+}
+a {
+    color: #23527c;
+    font-weight: bold;
+}
+td, tr {
+    font-size: 16px;
+}
+.search-middle {
+    width: 120px;
+}
+@media screen and (min-width: 992px) {
+    .box-index{
+        display: flex;
+    }
+    .menu {
+        flex-grow: 1;
+    }
+    .school-div {
+        flex-grow: 2;
+    }
+    td, tr, .menu {
+        font-size: 14px;
+    }
+}
+@media screen and (min-width: 1200px) {
+    .school {
+        width: 700px;
+    }
+    .search, .search-middle {
+        width: 200px;
+    }
 }

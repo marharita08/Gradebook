@@ -11,11 +11,13 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style><%@include file="../css/style.css"%></style>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="icon" type="img/png" href="images/icon.png">
 </head>
 <body>
 <%@include file="header.jsp"%>
-<h2 align="center">User List: </h2>
 <div align="center">
+    <div align="center" class="box">
+<h2 align="center">User List: </h2>
     <%PaginationController paginationController = (PaginationController) request.getAttribute("pagination");
         int pageNum = paginationController.getCurrentPageNumber();%>
     <ul class="pagination"><%=paginationController.makePagingLinks("/Gradebook/viewAllUsers")%></ul>
@@ -23,17 +25,15 @@
         <tr>
             <th>ID</th>
             <th>Username</th>
-            <th>Password</th>
             <th>Roles</th>
             <th>Add role</th>
             <th>EDIT</th>
             <th>DELETE</th>
         </tr>
         <tr>
-            <th><input type="text" id="id" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="slim"></th>
-            <th><input type="text" id="username" onkeyup="search(id, <%=pageNum%>, 'searchUsers')"></th>
-            <th></th>
-            <th><input type="text" id="roles" onkeyup="search(id, <%=pageNum%>, 'searchUsers')"></th>
+            <th><input type="text" id="id" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="search-slim"></th>
+            <th><input type="text" id="username" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="search"></th>
+            <th><input type="text" id="roles" onkeyup="search(id, <%=pageNum%>, 'searchUsers')" class="search"></th>
             <th></th>
             <th></th>
             <th></th>
@@ -43,7 +43,6 @@
         <tr>
             <td><%=user.getId()%></td>
             <td><%=user.getUsername()%></td>
-            <td><%=user.getPassword()%></td>
             <td>
                 <%for (Role role:user.getRoles()) {%>
                 <p>
@@ -69,6 +68,7 @@
     <br/>
     <button onclick='location.href="index.jsp"'>Menu</button>
     <button onclick='location.href="addUser"'>Add</button>
+</div>
 </div>
 <%@include file="footer.jsp"%>
 

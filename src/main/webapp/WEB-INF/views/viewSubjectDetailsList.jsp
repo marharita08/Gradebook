@@ -6,13 +6,15 @@
 <head>
     <title>Subject Details List</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="icon" type="img/png" href="images/icon.png">
     <style><%@include file="../css/style.css"%></style>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <body>
 <%@include file="header.jsp"%>
-<h2 align="center"><%=request.getAttribute("header")%></h2>
 <div align="center">
+    <div align="center" class="box">
+<h2 align="center"><%=request.getAttribute("header")%></h2>
     <%int pageNum = (int)request.getAttribute("pageNum");
         String pagination = (String) request.getAttribute("pagination");
         String toRoot = (String) request.getAttribute("toRoot");
@@ -54,7 +56,7 @@
                 }
             %>
             <sec:authorize access="hasAuthority('ADMIN')">
-            <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="slim"></th>
+            <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="search-slim"></th>
     <%
         if(pagination.equals("")) {
             searchFunc = "filter(id," + i++ + ")";
@@ -62,21 +64,21 @@
     %>
             </sec:authorize>
             <%if(request.getAttribute("param") != "class") {%>
-            <th><input type="text" id="class" onkeyup="<%=searchFunc%>" class="slim"></th>
+            <th><input type="text" id="class" onkeyup="<%=searchFunc%>" class="search-slim"></th>
             <%
                 if(pagination.equals("")) {
                     searchFunc = "filter(id," + i++ + ")";
                 }
             }%>
             <%if(request.getAttribute("param") != "teacher") {%>
-            <th><input type="text" id="teacher" onkeyup="<%=searchFunc%>"></th>
+            <th><input type="text" id="teacher" onkeyup="<%=searchFunc%>" class="search"></th>
             <%
                 if(pagination.equals("")) {
                     searchFunc = "filter(id," + i++ + ")";
                 }
             }%>
             <%if(request.getAttribute("param") != "subject") {%>
-            <th><input type="text" id="subject" onkeyup="<%=searchFunc%>"></th>
+            <th><input type="text" id="subject" onkeyup="<%=searchFunc%>" class="search"></th>
             <%}%>
             <sec:authorize access="hasAuthority('ADMIN')">
             <th></th>
@@ -126,6 +128,7 @@
     <sec:authorize access="hasAuthority('ADMIN')">
     <button onclick='location.href="<%=toRoot%>addSubjectDetails"'>Add</button>
     </sec:authorize>
+</div>
 </div>
 <%@include file="footer.jsp"%>
 
