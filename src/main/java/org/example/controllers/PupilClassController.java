@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.example.dao.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -17,16 +16,13 @@ import java.util.Map;
 public class PupilClassController {
     private final PupilClassDAO dao;
     private final SubjectDAO subjectDAO;
-    private final UserDAO userDAO;
-    private int pupilClassPerPage = 15;
+    private static final int pupilClassPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(PupilClassController.class.getName());
 
     public PupilClassController(PupilClassDAO dao,
-                                SubjectDAO subjectDAO,
-                                UserDAO userDAO) {
+                                SubjectDAO subjectDAO) {
         this.dao = dao;
         this.subjectDAO = subjectDAO;
-        this.userDAO = userDAO;
     }
 
     /**
@@ -47,7 +43,7 @@ public class PupilClassController {
             list = dao.getPupilClassesByPage(page, pupilClassPerPage);
         }
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllClasses"));
+        model.put("pagination", paginationController.makePagingLinks("viewAllClasses"));
         model.put("header", "All classes");
         model.put("pageNum", page);
         model.put("toRoot", "");
@@ -92,6 +88,7 @@ public class PupilClassController {
         model.put("selectedGrade", 1);
         model.put("title", "Add class");
         model.put("formAction", "saveAddedClass");
+        model.put("toRoot", "");
         LOGGER.info("Printing form for input class data.");
         return new ModelAndView("classForm", model);
     }
@@ -128,6 +125,7 @@ public class PupilClassController {
         model.put("selectedGrade", pupilClass.getGrade());
         model.put("title", "Edit class");
         model.put("formAction", "../saveEditedClass");
+        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing class data.");
         return new ModelAndView("classForm", model);
     }
@@ -165,48 +163,15 @@ public class PupilClassController {
 
     @RequestMapping(value = "/searchPupilClasses")
     @ResponseBody
-    public String searchPupilClasses(@RequestParam("page") int pageNum,
-                                 @RequestParam("val") String val,
+    public List<PupilClass> searchPupilClasses(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching classes by " + param + ".");
-        StringBuilder sb = new StringBuilder();
         List<PupilClass> list;
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userDAO.getUserByUsername(username);
         if(!val.isEmpty()) {
             list = dao.searchPupilClasses(val, param);
         } else {
-            list = dao.getPupilClassesByPage(pageNum, pupilClassPerPage);
+            list = dao.getPupilClassesByPage(1, pupilClassPerPage);
         }
-        LOGGER.info("Forming response.");
-        for (PupilClass pupilClass:list) {
-            int id = pupilClass.getId();
-            sb.append("<tr>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>").append(id).append("</td>");
-                sb.append("<td>").append(pupilClass.getGrade()).append("</td>");
-            }
-            sb.append("<td>").append(pupilClass.getName()).append("</td>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>");
-                sb.append("<a href=\"editClass/").append(id).append("\">Edit</a>");
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"deleteClass/").append(id).append("?page=").append(pageNum).append("\">Delete</a></td>");
-                sb.append("</td>");
-            }
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewPupilsByPupilClass/").append(id).append("\">view pupil list</a>");
-            sb.append("</td>").append("<td>");
-            sb.append("<a href=\"/Gradebook/viewSubjectsByPupilClass/").append(id).append("\">view subjects</a>");
-            sb.append("</td>");
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewTeachersByPupilClass/").append(id).append("\">view teacher list</a>");
-            sb.append("</td>").append("<td>");
-            sb.append("<a href=\"/Gradebook/viewSubjectDetailsByPupilClass/").append(id).append("\">view teacher-subject list</a>");
-            sb.append("</td>");
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+        return list;
     }
 }

@@ -33,6 +33,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
     private static final String SEARCH_TEACHERS_BY_POSITION = " SELECT * FROM LAB3_ROZGHON_TEACHER where upper(position) like ? order by teacher_id";
     private static final String SEARCH_TEACHERS_BY_CHIEF = " select t.* from LAB3_ROZGHON_TEACHER t " +
             "join LAB3_ROZGHON_TEACHER ch on ch.TEACHER_ID=t.CHIEF where upper(ch.NAME) like ? order by t.teacher_id";
+    private static final String SEARCH_TEACHERS_WITHOUT_CHIEF = "SELECT * from LAB3_ROZGHON_TEACHER where chief is null";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OracleTeacherDAO.class.getName());
 
@@ -305,39 +306,51 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public List<Teacher> searchTeachers(String val, String param) throws Exception {
         List<Teacher> list = new ArrayList<>();
-        String sql;
-        LOGGER.info("Checking parameter of searching.");
-        switch (param) {
-            case "name":
-                sql = SEARCH_TEACHERS_BY_NAME;
-                break;
-            case "id":
-                sql = SEARCH_TEACHERS_BY_ID;
-                break;
-            case "position":
-                sql = SEARCH_TEACHERS_BY_POSITION;
-                break;
-            case "chief":
-                sql = SEARCH_TEACHERS_BY_CHIEF;
-                break;
-            default:
-                Exception e = new Exception("Wrong parameter");
-                LOGGER.error(e.getMessage(), e);
-                throw e;
-        }
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            LOGGER.info("Searching teachers by " + param + ".");
-            preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                LOGGER.info("Parsing teachers and put them into list.");
+        if (param.equals("chief") && val.equals("-")) {
+            try (Connection connection = connectionPool.getConnection();
+                 Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(SEARCH_TEACHERS_WITHOUT_CHIEF)) {
                 while (resultSet.next()) {
                     list.add(parseTeacher(resultSet));
                 }
                 LOGGER.info("List of teachers complete.");
+            } catch (SQLException throwables) {
+                LOGGER.error(throwables.getMessage(), throwables);
             }
-        } catch (SQLException throwables) {
-            LOGGER.error(throwables.getMessage(), throwables);
+        } else {
+            String sql;
+            LOGGER.info("Checking parameter of searching.");
+            switch (param) {
+                case "name":
+                    sql = SEARCH_TEACHERS_BY_NAME;
+                    break;
+                case "id":
+                    sql = SEARCH_TEACHERS_BY_ID;
+                    break;
+                case "position":
+                    sql = SEARCH_TEACHERS_BY_POSITION;
+                    break;
+                case "chief":
+                    sql = SEARCH_TEACHERS_BY_CHIEF;
+                    break;
+                default:
+                    Exception e = new Exception("Wrong parameter");
+                    LOGGER.error(e.getMessage(), e);
+                    throw e;
+            }
+            try (Connection connection = connectionPool.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                LOGGER.info("Searching teachers by " + param + ".");
+                preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        list.add(parseTeacher(resultSet));
+                    }
+                    LOGGER.info("List of teachers complete.");
+                }
+            } catch (SQLException throwables) {
+                LOGGER.error(throwables.getMessage(), throwables);
+            }
         }
         return list;
     }

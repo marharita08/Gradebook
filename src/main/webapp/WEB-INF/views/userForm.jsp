@@ -3,10 +3,13 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
+<%
+    String toRoot = (String) request.getAttribute("toRoot");
+%>
 <head>
     <title><%=request.getAttribute("title")%></title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="icon" type="img/png" href="images/icon.png">
+    <link rel="icon" type="img/png" href="<%=toRoot%>images/icon.png">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style><%@include file="../css/style.css"%></style>
 </head>

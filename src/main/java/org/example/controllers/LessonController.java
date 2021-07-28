@@ -4,9 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.*;
 import org.example.entities.Lesson;
 import org.example.entities.SubjectDetails;
-import org.example.entities.User;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,16 +17,13 @@ import java.util.Map;
 public class LessonController {
     private final LessonDAO dao;
     private final SubjectDetailsDAO subjectDetailsDAO;
-    private final UserDAO userDAO;
-    private int lessonsPerPage = 20;
+    private static final int lessonsPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(LessonController.class.getName());
 
     public LessonController(LessonDAO dao,
-                            SubjectDetailsDAO subjectDetailsDAO,
-                            UserDAO userDAO) {
+                            SubjectDetailsDAO subjectDetailsDAO) {
         this.dao = dao;
         this.subjectDetailsDAO = subjectDetailsDAO;
-        this.userDAO = userDAO;
     }
 
     /**
@@ -157,7 +152,7 @@ public class LessonController {
         }
         model.put("subjectDetails", subjectDetails.getId());
         PaginationController paginationController = new PaginationController(count, lessonsPerPage, page);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewLessonsBySubjectDetails/" + subjectDetails.getId()));
+        model.put("pagination", paginationController.makePagingLinks("../viewLessonsBySubjectDetails/" + subjectDetails.getId()));
         model.put("pageNum", page);
         LOGGER.info("Printing lessons list.");
         return new ModelAndView("lessonList", model);
@@ -165,45 +160,16 @@ public class LessonController {
 
     @RequestMapping(value = "/searchLessons")
     @ResponseBody
-    public String searchLessons(@RequestParam("page") int pageNum,
-                                @RequestParam("val") String val,
+    public List<Lesson> searchLessons(@RequestParam("val") String val,
                                 @RequestParam("param") String param,
                                 @RequestParam("sd") int sd) throws Exception {
         LOGGER.info("Searching lessons by " + param + " for " + sd + " subject details.");
-        StringBuilder sb = new StringBuilder();
         List<Lesson> list;
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userDAO.getUserByUsername(username);
         if(!val.isEmpty()) {
             list = dao.searchLessons(val, param, sd);
         } else {
-            list = dao.getLessonsBySubjectDetailsAndPage(sd, pageNum, lessonsPerPage);
+            list = dao.getLessonsBySubjectDetailsAndPage(sd, 1, lessonsPerPage);
         }
-        LOGGER.info("Forming response.");
-        for (Lesson lesson:list) {
-            int id = lesson.getId();
-            sb.append("<tr>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>").append(id).append("</td>");
-            }
-            sb.append("<td>").append(lesson.getDate()).append("</td>");
-            sb.append("<td>").append(lesson.getTopic()).append("</td>");
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewMarksByLesson/").append(id).append("\">view marks</a>");
-            sb.append("</td>");
-            if (user.hasRole("TEACHER")) {
-                sb.append("<td>");
-                sb.append("<a href=\"/Gradebook/addMark/").append(id).append("\">add mark</a>");
-                sb.append("</td>");
-                sb.append("<td>");
-                sb.append("<a href=\"/Gradebook/editLesson/").append(id).append("\">edit lesson</a>");
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"/Gradebook/deleteLesson/").append(id).append("?page=").append(pageNum).append("\">delete lesson</a>");
-                sb.append("</td>");
-            }
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+        return list;
     }
 }

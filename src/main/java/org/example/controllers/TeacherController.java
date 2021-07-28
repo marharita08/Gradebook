@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.example.dao.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,18 +18,15 @@ public class TeacherController {
     private final TeacherDAO dao;
     private final PupilClassDAO pupilClassDAO;
     private final SubjectDAO subjectDAO;
-    private final UserDAO userDAO;
-    private int teachersPerPage = 15;
+    private static final int teachersPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(TeacherController.class.getName());
 
     public TeacherController(TeacherDAO dao,
                              PupilClassDAO pupilClassDAO,
-                             SubjectDAO subjectDAO,
-                             UserDAO userDAO) {
+                             SubjectDAO subjectDAO) {
         this.dao = dao;
         this.pupilClassDAO = pupilClassDAO;
         this.subjectDAO = subjectDAO;
-        this.userDAO = userDAO;
     }
 
     /**
@@ -51,7 +47,7 @@ public class TeacherController {
             list = dao.getTeachersByPage(page, teachersPerPage);
         }
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllTeachers"));
+        model.put("pagination", paginationController.makePagingLinks("viewAllTeachers"));
         model.put("header", "Teacher list");
         model.put("pageNum", page);
         model.put("toRoot", "");
@@ -74,6 +70,7 @@ public class TeacherController {
         model.put("list", list);
         model.put("title", "Add teacher");
         model.put("formAction", "saveAddedTeacher");
+        model.put("toRoot", "");
         LOGGER.info("Printing form for input teacher data.");
         return new ModelAndView("teacherForm", model);
     }
@@ -116,6 +113,7 @@ public class TeacherController {
         model.put("list", list);
         model.put("title", "Edit teacher");
         model.put("formAction", "../saveEditedTeacher");
+        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing teacher data.");
         return new ModelAndView("teacherForm", model);
     }
@@ -199,50 +197,15 @@ public class TeacherController {
 
     @RequestMapping(value = "/searchTeachers")
     @ResponseBody
-    public String searchTeachers(@RequestParam("page") int pageNum,
-                              @RequestParam("val") String val,
-                              @RequestParam("param")String param) throws Exception {
+    public List<Teacher> searchTeachers(@RequestParam("val") String val,
+                                 @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching teachers by " + param + ".");
-        StringBuilder sb = new StringBuilder();
         List<Teacher> list;
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userDAO.getUserByUsername(username);
         if(!val.isEmpty()) {
             list = dao.searchTeachers(val, param);
         } else {
-            list = dao.getTeachersByPage(pageNum, teachersPerPage);
+            list = dao.getTeachersByPage(1, teachersPerPage);
         }
-        LOGGER.info("Forming response.");
-        for (Teacher teacher:list) {
-            int id = teacher.getId();
-            sb.append("<tr>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>").append(id).append("</td>");
-            }
-            sb.append("<td>").append(teacher.getName()).append("</td>");
-            sb.append("<td>").append(teacher.getPosition()).append("</td>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>");
-                if (teacher.getChief() != null) {
-                    sb.append(teacher.getChief().getName());
-                } else {
-                    sb.append("-");
-                }
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"editTeacher/").append(id).append("\">Edit</a>");
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"deleteTeacher/").append(id).append("?page=").append(pageNum)
-                        .append("\">Delete</a></td>");
-                sb.append("</td>");
-            }
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewSubjectsByTeacher/").append(id).append("\">view subjects</a>");
-            sb.append("</td>").append("<td>");
-            sb.append("<a href=\"/Gradebook/viewSubjectDetailsByTeacher/").append(id).append("\">view subject-class list</a>");
-            sb.append("</td>");
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+        return list;
     }
 }

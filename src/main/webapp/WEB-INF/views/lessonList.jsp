@@ -1,11 +1,12 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.Lesson" %>
+<%@ page import="org.example.entities.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
     <title>Lessons list</title>
-    <link rel="icon" type="img/png" href="images/icon.png">
+    <link rel="icon" type="img/png" href="../images/icon.png">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style><%@include file="../css/style.css"%></style>
@@ -19,8 +20,17 @@
 <p><%=request.getAttribute("teacher")%></p>
 <%}
     int pageNum = (int)request.getAttribute("pageNum");
-        String pagination = (String) request.getAttribute("pagination");
-        int sd =(int) request.getAttribute("subjectDetails");
+    String pagination = (String) request.getAttribute("pagination");
+    int sd =(int) request.getAttribute("subjectDetails");
+    boolean isAdmin = false;
+    boolean isTeacher = false;
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (user.hasRole("ADMIN")) {
+        isAdmin = true;
+    }
+    if (user.hasRole("TEACHER")) {
+        isTeacher = true;
+    }
     %>
 <ul class="pagination"><%=pagination%></ul>
 <table id="myTable">
@@ -37,6 +47,8 @@
         <th></th>
         </sec:authorize>
     </tr>
+    <%
+        if (pageNum == 1) { %>
     <tr>
         <%
             String searchFunc;
@@ -44,7 +56,7 @@
             if(pagination.equals("")) {
                 searchFunc = "filter(id," + i++ + ")";
             } else {
-                searchFunc = "search(id, " + pageNum + ", " + sd + ")";
+                searchFunc = "search(id, " + sd + ", " + isAdmin + ", " + isTeacher + ")";
             }
         %>
         <sec:authorize access="hasAuthority('ADMIN')">
@@ -69,6 +81,7 @@
         <th></th>
         </sec:authorize>
     </tr>
+    <%}%>
     <tbody id="placeToShow">
     <% for (Lesson lesson:(List<Lesson>)request.getAttribute("list")) { %>
     <tr>
@@ -98,7 +111,59 @@
 <%@include file="footer.jsp"%>
 </body>
 <script>
-    <%@include file="../js/searchLessons.js"%>
+
+    var request = new XMLHttpRequest();
+    function search(param, sd, isAdmin, isTeacher) {
+        var val = document.getElementById(param).value;
+        var url = "../searchLessons?val=" + val + "&param=" + param + "&sd=" + sd;
+        try {
+            request.onreadystatechange = function () {
+                if (request.readyState === 4) {
+                    var obj = JSON.parse(request.responseText);
+                    var result = "";
+                    for (let i in obj) {
+                        var id = obj[i].id;
+                        result += "<tr>";
+                        if (isAdmin === true) {
+                            result += "<td>" + id + "</td>";
+                        }
+                        var fullDate = new Date(obj[i].date);
+                        var year = fullDate.getFullYear();
+                        var day = fullDate.getDate();
+                        var month = fullDate.getMonth() + 1;
+                        if (month  < 10) {
+                            month  = "0" + month;
+                        }
+                        if (day < 10) {
+                            day = "0" + day;
+                        }
+                        result += "<td>" + year + "-" + month + "-" + day + "</td>";
+                        result += "<td>" + obj[i].topic + "</td>";
+                        result += "<td>";
+                        result +="<a href=\"../viewMarksByLesson/" + id + "\">view marks</a>";
+                        result +="</td>";
+                        if (isTeacher) {
+                            result +="<td>";
+                            result +="<a href=\"../addMark/" + id + "\">add mark</a>";
+                            result +="</td>";
+                            result +="<td>";
+                            result +="<a href=\"../editLesson/" + id + "\">edit lesson</a>";
+                            result +="</td><td>";
+                            result +="<a href=\"../deleteLesson/" + id + "?page=1\">delete lesson</a>";
+                            result +="</td>";
+                        }
+                        result +="</tr>";
+                    }
+                    document.getElementById("placeToShow").innerHTML = result;
+                }
+            }
+            request.open("GET", url, true);
+            request.send();
+
+        } catch (e) {
+            alert("Unable to connect to server");
+        }
+    }
     <%@include file="../js/filter.js"%>
 </script>
 </html>

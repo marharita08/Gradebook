@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.example.dao.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,20 +18,17 @@ public class SubjectDetailsController {
     private final PupilClassDAO classDAO;
     private final TeacherDAO teacherDAO;
     private final SubjectDAO subjectDAO;
-    private final UserDAO userDAO;
-    private int subjectDetailsPerPage = 15;
+    private static final int subjectDetailsPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(SubjectDetailsController.class.getName());
 
     public SubjectDetailsController(SubjectDetailsDAO dao,
                                     PupilClassDAO classDAO,
                                     TeacherDAO teacherDAO,
-                                    SubjectDAO subjectDAO,
-                                    UserDAO userDAO) {
+                                    SubjectDAO subjectDAO) {
         this.dao = dao;
         this.classDAO = classDAO;
         this.teacherDAO = teacherDAO;
         this.subjectDAO = subjectDAO;
-        this.userDAO = userDAO;
     }
 
     /**
@@ -53,7 +49,7 @@ public class SubjectDetailsController {
             list = dao.getSubjectDetailsByPage(page, subjectDetailsPerPage);
         }
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllSubjectDetails"));
+        model.put("pagination", paginationController.makePagingLinks("viewAllSubjectDetails"));
         model.put("header", "Subject Details List");
         model.put("pageNum", page);
         model.put("param", "all");
@@ -80,6 +76,7 @@ public class SubjectDetailsController {
         model.put("subjectList", subjectDAO.getAllSubjects());
         model.put("title", "Add Subject Details");
         model.put("formAction", "saveAddedSubjectDetails");
+        model.put("toRoot", "");
         LOGGER.info("Printing form for input subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
     }
@@ -121,6 +118,7 @@ public class SubjectDetailsController {
         model.put("subjectList", subjectDAO.getAllSubjects());
         model.put("title", "Edit subject details");
         model.put("formAction", "../saveEditedSubjectDetails");
+        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
     }
@@ -233,56 +231,15 @@ public class SubjectDetailsController {
 
     @RequestMapping(value = "/searchSubjectDetails")
     @ResponseBody
-    public String searchSubjectDetails(@RequestParam("page") int pageNum,
-                                 @RequestParam("val") String val,
+    public List<SubjectDetails> searchSubjectDetails(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching subject details by " + param + ".");
-        StringBuilder sb = new StringBuilder();
         List<SubjectDetails> list;
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userDAO.getUserByUsername(username);
         if(!val.isEmpty()) {
             list = dao.searchSubjectDetails(val, param);
         } else {
-            list = dao.getSubjectDetailsByPage(pageNum, subjectDetailsPerPage);
+            list = dao.getSubjectDetailsByPage(1, subjectDetailsPerPage);
         }
-        LOGGER.info("Forming response.");
-        for (SubjectDetails subjectDetails:list) {
-            int id = subjectDetails.getId();
-            sb.append("<tr>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>").append(id).append("</td>");
-            }
-            sb.append("<td>").append(subjectDetails.getPupilClass().getName()).append("</td>");
-            sb.append("<td>");
-            if (subjectDetails.getTeacher() != null) {
-                sb.append(subjectDetails.getTeacher().getName());
-            } else {
-                sb.append("-");
-            }
-            sb.append("</td>");
-            sb.append("<td>").append(subjectDetails.getSubject().getName()).append("</td>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>");
-                sb.append("<a href=\"editSubjectDetails/").append(id).append("\">Edit</a>");
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"deleteSubjectDetails/").append(id).append("?page=").append(pageNum).append("\">Delete</a></td>");
-                sb.append("</td>");
-            }
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewLessonsBySubjectDetails/").append(id).append("?page=1\">view lessons</a>");
-            sb.append("</td>");
-            if (user.hasRole("TEACHER")) {
-                sb.append("<td>");
-                sb.append("<a href=\"/Gradebook/addLesson/").append(id).append("\">add lesson</a>");
-                sb.append("</td>");
-            }
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewMarksBySubjectDetails/").append(id).append("\">view marks</a>");
-            sb.append("</td>");
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+        return list;
     }
 }

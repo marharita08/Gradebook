@@ -14,13 +14,12 @@ import org.springframework.web.servlet.ModelAndView;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Controller
 public class UserController {
     private final UserDAO dao;
     private final RoleDAO roleDAO;
-    private int userPerPage = 10;
+    private static final int userPerPage = 25;
     private final PasswordEncoder passwordEncoder;
     private static final Logger LOGGER = Logger.getLogger(UserController.class.getName());
 
@@ -67,6 +66,7 @@ public class UserController {
         model.put("command", user);
         model.put("title", "Add user");
         model.put("formAction", "saveAddedUser");
+        model.put("toRoot", "");
         LOGGER.info("Printing form for input user data.");
         return new ModelAndView("userForm", model);
     }
@@ -104,6 +104,7 @@ public class UserController {
         model.put("command", user);
         model.put("title", "Edit user");
         model.put("formAction", "../saveEditedUser");
+        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing user data.");
         return new ModelAndView("userForm", model);
     }
@@ -203,50 +204,15 @@ public class UserController {
 
     @RequestMapping(value = "/searchUsers")
     @ResponseBody
-    public String searchUsers(@RequestParam("page") int pageNum,
-                              @RequestParam("val") String val,
+    public List<User> searchUsers(@RequestParam("val") String val,
                               @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching users by " + param + ".");
-        StringBuilder sb = new StringBuilder();
         List<User> list;
-        Set<Role> roles = roleDAO.getAllRoles();
         if(!val.isEmpty()) {
             list = dao.searchUsers(val, param);
         } else {
-            list = dao.getUsersByPage(pageNum, userPerPage);
+            list = dao.getUsersByPage(1, userPerPage);
         }
-        LOGGER.info("Forming response.");
-        for (User user:list) {
-            sb.append("<tr>");
-            sb.append("<td>").append(user.getId()).append("</td>");
-            sb.append("<td>").append(user.getUsername()).append("</td>");
-            sb.append("<td>").append(user.getPassword()).append("</td>");
-            sb.append("<td>");
-            for (Role role:user.getRoles()) {
-                sb.append("<p>");
-                sb.append(role.getName()).append(" ");
-                if(role.getId()!=1 || user.getId()!=1) {
-                    sb.append("<a href=\"deleteRole/").append(user.getId())
-                            .append("/").append(role.getId()).append("\">Delete</a>");
-                }
-                sb.append("</p>");
-            }
-            sb.append("</td>").append("<td>");
-            for (Role role:roles) {
-                sb.append("<p><a href=\"addRole/").append(user.getId()).append("/")
-                        .append(role.getId()).append("\">").append(role.getName()).append("</a></p>");
-            }
-            sb.append("</td>").append("<td>");
-            sb.append("<a href=\"editUser/").append(user.getId()).append("\">Edit</a>");
-            sb.append("</td>").append("<td>");
-            if (user.getId() != 1) {
-                sb.append("<a href=\"deleteUser/").append(user.getId()).append("?page=").append(pageNum)
-                        .append("\">Delete</a>");
-            }
-            sb.append("</td>");
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+        return list;
     }
 }

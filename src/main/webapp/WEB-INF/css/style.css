@@ -5,7 +5,7 @@ form{
     border: 1px solid #000066;
 }
 body {
-    background-image:url(images/blackboard.jpg);
+    background-image:url(/Gradebook/images/blackboard.jpg);
 
 }
 p {
@@ -100,6 +100,8 @@ footer{
     cursor: pointer;
     display: list-item;
     list-style: none;
+    color: #23527c;
+    font-weight: bold;
 }
 .push a:before {
     position: absolute;
@@ -139,7 +141,7 @@ footer{
 .school-div {
     padding: 10px;
 }
-a {
+td a {
     color: #23527c;
     font-weight: bold;
 }

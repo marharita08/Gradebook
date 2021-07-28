@@ -1,15 +1,19 @@
 <%@ page import="org.example.entities.Teacher" %>
 <%@ page import="java.util.List" %>
+<%@ page import="org.example.entities.User" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
+<%
+    String toRoot = (String) request.getAttribute("toRoot");
+%>
 <head>
     <title>Teacher List</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <style><%@include file="../css/style.css"%></style>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-    <link rel="icon" type="img/png" href="images/icon.png">
+    <link rel="icon" type="img/png" href="<%=toRoot%>images/icon.png">
 </head>
 <body>
 <%@include file="header.jsp"%>
@@ -18,7 +22,11 @@
     <h2 align="center"><%=request.getAttribute("header")%></h2>
     <%int pageNum = (int)request.getAttribute("pageNum");
         String pagination = (String) request.getAttribute("pagination");
-        String toRoot = (String) request.getAttribute("toRoot");
+        boolean isAdmin = false;
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.hasRole("ADMIN")) {
+            isAdmin = true;
+        }
     %>
     <ul class="pagination"><%=pagination%></ul>
 <table id="myTable">
@@ -36,6 +44,7 @@
         <th></th>
         <th></th>
     </tr>
+    <%if (pageNum == 1) { %>
     <tr>
         <%
             String searchFunc;
@@ -43,7 +52,7 @@
             if(pagination.equals("")) {
                 searchFunc = "filter(id," + i++ + ")";
             } else {
-                searchFunc = "search(id, " + pageNum + ", 'searchTeachers')";
+                searchFunc = "search(id, " + isAdmin + ")";
             }
         %>
         <sec:authorize access="hasAuthority('ADMIN')">
@@ -76,6 +85,7 @@
         <th></th>
         <th></th>
     </tr>
+    <%}%>
 <tbody id="placeToShow">
 <%
         for (Teacher teacher:(List<Teacher>)request.getAttribute("list")) {
@@ -115,7 +125,52 @@
 </body>
 <script>
 
-    <%@include file="../js/search.js"%>
+    var request = new XMLHttpRequest();
+    function search(param, isAdmin) {
+        var val = document.getElementById(param).value;
+        var url = "searchTeachers?val=" + val + "&param=" + param;
+        try {
+            request.onreadystatechange = function () {
+                if (request.readyState === 4) {
+                    var obj = JSON.parse(request.responseText);
+                    var result = "";
+                    for (let i in obj) {
+                        result += "<tr>";
+                        if (isAdmin === true) {
+                            result += "<td>" + obj[i].id + "</td>";
+                        }
+                        result += "<td>" + obj[i].name + "</td>";
+                        result += "<td>" + obj[i].position + "</td>";
+                        if (isAdmin === true) {
+                            var chief = obj[i].chief;
+                            if (chief != null) {
+                                result += "<td>" + chief.name + "</td>";
+                            } else {
+                                result += "<td>-</td>";
+                            }
+                            var id = obj[i].id;
+                            result += "<td>";
+                            result += "<a href=\"editTeacher/" + id + "\">Edit</a>";
+                            result += "</td><td>";
+                            result += "<a href=\"deleteTeacher/" + id + "?page=1\">Delete</a></td>";
+                            result += "</td>";
+                        }
+                        result += "<td>";
+                        result += "<a href=\"viewSubjectsByTeacher/" + id + "\">view subjects</a>";
+                        result += "</td><td>";
+                        result += "<a href=\"viewSubjectDetailsByTeacher/" + id + "\">view subject-class list</a>";
+                        result += "</td>";
+                        result += "</tr>";
+                    }
+                    document.getElementById("placeToShow").innerHTML = result;
+                }
+            }
+            request.open("GET", url, true);
+            request.send();
+        } catch (e) {
+            alert("Unable to connect to server");
+        }
+    }
     <%@include file="../js/filter.js"%>
 </script>
 </html>

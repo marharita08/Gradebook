@@ -31,7 +31,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
     private static final String GET_SUBJECT_DETAILS_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
             " (SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS ORDER BY SUBJECT_DETAILS_ID) p) WHERE rn BETWEEN ? AND ?";
     private static final String SEARCH_SUBJECT_DETAILS_BY_SUBJECT = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
-            "join LAB3_ROZGHON_SUBJECT using (SUBJECT_ID) where NAME like ? order by  SUBJECT_DETAILS_ID";
+            "join LAB3_ROZGHON_SUBJECT using (SUBJECT_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
     private static final String SEARCH_SUBJECT_DETAILS_BY_TEACHER = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
             "join LAB3_ROZGHON_TEACHER using (TEACHER_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
     private static final String SEARCH_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
