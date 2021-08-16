@@ -1,12 +1,9 @@
 package org.example.dao;
 
 import org.apache.log4j.Logger;
-import org.example.entities.PupilClass;
-import org.example.entities.Subject;
-import org.example.entities.SubjectDetails;
-import org.example.entities.Teacher;
-import org.springframework.stereotype.Component;
+import org.example.entities.*;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -16,39 +13,46 @@ import java.util.Locale;
 @Repository
 public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
 
-    private static final String GET_ALL_SUBJECT_DETAILS = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS order by  SUBJECT_DETAILS_ID";
-    private static final String GET_SUBJECT_DETAILS = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_DETAILS_ID = ?";
-    private static final String INSERT_SUBJECT_DETAILS = "Insert into LAB3_ROZGHON_SUBJECT_DETAILS values (LAB3_ROZGHON_SUBJECT_DETAILS_SEQ.nextval, ?, ?, ?)";
-    private static final String UPDATE_SUBJECT_DETAILS = "UPDATE LAB3_ROZGHON_SUBJECT_DETAILS set CLASS_ID = ?, TEACHER_ID = ?, SUBJECT_ID = ? where SUBJECT_DETAILS_ID = ?";
-    private static final String DELETE_MARKS_FOR_DELETING_SUBJECT_DETAILS = "Delete from LAB3_ROZGHON_MARK " +
-            "where LESSON_ID in (SELECT LESSON_ID from LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID = ?)";
-    private static final String DELETE_LESSONS_FOR_DELETING_SUBJECT_DETAILS = "Delete from LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID = ?";
-    private static final String DELETE_SUBJECT_DETAILS = "Delete from LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_DETAILS_ID = ?";
-    private static final String GET_SUBJECT_DETAILS_BY_SUBJECT = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_ID = ? order by  SUBJECT_DETAILS_ID";
-    private static final String GET_SUBJECT_DETAILS_BY_TEACHER = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS where TEACHER_ID = ? order by  SUBJECT_DETAILS_ID";
-    private static final String GET_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS where CLASS_ID = ? order by  SUBJECT_DETAILS_ID";
-    private static final String GET_COUNT_OF_SUBJECT_DETAILS = "select count(SUBJECT_DETAILS_ID) as AMOUNT from LAB3_ROZGHON_SUBJECT_DETAILS ";
+    private static final String GET_ALL_SUBJECT_DETAILS = "SELECT * FROM SUBJECT_DETAILS order by  SUBJECT_DETAILS_ID";
+    private static final String GET_SUBJECT_DETAILS = "SELECT * FROM SUBJECT_DETAILS where SUBJECT_DETAILS_ID = ?";
+    private static final String INSERT_SUBJECT_DETAILS = "Insert into SUBJECT_DETAILS values (SUBJECT_DETAILS_SEQ.nextval, ?, ?, ?, ?)";
+    private static final String UPDATE_SUBJECT_DETAILS = "UPDATE SUBJECT_DETAILS set CLASS_ID = ?, TEACHER_ID = ?, SUBJECT_ID = ?, SEMESTER_ID = ? where SUBJECT_DETAILS_ID = ?";
+    private static final String DELETE_MARKS_FOR_DELETING_SUBJECT_DETAILS = "Delete from MARK " +
+            "where LESSON_ID in (SELECT LESSON_ID from LESSON where THEME_ID in " +
+            " (select THEME_ID from THEME where SUBJECT_DETAILS_ID = ?))";
+    private static final String DELETE_LESSONS_FOR_DELETING_SUBJECT_DETAILS = "Delete from LESSON where THEME_ID in " +
+            " (select THEME_ID from THEME where SUBJECT_DETAILS_ID = ?)";
+    private static final String DELETE_THEMES_FOR_DELETING_SUBJECT_DETAILS = "Delete from THEME where SUBJECT_DETAILS_ID = ?";
+    private static final String DELETE_SUBJECT_DETAILS = "Delete from SUBJECT_DETAILS where SUBJECT_DETAILS_ID = ?";
+    private static final String GET_SUBJECT_DETAILS_BY_SUBJECT = "SELECT * FROM SUBJECT_DETAILS where SUBJECT_ID = ? order by  SUBJECT_DETAILS_ID";
+    private static final String GET_SUBJECT_DETAILS_BY_TEACHER = "SELECT * FROM SUBJECT_DETAILS where TEACHER_ID = ? order by  SUBJECT_DETAILS_ID";
+    private static final String GET_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM SUBJECT_DETAILS where CLASS_ID = ? order by  SUBJECT_DETAILS_ID";
+    private static final String GET_COUNT_OF_SUBJECT_DETAILS = "select count(SUBJECT_DETAILS_ID) as AMOUNT from SUBJECT_DETAILS ";
     private static final String GET_SUBJECT_DETAILS_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-            " (SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS ORDER BY SUBJECT_DETAILS_ID) p) WHERE rn BETWEEN ? AND ?";
-    private static final String SEARCH_SUBJECT_DETAILS_BY_SUBJECT = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
-            "join LAB3_ROZGHON_SUBJECT using (SUBJECT_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
-    private static final String SEARCH_SUBJECT_DETAILS_BY_TEACHER = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
-            "join LAB3_ROZGHON_TEACHER using (TEACHER_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
-    private static final String SEARCH_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS " +
-            "join LAB3_ROZGHON_CLASS using (CLASS_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
-    private static final String SEARCH_SUBJECT_DETAILS_BY_ID = " SELECT * FROM LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_DETAILS_ID like ? order by  SUBJECT_DETAILS_ID";
-    private final OracleSubjectDAO oracleSubjectDAO;
-    private final OraclePupilClassDAO oraclePupilClassDAO;
-    private final OracleTeacherDAO oracleTeacherDAO;
+            " (SELECT * FROM SUBJECT_DETAILS ORDER BY SUBJECT_DETAILS_ID) p) WHERE rn BETWEEN ? AND ?";
+    private static final String SEARCH_SUBJECT_DETAILS_BY_SUBJECT = "SELECT * FROM SUBJECT_DETAILS " +
+            "join SUBJECT using (SUBJECT_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
+    private static final String SEARCH_SUBJECT_DETAILS_BY_TEACHER = "SELECT * FROM SUBJECT_DETAILS " +
+            "join TEACHER using (TEACHER_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
+    private static final String SEARCH_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM SUBJECT_DETAILS " +
+            "join CLASS using (CLASS_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
+    private static final String SEARCH_SUBJECT_DETAILS_BY_SEMESTER = "SELECT * FROM SUBJECT_DETAILS " +
+            "join SEMESTER using (SEMESTER_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
+    private static final String SEARCH_SUBJECT_DETAILS_BY_ID = " SELECT * FROM SUBJECT_DETAILS where SUBJECT_DETAILS_ID like ? order by  SUBJECT_DETAILS_ID";
+    private final SubjectDAO subjectDAO;
+    private final PupilClassDAO pupilClassDAO;
+    private final TeacherDAO teacherDAO;
+    private final SemesterDAO semesterDAO;
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OracleSubjectDetailsDAO.class.getName());
 
-    public OracleSubjectDetailsDAO(OracleSubjectDAO oracleSubjectDAO,
-                                   OraclePupilClassDAO oraclePupilClassDAO,
-                                   OracleTeacherDAO oracleTeacherDAO, ConnectionPool connectionPool) {
-        this.oracleSubjectDAO = oracleSubjectDAO;
-        this.oraclePupilClassDAO = oraclePupilClassDAO;
-        this.oracleTeacherDAO = oracleTeacherDAO;
+    public OracleSubjectDetailsDAO(OracleSubjectDAO subjectDAO,
+                                   OraclePupilClassDAO pupilClassDAO,
+                                   OracleTeacherDAO teacherDAO, SemesterDAO semesterDAO, ConnectionPool connectionPool) {
+        this.subjectDAO = subjectDAO;
+        this.pupilClassDAO = pupilClassDAO;
+        this.teacherDAO = teacherDAO;
+        this.semesterDAO = semesterDAO;
         this.connectionPool = connectionPool;
     }
 
@@ -80,17 +84,17 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             int classID = resultSet.getInt("class_id");
             int teacherID = resultSet.getInt("teacher_id");
             int subjectID = resultSet.getInt("subject_id");
-            PupilClass pupilClass;
-            Subject subject;
+            int semesterID = resultSet.getInt("semester_id");
             Teacher teacher;
-            pupilClass = oraclePupilClassDAO.getPupilClass(classID);
+            PupilClass pupilClass = pupilClassDAO.getPupilClass(classID);
             if (teacherID == 0) {
                 teacher = null;
             } else {
-                teacher = oracleTeacherDAO.getTeacher(teacherID);
+                teacher = teacherDAO.getTeacher(teacherID);
             }
-            subject = oracleSubjectDAO.getSubject(subjectID);
-            subjectDetails = new SubjectDetails(id, pupilClass, teacher, subject);
+            Subject subject = subjectDAO.getSubject(subjectID);
+            Semester semester = semesterDAO.getSemester(semesterID);
+            subjectDetails = new SubjectDetails(id, pupilClass, teacher, subject, semester);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -137,13 +141,14 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
                 preparedStatement.setInt(2, subjectDetails.getTeacher().getId());
             }
             preparedStatement.setInt(3, subjectDetails.getSubject().getId());
+            preparedStatement.setInt(4, subjectDetails.getSemester().getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Inserting complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
             Exception exception = new Exception("Class "
-                    + oraclePupilClassDAO.getPupilClass(subjectDetails.getPupilClass().getId()).getName()
+                    + pupilClassDAO.getPupilClass(subjectDetails.getPupilClass().getId()).getName()
                     + " already has subject details for subject "
-                    + oracleSubjectDAO.getSubject(subjectDetails.getSubject().getId()).getName() + ".");
+                    + subjectDAO.getSubject(subjectDetails.getSubject().getId()).getName() + ".");
             LOGGER.error(exception.getMessage(), exception);
             throw exception;
         } catch (SQLException throwables) {
@@ -167,14 +172,15 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
                 preparedStatement.setInt(2, subjectDetails.getTeacher().getId());
             }
             preparedStatement.setInt(3, subjectDetails.getSubject().getId());
-            preparedStatement.setInt(4, subjectDetails.getId());
+            preparedStatement.setInt(4, subjectDetails.getSemester().getId());
+            preparedStatement.setInt(5, subjectDetails.getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Updating complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
             Exception exception = new Exception("Class "
-                    + oraclePupilClassDAO.getPupilClass(subjectDetails.getPupilClass().getId()).getName()
+                    + pupilClassDAO.getPupilClass(subjectDetails.getPupilClass().getId()).getName()
                     + " already has subject details for subject "
-                    + oracleSubjectDAO.getSubject(subjectDetails.getSubject().getId()).getName() + ".");
+                    + subjectDAO.getSubject(subjectDetails.getSubject().getId()).getName() + ".");
             LOGGER.error(exception.getMessage(), exception);
             throw exception;
         } catch (SQLException throwables) {
@@ -186,6 +192,7 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
      * Delete subject details from database.
      * @param id subject details id
      */
+    @Transactional
     @Override
     public void deleteSubjectDetails(int id) {
         try (Connection connection = connectionPool.getConnection();
@@ -197,6 +204,11 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             }
             try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_LESSONS_FOR_DELETING_SUBJECT_DETAILS)) {
                 LOGGER.info("Deleting lessons for subject details " + id + ".");
+                preparedStatement1.setInt(1, id);
+                preparedStatement1.executeUpdate();
+            }
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_THEMES_FOR_DELETING_SUBJECT_DETAILS)) {
+                LOGGER.info("Deleting themes for subject details " + id + ".");
                 preparedStatement1.setInt(1, id);
                 preparedStatement1.executeUpdate();
             }
@@ -349,6 +361,9 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
                 break;
             case "subject":
                 sql = SEARCH_SUBJECT_DETAILS_BY_SUBJECT;
+                break;
+            case "semester":
+                sql = SEARCH_SUBJECT_DETAILS_BY_SEMESTER;
                 break;
             default:
                 Exception e = new Exception("Wrong parameter");

@@ -2,10 +2,7 @@ package org.example.controllers;
 
 import org.apache.log4j.Logger;
 import org.example.dao.*;
-import org.example.entities.Lesson;
-import org.example.entities.Mark;
-import org.example.entities.Pupil;
-import org.example.entities.SubjectDetails;
+import org.example.entities.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -53,7 +50,7 @@ public class MarkController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", new Mark(lesson));
-        model.put("list", pupilDAO.getPupilsByPupilClass(lesson.getSubjectDetails().getPupilClass().getId()));
+        model.put("list", pupilDAO.getPupilsByPupilClass(lesson.getTheme().getSubjectDetails().getPupilClass().getId()));
         model.put("selectedPupil", 0);
         model.put("selectedMark", 0);
         model.put("title", "Add mark");
@@ -171,13 +168,13 @@ public class MarkController {
         Map<String, Object> model = new HashMap<>();
         model.put("list", dao.getMarksByLesson(id));
         model.put("header", "Marks for lesson");
-        model.put("pupilList", pupilDAO.getPupilsByPupilClass(lesson.getSubjectDetails().getPupilClass().getId()));
-        model.put("subject", lesson.getSubjectDetails().getSubject().getName());
-        model.put("teacher", lesson.getSubjectDetails().getTeacher().getName());
+        model.put("pupilList", pupilDAO.getPupilsByPupilClass(lesson.getTheme().getSubjectDetails().getPupilClass().getId()));
+        model.put("subject", lesson.getTheme().getSubjectDetails().getSubject().getName());
+        model.put("teacher", lesson.getTheme().getSubjectDetails().getTeacher().getName());
+        model.put("theme", lesson.getTheme().getName());
         model.put("date", lesson.getDate());
         model.put("topic", lesson.getTopic());
         model.put("lesson", id);
-        model.put("subjectList", subjectDAO.getSubjectsByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForLesson", model);
     }

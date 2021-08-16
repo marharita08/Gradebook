@@ -23,6 +23,8 @@
             <sec:authorize access="hasAuthority('ADMIN')">
                 <a href="viewAllPupils?page=1">View all pupils</a>
                 <a href="viewAllUsers?page=1">View all users</a>
+                <a href="viewAllSchoolYears?page=1">View all School Years</a>
+                <a href="viewAllSemesters?page=1">View all Semesters</a>
             </sec:authorize>
         </nav>
 </div>

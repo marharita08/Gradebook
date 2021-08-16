@@ -3,7 +3,6 @@ package org.example.dao;
 import org.apache.log4j.Logger;
 import org.example.entities.Lesson;
 import org.example.entities.Mark;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
@@ -12,16 +11,16 @@ import java.util.List;
 
 @Repository
 public class OracleMarkDAO implements MarkDAO {
-    private static final String GET_MARK = "SELECT * FROM LAB3_ROZGHON_MARK where MARK_ID = ?";
-    private static final String INSERT_MARK = "Insert into LAB3_ROZGHON_MARK values (LAB3_ROZGHON_MARK_SEQ.nextval, ?, ?, ?)";
-    private static final String UPDATE_MARK = "UPDATE LAB3_ROZGHON_MARK set PUPIL_ID = ?, LESSON_ID = ?, MARK = ? where MARK_ID = ?";
-    private static final String DELETE_MARK = "Delete from LAB3_ROZGHON_MARK where MARK_ID = ?";
-    private static final String GET_MARKS_BY_PUPIL = "SELECT * FROM LAB3_ROZGHON_MARK where PUPIL_ID = ?";
-    private static final String GET_MARKS_BY_LESSON = "SELECT * FROM LAB3_ROZGHON_MARK where LESSON_ID = ?";
-    private static final String GET_MARKS_BY_SUBJECT_DETAILS = "SELECT * FROM LAB3_ROZGHON_MARK where LESSON_ID in (" +
-            "select LESSON_ID from LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID = ?)";
-    private final OracleLessonDAO lessonDAO;
-    private final OraclePupilDAO pupilDAO;
+    private static final String GET_MARK = "SELECT * FROM MARK where MARK_ID = ?";
+    private static final String INSERT_MARK = "Insert into MARK values (MARK_SEQ.nextval, ?, ?, ?)";
+    private static final String UPDATE_MARK = "UPDATE MARK set PUPIL_ID = ?, LESSON_ID = ?, MARK = ? where MARK_ID = ?";
+    private static final String DELETE_MARK = "Delete from MARK where MARK_ID = ?";
+    private static final String GET_MARKS_BY_PUPIL = "SELECT * FROM MARK where PUPIL_ID = ?";
+    private static final String GET_MARKS_BY_LESSON = "SELECT * FROM MARK where LESSON_ID = ?";
+    private static final String GET_MARKS_BY_SUBJECT_DETAILS = "SELECT * FROM MARK where LESSON_ID in (" +
+            "select LESSON_ID from LESSON where THEME_ID in (select THEME_ID from THEME where SUBJECT_DETAILS_ID = ?))";
+    private final LessonDAO lessonDAO;
+    private final PupilDAO pupilDAO;
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OracleMarkDAO.class.getName());
 
@@ -86,14 +85,7 @@ public class OracleMarkDAO implements MarkDAO {
             preparedStatement.executeUpdate();
             LOGGER.info("Inserting complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
-            Lesson lesson = lessonDAO.getLesson(mark.getLesson().getId());
-            Exception exception = new Exception("Pupil "
-                    + pupilDAO.getPupil(mark.getPupil().getId()).getName()
-                    + " already has mark for lesson "
-                    + lesson.getSubjectDetails().getSubject().getName() + " "
-                    + lesson.getDate() + " " + lesson.getTopic() + ".");
-            LOGGER.error(exception.getMessage(), exception);
-            throw exception;
+            throwException(mark);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -115,17 +107,21 @@ public class OracleMarkDAO implements MarkDAO {
             preparedStatement.executeUpdate();
             LOGGER.info("Updating complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
-            Lesson lesson = lessonDAO.getLesson(mark.getLesson().getId());
-            Exception exception = new Exception("Pupil "
-                    + pupilDAO.getPupil(mark.getPupil().getId()).getName()
-                    + " already has mark for lesson "
-                    + lesson.getSubjectDetails().getSubject().getName() + " "
-                    + lesson.getDate() + " " + lesson.getTopic() + ".");
-            LOGGER.error(exception.getMessage(), exception);
-            throw exception;
+            throwException(mark);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
+    }
+
+    private void throwException(Mark mark) throws Exception {
+        Lesson lesson = lessonDAO.getLesson(mark.getLesson().getId());
+        Exception exception = new Exception("Pupil "
+                + pupilDAO.getPupil(mark.getPupil().getId()).getName()
+                + " already has mark for lesson "
+                + lesson.getTheme().getSubjectDetails().getSubject().getName() + " "
+                + lesson.getDate() + " " + lesson.getTopic() + ".");
+        LOGGER.error(exception.getMessage(), exception);
+        throw exception;
     }
 
     /**

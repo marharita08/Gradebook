@@ -32,35 +32,16 @@ public interface LessonDAO {
     void deleteLesson(int id);
 
     /**
-     * Read lesson from database by class and subject.
+     * Read lesson from database by theme.
+     * @param id theme id
+     * @return List<Lesson>
+     */
+    List<Lesson> getLessonsByTheme(int id);
+
+    /**
+     * Read lesson from database by subject details.
      * @param id subject details id
      * @return List<Lesson>
      */
     List<Lesson> getLessonsBySubjectDetails(int id);
-
-    /**
-     * Get count of lessons for set subject details from database.
-     * @param id subject details id
-     * @return int
-     */
-    int getCountOfLessons(int id);
-
-    /**
-     * Get lesson list for page.
-     * @param page number of page
-     * @param range amount of lessons per page
-     * @param id subject details id
-     * @return List<Lesson>
-     */
-    List<Lesson> getLessonsBySubjectDetailsAndPage(int id, int page, int range);
-
-    /**
-     * Search lessons by set parameter and subject details.
-     * @param val text of searching
-     * @param param parameter of searching
-     * @param id subject details id
-     * @return List<PupilClass>
-     * @throws Exception if set parameter is wrong
-     */
-    List<Lesson> searchLessons(String val, String param, int id) throws Exception;
 }

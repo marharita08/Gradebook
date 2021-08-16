@@ -18,17 +18,19 @@ public class SubjectDetailsController {
     private final PupilClassDAO classDAO;
     private final TeacherDAO teacherDAO;
     private final SubjectDAO subjectDAO;
+    private final SemesterDAO semesterDAO;
     private static final int subjectDetailsPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(SubjectDetailsController.class.getName());
 
     public SubjectDetailsController(SubjectDetailsDAO dao,
                                     PupilClassDAO classDAO,
                                     TeacherDAO teacherDAO,
-                                    SubjectDAO subjectDAO) {
+                                    SubjectDAO subjectDAO, SemesterDAO semesterDAO) {
         this.dao = dao;
         this.classDAO = classDAO;
         this.teacherDAO = teacherDAO;
         this.subjectDAO = subjectDAO;
+        this.semesterDAO = semesterDAO;
     }
 
     /**
@@ -71,9 +73,11 @@ public class SubjectDetailsController {
         model.put("selectedClass", 0);
         model.put("selectedTeacher", 0);
         model.put("selectedSubject", 0);
+        model.put("selectedSemester", 0);
         model.put("classList", classDAO.getAllPupilClasses());
         model.put("teacherList", teacherDAO.getAllTeachers());
         model.put("subjectList", subjectDAO.getAllSubjects());
+        model.put("semesterList", semesterDAO.getAllSemesters());
         model.put("title", "Add Subject Details");
         model.put("formAction", "saveAddedSubjectDetails");
         model.put("toRoot", "");
@@ -113,9 +117,11 @@ public class SubjectDetailsController {
         model.put("selectedClass", subjectDetails.getPupilClass().getId());
         model.put("selectedTeacher", subjectDetails.getTeacher().getId());
         model.put("selectedSubject", subjectDetails.getSubject().getId());
+        model.put("selectedSemester", subjectDetails.getSemester().getId());
         model.put("classList", classDAO.getAllPupilClasses());
         model.put("teacherList", teacherDAO.getAllTeachers());
         model.put("subjectList", subjectDAO.getAllSubjects());
+        model.put("semesterList", semesterDAO.getAllSemesters());
         model.put("title", "Edit subject details");
         model.put("formAction", "../saveEditedSubjectDetails");
         model.put("toRoot", "../");
@@ -232,7 +238,7 @@ public class SubjectDetailsController {
     @RequestMapping(value = "/searchSubjectDetails")
     @ResponseBody
     public List<SubjectDetails> searchSubjectDetails(@RequestParam("val") String val,
-                                 @RequestParam("param")String param) throws Exception {
+                                            @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching subject details by " + param + ".");
         List<SubjectDetails> list;
         if(!val.isEmpty()) {

@@ -47,6 +47,7 @@
             <th>Subject</th>
             <%}%>
 
+            <th>Semester</th>
             <sec:authorize access="hasAuthority('ADMIN')">
             <th>EDIT</th>
             <th>DELETE</th>
@@ -76,6 +77,12 @@
         }
     %>
             </sec:authorize>
+            <th><input type="text" id="semester" onkeyup="<%=searchFunc%>" class="search"></th>
+            <%
+                if(pagination.equals("")) {
+                    searchFunc = "filter(id," + i++ + ")";
+                }
+            %>
             <%if(request.getAttribute("param") != "class") {%>
             <th><input type="text" id="class" onkeyup="<%=searchFunc%>" class="search-slim"></th>
             <%
@@ -87,7 +94,7 @@
             <th><input type="text" id="teacher" onkeyup="<%=searchFunc%>" class="search"></th>
             <%
                 if(pagination.equals("")) {
-                    searchFunc = "filter(id," + i++ + ")";
+                    searchFunc = "filter(id," + i + ")";
                 }
             }%>
             <%if(request.getAttribute("param") != "subject") {%>
@@ -110,6 +117,7 @@
             <sec:authorize access="hasAuthority('ADMIN')">
             <td><%=subjectDetails.getId()%></td>
             </sec:authorize>
+            <td><%=subjectDetails.getSemester().getName()%></td>
             <%if(request.getAttribute("param") != "class") {%>
             <td><%=subjectDetails.getPupilClass().getName()%></td>
             <%}%>
@@ -127,9 +135,9 @@
             <td><a href="<%=toRoot%>editSubjectDetails/<%=subjectDetails.getId()%>">Edit</a></td>
             <td><a href="<%=toRoot%>deleteSubjectDetails/<%=subjectDetails.getId()%>?page=<%=pageNum%>">Delete</a></td>
             </sec:authorize>
-            <td><a href="<%=toRoot%>viewLessonsBySubjectDetails/<%=subjectDetails.getId()%>?page=1">view lessons</a></td>
+            <td><a href="<%=toRoot%>viewThemesBySubjectDetails/<%=subjectDetails.getId()%>">view themes</a></td>
             <sec:authorize access="hasAuthority('TEACHER')">
-                <td><a href="<%=toRoot%>addLesson/<%=subjectDetails.getId()%>">add lesson</a></td>
+                <td><a href="<%=toRoot%>addTheme/<%=subjectDetails.getId()%>">add theme</a></td>
             </sec:authorize>
             <td><a href="<%=toRoot%>viewMarksBySubjectDetails/<%=subjectDetails.getId()%>">view marks</a></td>
         </tr>
@@ -163,6 +171,7 @@
                         if (isAdmin === true) {
                             result += "<td>" + id + "</td>";
                         }
+                        result += "<td>" + obj[i].semester.name + "</td>";
                         result += "<td>" + obj[i].pupilClass.name + "</td>";
                         result += "<td>";
                         if (obj[i].teacher != null) {
@@ -180,11 +189,11 @@
                             result += "</td>";
                         }
                         result += "<td>";
-                        result += "<a href=\"viewLessonsBySubjectDetails/" + id + "?page=1\">view lessons</a>";
+                        result += "<a href=\"viewThemesBySubjectDetails/" + id + "\">view themes</a>";
                         result += "</td>";
                         if (isTeacher === true) {
                             result += "<td>";
-                            result += "<a href=\"addLesson/" + id + "\">add lesson</a>";
+                            result += "<a href=\"addTheme/" + id + "\">add theme</a>";
                             result += "</td>";
                         }
                         result += "<td>";

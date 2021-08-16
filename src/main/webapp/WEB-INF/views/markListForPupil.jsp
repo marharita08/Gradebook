@@ -29,7 +29,7 @@
         <td><%=subject.getName()%></td>
         <td>
         <%for (Mark mark:(List<Mark>)request.getAttribute("list")) {%>
-            <%=mark.getLesson().getSubjectDetails().getSubject().equals(subject)?mark.getMark() + " ":""%>
+            <%=mark.getLesson().getTheme().getSubjectDetails().getSubject().equals(subject)?mark.getMark() + " ":""%>
         <% } %>
         </td>
     </tr>

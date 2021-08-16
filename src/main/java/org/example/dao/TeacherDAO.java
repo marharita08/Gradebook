@@ -37,13 +37,6 @@ public interface TeacherDAO {
     void deleteTeacher(int id);
 
     /**
-     * Get list of teachers who enable to be chief to teacher with set id.
-     * @param id teacher's id
-     * @return List<Teacher>
-     */
-    List<Teacher> getEnableChiefs(int id);
-
-    /**
      * Get list of teachers who teach some subject in class with set id.
      * @param id class id
      * @return List<Teacher>

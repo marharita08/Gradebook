@@ -2,8 +2,8 @@ package org.example.dao;
 
 import org.apache.log4j.Logger;
 import org.example.entities.Subject;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,25 +12,30 @@ import java.util.Locale;
 
 @Repository
 public class OracleSubjectDAO implements SubjectDAO {
-    private final static String GET_ALL_SUBJECTS = "SELECT * FROM LAB3_ROZGHON_SUBJECT order by SUBJECT_ID";
-    private final static String GET_SUBJECT = "SELECT * FROM LAB3_ROZGHON_SUBJECT where SUBJECT_ID=?";
-    private final static String INSERT_SUBJECT = "Insert into LAB3_ROZGHON_SUBJECT values (LAB3_ROZGHON_SUBJECT_SEQ.nextval, ?)";
-    private final static String UPDATE_SUBJECT = "UPDATE LAB3_ROZGHON_SUBJECT set NAME = ? where SUBJECT_ID = ?";
-    private final static String DELETE_MARKS_FOR_DELETING_SUBJECT = "Delete from LAB3_ROZGHON_MARK where LESSON_ID in (select LESSON_ID " +
-            "from LAB3_ROZGHON_LESSON where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID from LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_ID = ?))";
-    private final static String DELETE_LESSONS_FOR_DELETING_SUBJECT = "Delete from LAB3_ROZGHON_LESSON " +
-            "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID from LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_ID = ?)";
-    private final static String DELETE_SUBJECT_DETAILS_FOR_DELETING_SUBJECT = "delete  from LAB3_ROZGHON_SUBJECT_DETAILS where SUBJECT_ID = ?";
-    private final static String DELETE_SUBJECT = "Delete from LAB3_ROZGHON_SUBJECT where SUBJECT_ID = ?";
-    private final static String GET_SUBJECTS_BY_CLASS = "select * from LAB3_ROZGHON_SUBJECT " +
-            "join LAB3_ROZGHON_SUBJECT_DETAILS using(subject_id) where CLASS_ID = ? order by SUBJECT_ID";
-    private final static String GET_SUBJECTS_BY_TEACHER = "select distinct SUBJECT_ID, NAME from LAB3_ROZGHON_SUBJECT " +
-            "join LAB3_ROZGHON_SUBJECT_DETAILS using(subject_id) where TEACHER_ID = ? order by SUBJECT_ID";
-    private final static String GET_COUNT_OF_SUBJECTS = "select count(SUBJECT_ID) as AMOUNT from LAB3_ROZGHON_SUBJECT ";
+    private final static String GET_ALL_SUBJECTS = "SELECT * FROM SUBJECT order by SUBJECT_ID";
+    private final static String GET_SUBJECT = "SELECT * FROM SUBJECT where SUBJECT_ID=?";
+    private final static String INSERT_SUBJECT = "Insert into SUBJECT values (SUBJECT_SEQ.nextval, ?)";
+    private final static String UPDATE_SUBJECT = "UPDATE SUBJECT set NAME = ? where SUBJECT_ID = ?";
+    private final static String DELETE_MARKS_FOR_DELETING_SUBJECT = "Delete from MARK where LESSON_ID in " +
+            "(select LESSON_ID from LESSON where THEME_ID in " +
+            "(select THEME_ID from THEME where SUBJECT_DETAILS_ID in " +
+            "(select SUBJECT_DETAILS_ID from SUBJECT_DETAILS where SUBJECT_ID = ?)))";
+    private final static String DELETE_LESSONS_FOR_DELETING_SUBJECT = "Delete from LESSON where THEME_ID in " +
+            "(select THEME_ID from THEME where SUBJECT_DETAILS_ID in " +
+            "(select SUBJECT_DETAILS_ID from SUBJECT_DETAILS where SUBJECT_ID = ?))";
+    private final static String DELETE_THEMES_FOR_DELETING_SUBJECT = "Delete from THEME where SUBJECT_DETAILS_ID in " +
+            "(select SUBJECT_DETAILS_ID from SUBJECT_DETAILS where SUBJECT_ID = ?))";
+    private final static String DELETE_SUBJECT_DETAILS_FOR_DELETING_SUBJECT = "delete  from SUBJECT_DETAILS where SUBJECT_ID = ?";
+    private final static String DELETE_SUBJECT = "Delete from SUBJECT where SUBJECT_ID = ?";
+    private final static String GET_SUBJECTS_BY_CLASS = "select * from SUBJECT " +
+            "join SUBJECT_DETAILS using(subject_id) where CLASS_ID = ? order by SUBJECT_ID";
+    private final static String GET_SUBJECTS_BY_TEACHER = "select distinct SUBJECT_ID, NAME from SUBJECT " +
+            "join SUBJECT_DETAILS using(subject_id) where TEACHER_ID = ? order by SUBJECT_ID";
+    private final static String GET_COUNT_OF_SUBJECTS = "select count(SUBJECT_ID) as AMOUNT from SUBJECT ";
     private final static String GET_SUBJECTS_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-            " (SELECT * FROM LAB3_ROZGHON_SUBJECT ORDER BY SUBJECT_ID) p) WHERE rn BETWEEN ? AND ?";
-    private final static String SEARCH_SUBJECT_BY_ID = " SELECT * FROM LAB3_ROZGHON_SUBJECT where subject_id like ? order by SUBJECT_ID";
-    private final static String SEARCH_SUBJECT_BY_NAME = " SELECT * FROM LAB3_ROZGHON_SUBJECT where upper(name) like ? order by SUBJECT_ID";
+            " (SELECT * FROM SUBJECT ORDER BY SUBJECT_ID) p) WHERE rn BETWEEN ? AND ?";
+    private final static String SEARCH_SUBJECT_BY_ID = " SELECT * FROM SUBJECT where subject_id like ? order by SUBJECT_ID";
+    private final static String SEARCH_SUBJECT_BY_NAME = " SELECT * FROM SUBJECT where upper(name) like ? order by SUBJECT_ID";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OracleSubjectDAO.class.getName());
 
@@ -134,6 +139,7 @@ public class OracleSubjectDAO implements SubjectDAO {
      * Delete subject from database.
      * @param id subject id
      */
+    @Transactional
     @Override
     public void deleteSubject(int id) {
         try (Connection connection = connectionPool.getConnection();
@@ -145,6 +151,11 @@ public class OracleSubjectDAO implements SubjectDAO {
             }
             try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_LESSONS_FOR_DELETING_SUBJECT)) {
                 LOGGER.info("Deleting lessons for subject " + id + ".");
+                preparedStatement1.setInt(1, id);
+                preparedStatement1.executeUpdate();
+            }
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_THEMES_FOR_DELETING_SUBJECT)) {
+                LOGGER.info("Deleting themes for subject " + id + ".");
                 preparedStatement1.setInt(1, id);
                 preparedStatement1.executeUpdate();
             }

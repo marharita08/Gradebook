@@ -16,13 +16,15 @@
 <%@include file="header.jsp"%>
 <div align="center">
     <div align="center" class="box">
-    <h2 align="center"><%=request.getAttribute("title")%></h2>
+        <h2 align="center"><%=request.getAttribute("title")%></h2>
         <form:form>
             <br/>
             Name:
             <form:input path="name" required="true"/><br/><br/>
-            Position:
-            <form:input path="position"/><br/><br/>
+            Start date:
+            <form:input type="date" path="startDate" required="true"/><br/><br/>
+            End date:
+            <form:input type="date" path="endDate" required="true"/><br/><br/>
             <form:input path="id" type="hidden"/>
             <button onclick="history.back()" type="button">Cancel</button>
             <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>">Save</button>

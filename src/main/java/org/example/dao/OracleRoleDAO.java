@@ -2,7 +2,6 @@ package org.example.dao;
 
 import org.apache.log4j.Logger;
 import org.example.entities.Role;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
@@ -11,10 +10,10 @@ import java.util.Set;
 
 @Repository
 public class OracleRoleDAO implements RoleDAO {
-    private static final String GET_ROLES_BY_USER = "SELECT * FROM LAB3_ROZGHON_ROLE" +
-            " join LAB3_ROZGHON_USER_ROLE using(ROLE_ID) where USER_ID=?";
-    private static final String GET_ROLE = "SELECT * FROM LAB3_ROZGHON_ROLE where ROLE_ID=?";
-    private static final String GET_ALL_ROLES = "SELECT * FROM LAB3_ROZGHON_ROLE order by ROLE_ID";
+    private static final String GET_ROLES_BY_USER = "SELECT * FROM ROLE" +
+            " join USER_ROLE using(ROLE_ID) where USER_ID=?";
+    private static final String GET_ROLE = "SELECT * FROM ROLE where ROLE_ID=?";
+    private static final String GET_ALL_ROLES = "SELECT * FROM ROLE order by ROLE_ID";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OracleRoleDAO.class.getName());
 

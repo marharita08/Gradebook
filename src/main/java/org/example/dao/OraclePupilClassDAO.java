@@ -2,8 +2,8 @@ package org.example.dao;
 
 import org.apache.log4j.Logger;
 import org.example.entities.PupilClass;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,32 +12,29 @@ import java.util.Locale;
 
 @Repository
 public class OraclePupilClassDAO implements PupilClassDAO {
-    private static final String GET_ALL_CLASSES = "SELECT * FROM LAB3_ROZGHON_CLASS order by GRADE, NAME";
-    private static final String GET_CLASS = "SELECT * FROM LAB3_ROZGHON_CLASS where CLASS_ID=?";
-    private static final String INSERT_CLASS = "Insert into LAB3_ROZGHON_CLASS values (LAB3_ROZGHON_CLASS_SEQ.nextval, ?, ?)";
-    private static final String UPDATE_CLASS = "UPDATE LAB3_ROZGHON_CLASS set GRADE = ?, NAME = ? where CLASS_ID = ?";
-    private static final String UPDATE_PUPILS_OF_DELETING_CLASS = "update LAB3_ROZGHON_PUPILS set CLASS_ID = null where CLASS_ID = ?";
-    private static final String DELETE_MARKS_FOR_DELETING_CLASS = "Delete from LAB3_ROZGHON_MARK " +
-            "where LESSON_ID in (select LESSON_ID from LAB3_ROZGHON_LESSON " +
-            "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
-            "from LAB3_ROZGHON_SUBJECT_DETAILS where CLASS_ID = ?))";
-    private static final String DELETE_LESSONS_FOR_DELETING_CLASS = "Delete from LAB3_ROZGHON_LESSON " +
-            "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID " +
-            "from LAB3_ROZGHON_SUBJECT_DETAILS where CLASS_ID = ?)";
-    private static final String DELETE_SUBJECT_DETAILS_FOR_DELETING_CLASS = "delete  from LAB3_ROZGHON_SUBJECT_DETAILS where CLASS_ID = ?";
-    private static final String DELETE_CLASS = "Delete from LAB3_ROZGHON_CLASS where CLASS_ID = ?";
-    private static final String GET_CLASSES_BY_SUBJECT = "SELECT * FROM LAB3_ROZGHON_CLASS " +
-            "join LAB3_ROZGHON_SUBJECT_DETAILS using(CLASS_ID) " +
-            "where SUBJECT_ID = ? order by GRADE, NAME";
-    private static final String GET_COUNT_OF_CLASSES = "select count(CLASS_ID) as AMOUNT from LAB3_ROZGHON_CLASS ";
+    private static final String GET_ALL_CLASSES = "SELECT * FROM CLASS order by GRADE, NAME";
+    private static final String GET_CLASS = "SELECT * FROM CLASS where CLASS_ID=?";
+    private static final String INSERT_CLASS = "Insert into CLASS values (CLASS_SEQ.nextval, ?, ?)";
+    private static final String UPDATE_CLASS = "UPDATE CLASS set GRADE = ?, NAME = ? where CLASS_ID = ?";
+    private static final String UPDATE_PUPILS_OF_DELETING_CLASS = "update PUPILS set CLASS_ID = null where CLASS_ID = ?";
+    private static final String DELETE_MARKS_FOR_DELETING_CLASS = "Delete from MARK where LESSON_ID in (select LESSON_ID from LESSON " +
+            " where theme_id in (select theme_id from theme " +
+            "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID from SUBJECT_DETAILS where CLASS_ID = ?)))";
+    private static final String DELETE_LESSONS_FOR_DELETING_CLASS = "Delete from LESSON " +
+            " where theme_id in (select theme_id from theme " +
+            "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID from SUBJECT_DETAILS where CLASS_ID = ?))";
+    private static final String DELETE_THEMES_FOR_DELETING_CLASS = "Delete from theme " +
+            "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID from SUBJECT_DETAILS where CLASS_ID = ?)";
+    private static final String DELETE_SUBJECT_DETAILS_FOR_DELETING_CLASS = "delete  from SUBJECT_DETAILS where CLASS_ID = ?";
+    private static final String DELETE_CLASS = "Delete from CLASS where CLASS_ID = ?";
+    private static final String GET_CLASSES_BY_SUBJECT = "SELECT * FROM CLASS " +
+            "join SUBJECT_DETAILS using(CLASS_ID) where SUBJECT_ID = ? order by GRADE, NAME";
+    private static final String GET_COUNT_OF_CLASSES = "select count(CLASS_ID) as AMOUNT from CLASS ";
     private static final String GET_CLASSES_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-            " (SELECT * FROM LAB3_ROZGHON_CLASS order by GRADE, NAME) p)" +
-            " WHERE rn BETWEEN ? AND ?";
-    private static final String SEARCH_CLASSES_BY_ID = "SELECT * FROM LAB3_ROZGHON_CLASS where CLASS_ID like ? order by GRADE, NAME";
-    private static final String SEARCH_CLASSES_BY_NAME = "SELECT * FROM LAB3_ROZGHON_CLASS " +
-            "where upper(NAME) like ? order by GRADE, NAME";
-    private static final String SEARCH_CLASSES_BY_GRADE = "SELECT * FROM LAB3_ROZGHON_CLASS " +
-            "where upper(GRADE) like ? order by GRADE, NAME";
+            " (SELECT * FROM CLASS order by GRADE, NAME) p) WHERE rn BETWEEN ? AND ?";
+    private static final String SEARCH_CLASSES_BY_ID = "SELECT * FROM CLASS where CLASS_ID like ? order by GRADE, NAME";
+    private static final String SEARCH_CLASSES_BY_NAME = "SELECT * FROM CLASS where upper(NAME) like ? order by GRADE, NAME";
+    private static final String SEARCH_CLASSES_BY_GRADE = "SELECT * FROM CLASS where upper(GRADE) like ? order by GRADE, NAME";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OraclePupilClassDAO.class.getName());
 
@@ -144,6 +141,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * Delete class from database.
      * @param id class id
      */
+    @Transactional
     @Override
     public void deletePupilClass(int id) {
         try (Connection connection = connectionPool.getConnection();
@@ -160,6 +158,11 @@ public class OraclePupilClassDAO implements PupilClassDAO {
             }
             try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_LESSONS_FOR_DELETING_CLASS)) {
                 LOGGER.info("Deleting lessons for " + id + " class.");
+                preparedStatement1.setInt(1, id);
+                preparedStatement1.executeUpdate();
+            }
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_THEMES_FOR_DELETING_CLASS)) {
+                LOGGER.info("Deleting themes for " + id + " class.");
                 preparedStatement1.setInt(1, id);
                 preparedStatement1.executeUpdate();
             }

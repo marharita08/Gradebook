@@ -17,8 +17,8 @@
 <div align="center">
     <div align="center" class="box">
 <h2 align="center"><%=request.getAttribute("title")%></h2>
-    <p>Teacher:<%=((Mark)request.getAttribute("command")).getLesson().getSubjectDetails().getTeacher().getName()%></p>
-    <p>Subject:<%=((Mark)request.getAttribute("command")).getLesson().getSubjectDetails().getSubject().getName()%></p>
+    <p>Teacher:<%=((Mark)request.getAttribute("command")).getLesson().getTheme().getSubjectDetails().getTeacher().getName()%></p>
+    <p>Subject:<%=((Mark)request.getAttribute("command")).getLesson().getTheme().getSubjectDetails().getSubject().getName()%></p>
     <p>Date:<%=((Mark)request.getAttribute("command")).getLesson().getDate()%></p>
     <form:form>
         <br/>

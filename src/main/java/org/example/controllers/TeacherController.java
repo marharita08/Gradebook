@@ -63,11 +63,8 @@ public class TeacherController {
     public ModelAndView addTeacher() {
         LOGGER.info("Add new teacher.");
         LOGGER.info("Form a model.");
-        List<Teacher> list = dao.getAllTeachers();
         Map<String, Object> model = new HashMap<>();
         model.put("command", new Teacher());
-        model.put("selectedChief", 0);
-        model.put("list", list);
         model.put("title", "Add teacher");
         model.put("formAction", "saveAddedTeacher");
         model.put("toRoot", "");
@@ -98,19 +95,12 @@ public class TeacherController {
         LOGGER.info("Edit teacher.");
         Teacher teacher = dao.getTeacher(id);
         if (teacher == null) {
-            LOGGER.error("Subject " + id + " not found.");
+            LOGGER.error("Teacher " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
-        List<Teacher> list = dao.getEnableChiefs(id);
         Map<String, Object> model = new HashMap<>();
         model.put("command", teacher);
-        if (teacher.getChief() != null) {
-            model.put("selectedChief", teacher.getChief().getId());
-        } else {
-            model.put("selectedChief", 0);
-        }
-        model.put("list", list);
         model.put("title", "Edit teacher");
         model.put("formAction", "../saveEditedTeacher");
         model.put("toRoot", "../");

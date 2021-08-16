@@ -2,8 +2,8 @@ package org.example.dao;
 
 import org.apache.log4j.Logger;
 import org.example.entities.Teacher;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,28 +12,24 @@ import java.util.Locale;
 
 @Repository
 public class OracleTeacherDAO implements TeacherDAO  {
-    private static final String GET_ALL_TEACHERS = "SELECT * FROM LAB3_ROZGHON_TEACHER order by teacher_id";
-    private static final String GET_TEACHER = "SELECT * FROM LAB3_ROZGHON_TEACHER where teacher_id = ?";
-    private static final String INSERT_TEACHER = "Insert into LAB3_ROZGHON_TEACHER values (LAB3_ROZGHON_TEACHER_SEQ.nextval, ?, ?, ?)";
-    private static final String UPDATE_TEACHER = "UPDATE LAB3_ROZGHON_TEACHER set name = ?, position = ?, chief = ? where teacher_id = ?";
-    private static final String UPDATE_SUBORDINATE_OF_DELETING_TEACHER = "update LAB3_ROZGHON_TEACHER set CHIEF = null where CHIEF = ?";
-    private static final String UPDATE_SUBJECT_DETAILS_OF_DELETING_TEACHER = "update LAB3_ROZGHON_SUBJECT_DETAILS set TEACHER_ID = null where TEACHER_ID = ?";
-    private static final String DELETE_TEACHER = "Delete from LAB3_ROZGHON_TEACHER where teacher_id = ?";
-    private static final String GET_ENABLE_CHIEFS = "select * from (select * from LAB3_ROZGHON_TEACHER minus " +
-            "select * from LAB3_ROZGHON_TEACHER start with TEACHER_ID = ? connect by nocycle prior TEACHER_ID=CHIEF) order by teacher_id";
-    private static final String GET_TEACHERS_BY_CLASS = "select distinct TEACHER_ID, NAME, POSITION, CHIEF " +
-            "from LAB3_ROZGHON_TEACHER join LAB3_ROZGHON_SUBJECT_DETAILS using(teacher_id) where CLASS_ID = ? order by TEACHER_ID";
-    private static final String GET_TEACHERS_BY_SUBJECT = "select distinct TEACHER_ID, NAME, POSITION, CHIEF " +
-            "from LAB3_ROZGHON_TEACHER join LAB3_ROZGHON_SUBJECT_DETAILS using(teacher_id) where SUBJECT_ID = ? order by TEACHER_ID";
-    private static final String GET_COUNT_OF_TEACHERS = "select count(TEACHER_ID) as AMOUNT from LAB3_ROZGHON_TEACHER ";
+    private static final String GET_ALL_TEACHERS = "SELECT * FROM TEACHER order by teacher_id";
+    private static final String GET_TEACHER = "SELECT * FROM TEACHER where teacher_id = ?";
+    private static final String INSERT_TEACHER = "Insert into TEACHER values (USER_SEQ.nextval, ?, ?)";
+    private static final String UPDATE_TEACHER = "UPDATE TEACHER set name = ?, position = ? where teacher_id = ?";
+    private static final String DELETE_ROLES_OF_DELETING_TEACHER = "Delete from USER_ROLE where user_id = ?";
+    private static final String DELETE_USER_FOR_DELETING_TEACHER = "Delete from GRADEBOOK_USER where user_id = ?";
+    private static final String UPDATE_SUBJECT_DETAILS_OF_DELETING_TEACHER = "update SUBJECT_DETAILS set TEACHER_ID = null where TEACHER_ID = ?";
+    private static final String DELETE_TEACHER = "Delete from TEACHER where teacher_id = ?";
+    private static final String GET_TEACHERS_BY_CLASS = "select distinct TEACHER_ID, NAME, POSITION " +
+            "from TEACHER join SUBJECT_DETAILS using(teacher_id) where CLASS_ID = ? order by TEACHER_ID";
+    private static final String GET_TEACHERS_BY_SUBJECT = "select distinct TEACHER_ID, NAME, POSITION " +
+            "from TEACHER join SUBJECT_DETAILS using(teacher_id) where SUBJECT_ID = ? order by TEACHER_ID";
+    private static final String GET_COUNT_OF_TEACHERS = "select count(TEACHER_ID) as AMOUNT from TEACHER ";
     private static final String GET_TEACHERS_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-            " (SELECT * FROM LAB3_ROZGHON_TEACHER ORDER BY TEACHER_ID) p) WHERE rn BETWEEN ? AND ?";
-    private static final String SEARCH_TEACHERS_BY_ID = " SELECT * FROM LAB3_ROZGHON_TEACHER where teacher_id like ? order by teacher_id";
-    private static final String SEARCH_TEACHERS_BY_NAME = " SELECT * FROM LAB3_ROZGHON_TEACHER where upper(name) like ? order by teacher_id";
-    private static final String SEARCH_TEACHERS_BY_POSITION = " SELECT * FROM LAB3_ROZGHON_TEACHER where upper(position) like ? order by teacher_id";
-    private static final String SEARCH_TEACHERS_BY_CHIEF = " select t.* from LAB3_ROZGHON_TEACHER t " +
-            "join LAB3_ROZGHON_TEACHER ch on ch.TEACHER_ID=t.CHIEF where upper(ch.NAME) like ? order by t.teacher_id";
-    private static final String SEARCH_TEACHERS_WITHOUT_CHIEF = "SELECT * from LAB3_ROZGHON_TEACHER where chief is null";
+            " (SELECT * FROM TEACHER ORDER BY TEACHER_ID) p) WHERE rn BETWEEN ? AND ?";
+    private static final String SEARCH_TEACHERS_BY_ID = " SELECT * FROM TEACHER where teacher_id like ? order by teacher_id";
+    private static final String SEARCH_TEACHERS_BY_NAME = " SELECT * FROM TEACHER where upper(name) like ? order by teacher_id";
+    private static final String SEARCH_TEACHERS_BY_POSITION = " SELECT * FROM TEACHER where upper(position) like ? order by teacher_id";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OracleTeacherDAO.class.getName());
 
@@ -68,12 +64,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
             int id = resultSet.getInt("TEACHER_ID");
             String name = resultSet.getString("NAME");
             String position = resultSet.getString("POSITION");
-            int chiefID = resultSet.getInt("CHIEF");
-            if (chiefID == 0) {
-                teacher = new Teacher(id, name, position, null);
-            } else {
-                teacher = new Teacher(id, name, position, getTeacher(chiefID));
-            }
+            teacher = new Teacher(id, name, position);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -115,11 +106,6 @@ public class OracleTeacherDAO implements TeacherDAO  {
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_TEACHER)) {
             preparedStatement.setString(1, teacher.getName());
             preparedStatement.setString(2, teacher.getPosition());
-            if (teacher.getChief().getId() != 0) {
-                preparedStatement.setInt(3, teacher.getChief().getId());
-            } else {
-                preparedStatement.setNull(3, Types.INTEGER);
-            }
             preparedStatement.executeUpdate();
             LOGGER.info("Inserting complete.");
         } catch (SQLException throwables) {
@@ -138,12 +124,7 @@ public class OracleTeacherDAO implements TeacherDAO  {
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_TEACHER)) {
             preparedStatement.setString(1, teacher.getName());
             preparedStatement.setString(2, teacher.getPosition());
-            if (teacher.getChief().getId() != 0) {
-                preparedStatement.setInt(3, teacher.getChief().getId());
-            } else {
-                preparedStatement.setNull(3, Types.INTEGER);
-            }
-            preparedStatement.setInt(4, teacher.getId());
+            preparedStatement.setInt(3, teacher.getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Updating complete.");
         } catch (SQLException throwables) {
@@ -155,17 +136,23 @@ public class OracleTeacherDAO implements TeacherDAO  {
      * Delete teacher from database.
      * @param id teacher's id
      */
+    @Transactional
     @Override
     public void deleteTeacher(int id) {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_TEACHER)) {
-            try (PreparedStatement preparedStatement1 = connection.prepareStatement(UPDATE_SUBORDINATE_OF_DELETING_TEACHER)) {
-                LOGGER.info("Setting chief=null where chief was teacher " + id + ".");
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(UPDATE_SUBJECT_DETAILS_OF_DELETING_TEACHER)) {
+                LOGGER.info("Setting teacher_id=null in subject details where teacher_id was " + id + ".");
                 preparedStatement1.setInt(1, id);
                 preparedStatement1.executeUpdate();
             }
-            try (PreparedStatement preparedStatement1 = connection.prepareStatement(UPDATE_SUBJECT_DETAILS_OF_DELETING_TEACHER)) {
-                LOGGER.info("Setting teacher_id=null in subject details where teacher_id was " + id + ".");
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_ROLES_OF_DELETING_TEACHER)) {
+                LOGGER.info("Deleting roles of user " + id + ".");
+                preparedStatement1.setInt(1, id);
+                preparedStatement1.executeUpdate();
+            }
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_USER_FOR_DELETING_TEACHER)) {
+                LOGGER.info("Deleting user " + id + ".");
                 preparedStatement1.setInt(1, id);
                 preparedStatement1.executeUpdate();
             }
@@ -176,30 +163,6 @@ public class OracleTeacherDAO implements TeacherDAO  {
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
-    }
-
-    /**
-     * Get list of teachers who enable to be chief to teacher with set id.
-     * @param id teacher's id
-     * @return List<Teacher>
-     */
-    @Override
-    public List<Teacher> getEnableChiefs(int id) {
-        LOGGER.info("Reading teachers who enable to be chief to teacher " + id + ".");
-        List<Teacher> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_ENABLE_CHIEFS)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    list.add(parseTeacher(resultSet));
-                }
-                LOGGER.info("List of teachers complete.");
-            }
-        } catch (SQLException throwables) {
-            LOGGER.error(throwables.getMessage(), throwables);
-        }
-        return list;
     }
 
     /**
@@ -306,51 +269,35 @@ public class OracleTeacherDAO implements TeacherDAO  {
     @Override
     public List<Teacher> searchTeachers(String val, String param) throws Exception {
         List<Teacher> list = new ArrayList<>();
-        if (param.equals("chief") && val.equals("-")) {
-            try (Connection connection = connectionPool.getConnection();
-                 Statement statement = connection.createStatement();
-                 ResultSet resultSet = statement.executeQuery(SEARCH_TEACHERS_WITHOUT_CHIEF)) {
+        String sql;
+        LOGGER.info("Checking parameter of searching.");
+        switch (param) {
+            case "name":
+                sql = SEARCH_TEACHERS_BY_NAME;
+                break;
+            case "id":
+                sql = SEARCH_TEACHERS_BY_ID;
+                break;
+            case "position":
+                sql = SEARCH_TEACHERS_BY_POSITION;
+                break;
+            default:
+                Exception e = new Exception("Wrong parameter");
+                LOGGER.error(e.getMessage(), e);
+                throw e;
+        }
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            LOGGER.info("Searching teachers by " + param + ".");
+            preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
                     list.add(parseTeacher(resultSet));
                 }
                 LOGGER.info("List of teachers complete.");
-            } catch (SQLException throwables) {
-                LOGGER.error(throwables.getMessage(), throwables);
             }
-        } else {
-            String sql;
-            LOGGER.info("Checking parameter of searching.");
-            switch (param) {
-                case "name":
-                    sql = SEARCH_TEACHERS_BY_NAME;
-                    break;
-                case "id":
-                    sql = SEARCH_TEACHERS_BY_ID;
-                    break;
-                case "position":
-                    sql = SEARCH_TEACHERS_BY_POSITION;
-                    break;
-                case "chief":
-                    sql = SEARCH_TEACHERS_BY_CHIEF;
-                    break;
-                default:
-                    Exception e = new Exception("Wrong parameter");
-                    LOGGER.error(e.getMessage(), e);
-                    throw e;
-            }
-            try (Connection connection = connectionPool.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                LOGGER.info("Searching teachers by " + param + ".");
-                preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    while (resultSet.next()) {
-                        list.add(parseTeacher(resultSet));
-                    }
-                    LOGGER.info("List of teachers complete.");
-                }
-            } catch (SQLException throwables) {
-                LOGGER.error(throwables.getMessage(), throwables);
-            }
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
         }
         return list;
     }

@@ -6,13 +6,11 @@ public class Teacher {
     private int id;
     private String name;
     private String position;
-    private Teacher chief;
 
-    public Teacher(int id, String name, String position, Teacher chief) {
+    public Teacher(int id, String name, String position) {
         this.id = id;
         this.name = name;
         this.position = position;
-        this.chief = chief;
     }
 
     public Teacher(){
@@ -43,13 +41,6 @@ public class Teacher {
         this.position = position;
     }
 
-    public Teacher getChief() {
-        return chief;
-    }
-
-    public void setChief(Teacher chief) {
-        this.chief = chief;
-    }
 
     public Teacher(int id) {
         this.id = id;
@@ -61,7 +52,6 @@ public class Teacher {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", position='" + position + '\'' +
-                ", chief=" + chief +
                 '}';
     }
 
@@ -70,11 +60,11 @@ public class Teacher {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Teacher teacher = (Teacher) o;
-        return id == teacher.id && name.equals(teacher.name) && Objects.equals(position, teacher.position) && Objects.equals(chief, teacher.chief);
+        return id == teacher.id && name.equals(teacher.name) && Objects.equals(position, teacher.position);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, position, chief);
+        return Objects.hash(id, name, position);
     }
 }

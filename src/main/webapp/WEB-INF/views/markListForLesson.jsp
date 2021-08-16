@@ -18,6 +18,7 @@
 <h2><%=request.getAttribute("header")%></h2>
 <p>Subject:<%=request.getAttribute("subject")%></p>
 <p>Teacher:<%=request.getAttribute("teacher")%></p>
+<p>Theme:<%=request.getAttribute("theme")%></p>
 <p>Date:<%=request.getAttribute("date")%></p>
 <p>Topic:<%=request.getAttribute("topic")%></p>
 <table id="myTable">

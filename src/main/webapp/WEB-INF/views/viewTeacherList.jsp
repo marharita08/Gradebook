@@ -37,7 +37,6 @@
         <th>Name</th>
         <th>Position</th>
         <sec:authorize access="hasAuthority('ADMIN')">
-        <th>Chief</th>
         <th>EDIT</th>
         <th>DELETE</th>
         </sec:authorize>
@@ -73,12 +72,6 @@
         <th><input type="text" id="position" onkeyup="<%=searchFunc%>" class="search-middle"></th>
 
         <sec:authorize access="hasAuthority('ADMIN')">
-            <%
-                if(pagination.equals("")) {
-                    searchFunc = "filter(id," + i++ + ")";
-                }
-            %>
-        <th><input type="text" id="chief" onkeyup="<%=searchFunc%>" class="search-middle"></th>
          <th></th>
         <th></th>
         </sec:authorize>
@@ -97,11 +90,6 @@
     <td><%=teacher.getName()%></td>
     <td><%=teacher.getPosition()%></td>
     <sec:authorize access="hasAuthority('ADMIN')">
-    <% if(teacher.getChief() != null) { %>
-    <td><%=teacher.getChief().getName()%></td>
-    <% } else { %>
-    <td>-</td>
-    <%}%>
     <td><a href="<%=toRoot%>editTeacher/<%=teacher.getId()%>">Edit</a></td>
     <td><a href="<%=toRoot%>deleteTeacher/<%=teacher.getId()%>?page=<%=pageNum%>">Delete</a></td>
     </sec:authorize>

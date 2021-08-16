@@ -17,6 +17,7 @@
     <p>Subject:<%=request.getAttribute("subject")%></p>
     <p>Teacher:<%=request.getAttribute("teacher")%></p>
     <p>Class:<%=request.getAttribute("class")%></p>
+    <p>Theme:<%=request.getAttribute("theme")%></p>
     <form:form>
         <br/>
         Date:
@@ -24,7 +25,7 @@
         Topic:
         <form:input path="topic" required="true"/><br/><br/>
         <form:input path="id" type="hidden"/>
-        <form:input path="subjectDetails.id" type="hidden"/>
+        <form:input path="theme.id" type="hidden"/>
         <button onclick="history.back()" type="button">Cancel</button>
         <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>">Save</button><br/><br/>
     </form:form>

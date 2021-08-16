@@ -2,6 +2,7 @@
 <%@ page import="org.example.entities.PupilClass" %>
 <%@ page import="org.example.entities.Teacher" %>
 <%@ page import="org.example.entities.Subject" %>
+<%@ page import="org.example.entities.Semester" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -47,6 +48,15 @@
             <% for (Subject subject:(List<Subject>)request.getAttribute("subjectList")) { %>
             <option value="<%=subject.getId()%>" <%=(int)request.getAttribute("selectedSubject") == subject.getId() ? "selected='selected'":""%>>
                 <%=subject.getName()%>
+            </option>
+            <% } %>
+        </form:select><br/><br/>
+
+        Semester:
+        <form:select path="semester.id">
+            <% for (Semester semester:(List<Semester>)request.getAttribute("semesterList")) { %>
+            <option value="<%=semester.getId()%>" <%=(int)request.getAttribute("selectedSemester") == semester.getId() ? "selected='selected'":""%>>
+                <%=semester.getName()%>
             </option>
             <% } %>
         </form:select><br/><br/>

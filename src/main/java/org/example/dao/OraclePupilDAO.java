@@ -3,8 +3,8 @@ package org.example.dao;
 import org.apache.log4j.Logger;
 import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -13,21 +13,23 @@ import java.util.Locale;
 
 @Repository
 public class OraclePupilDAO implements PupilDAO {
-    private static final String GET_ALL_PUPILS = "SELECT * FROM LAB3_ROZGHON_PUPILS order by PUPIL_ID";
-    private static final String GET_PUPIL = "SELECT * FROM LAB3_ROZGHON_PUPILS where PUPIL_ID=?";
-    private static final String INSERT_PUPIL = "Insert into LAB3_ROZGHON_PUPILS values (LAB3_ROZGHON_PUPILS_SEQ.nextval, ?, ?)";
-    private static final String UPDATE_PUPIL = "UPDATE LAB3_ROZGHON_PUPILS set CLASS_ID = ?, NAME = ? where PUPIL_ID = ?";
-    private static final String DELETE_MARKS_FOR_DELETING_PUPIL = "Delete from LAB3_ROZGHON_MARK where PUPIL_ID = ?";
-    private static final String DELETE_PUPIL = "Delete from LAB3_ROZGHON_PUPILS where PUPIL_ID = ?";
-    private static final String GET_PUPILS_BY_CLASS = "SELECT * FROM LAB3_ROZGHON_PUPILS where CLASS_ID = ? order by NAME";
-    private static final String GET_COUNT_OF_PUPILS = "select count(PUPIL_ID) as AMOUNT from LAB3_ROZGHON_PUPILS ";
+    private static final String GET_ALL_PUPILS = "SELECT * FROM PUPIL order by PUPIL_ID";
+    private static final String GET_PUPIL = "SELECT * FROM PUPIL where PUPIL_ID=?";
+    private static final String INSERT_PUPIL = "Insert into PUPIL values (USER_SEQ.nextval, ?, ?)";
+    private static final String UPDATE_PUPIL = "UPDATE PUPIL set CLASS_ID = ?, NAME = ? where PUPIL_ID = ?";
+    private static final String DELETE_ROLES_OF_DELETING_PUPIL = "Delete from USER_ROLE where user_id = ?";
+    private static final String DELETE_USER_FOR_DELETING_PUPIL = "Delete from GRADEBOOK_USER where user_id = ?";
+    private static final String DELETE_MARKS_FOR_DELETING_PUPIL = "Delete from MARK where PUPIL_ID = ?";
+    private static final String DELETE_PUPIL = "Delete from PUPIL where PUPIL_ID = ?";
+    private static final String GET_PUPILS_BY_CLASS = "SELECT * FROM PUPIL where CLASS_ID = ? order by NAME";
+    private static final String GET_COUNT_OF_PUPILS = "select count(PUPIL_ID) as AMOUNT from PUPIL ";
     private static final String GET_PUPILS_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-            " (SELECT * FROM LAB3_ROZGHON_PUPILS ORDER BY PUPIL_ID) p) WHERE rn BETWEEN ? AND ?";
-    private static final String SEARCH_PUPIL_BY_ID = " SELECT * FROM LAB3_ROZGHON_PUPILS where PUPIL_ID like ? order by PUPIL_ID";
-    private static final String SEARCH_PUPIL_BY_NAME = "SELECT * FROM LAB3_ROZGHON_PUPILS where upper(NAME) like ? order by PUPIL_ID";
-    private static final String SEARCH_PUPIL_BY_CLASS = "SELECT * FROM LAB3_ROZGHON_PUPILS " +
-            "join LAB3_ROZGHON_CLASS c using (CLASS_ID) where upper(c.NAME) like ? order by PUPIL_ID";
-    private final OraclePupilClassDAO pupilClassDAO;
+            " (SELECT * FROM PUPIL ORDER BY PUPIL_ID) p) WHERE rn BETWEEN ? AND ?";
+    private static final String SEARCH_PUPIL_BY_ID = " SELECT * FROM PUPIL where PUPIL_ID like ? order by PUPIL_ID";
+    private static final String SEARCH_PUPIL_BY_NAME = "SELECT * FROM PUPIL where upper(NAME) like ? order by PUPIL_ID";
+    private static final String SEARCH_PUPIL_BY_CLASS = "SELECT * FROM PUPIL " +
+            "join CLASS c using (CLASS_ID) where upper(c.NAME) like ? order by PUPIL_ID";
+    private final PupilClassDAO pupilClassDAO;
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OraclePupilDAO.class.getName());
 
@@ -149,12 +151,23 @@ public class OraclePupilDAO implements PupilDAO {
      * Delete pupil from database.
      * @param id pupil id
      */
+    @Transactional
     @Override
     public void deletePupil(int id) {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_PUPIL)) {
             try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_MARKS_FOR_DELETING_PUPIL)) {
                 LOGGER.info("Deleting marks for pupil " + id + ".");
+                preparedStatement1.setInt(1, id);
+                preparedStatement1.executeUpdate();
+            }
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_ROLES_OF_DELETING_PUPIL)) {
+                LOGGER.info("Deleting roles for user " + id + ".");
+                preparedStatement1.setInt(1, id);
+                preparedStatement1.executeUpdate();
+            }
+            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_USER_FOR_DELETING_PUPIL)) {
+                LOGGER.info("Deleting user " + id + ".");
                 preparedStatement1.setInt(1, id);
                 preparedStatement1.executeUpdate();
             }

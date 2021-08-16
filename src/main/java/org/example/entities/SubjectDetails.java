@@ -7,12 +7,14 @@ public class SubjectDetails {
     private PupilClass pupilClass;
     private Teacher teacher;
     private Subject subject;
+    private Semester semester;
 
-    public SubjectDetails(int id, PupilClass pupilClass, Teacher teacher, Subject subject) {
+    public SubjectDetails(int id, PupilClass pupilClass, Teacher teacher, Subject subject, Semester semester) {
         this.id = id;
         this.pupilClass = pupilClass;
         this.teacher = teacher;
         this.subject = subject;
+        this.semester = semester;
     }
 
     public SubjectDetails() {
@@ -23,12 +25,12 @@ public class SubjectDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SubjectDetails that = (SubjectDetails) o;
-        return id == that.id && pupilClass.equals(that.pupilClass) && Objects.equals(teacher, that.teacher) && subject.equals(that.subject);
+        return id == that.id && pupilClass.equals(that.pupilClass) && Objects.equals(teacher, that.teacher) && subject.equals(that.subject) && semester.equals(that.semester);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, pupilClass, teacher, subject);
+        return Objects.hash(id, pupilClass, teacher, subject, semester);
     }
 
     public int getId() {
@@ -63,6 +65,14 @@ public class SubjectDetails {
         this.subject = subject;
     }
 
+    public Semester getSemester() {
+        return semester;
+    }
+
+    public void setSemester(Semester semester) {
+        this.semester = semester;
+    }
+
     @Override
     public String toString() {
         return "SubjectDetails{" +
@@ -70,6 +80,7 @@ public class SubjectDetails {
                 ", pupilClass=" + pupilClass +
                 ", teacher=" + teacher +
                 ", subject=" + subject +
+                ", semester=" + semester +
                 '}';
     }
 }

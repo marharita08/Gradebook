@@ -3,8 +3,8 @@ package org.example.dao;
 import org.apache.log4j.Logger;
 import org.example.entities.Role;
 import org.example.entities.User;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -16,30 +16,34 @@ import java.util.Set;
 @Repository
 public class OracleUserDAO implements UserDAO {
 
-    private static final String GET_ALL_USERS = "SELECT * FROM LAB3_ROZGHON_USER order by user_id";
-    private static final String GET_USER_BY_USERNAME = "SELECT * FROM LAB3_ROZGHON_USER where USERNAME=?";
-    private static final String GET_USER = "SELECT * FROM LAB3_ROZGHON_USER where USER_ID=?";
-    private static final String INSERT_USER = "Insert into LAB3_ROZGHON_USER values (LAB3_ROZGHON_USER_SEQ.nextval, ?, ?)";
-    private static final String UPDATE_USER = "UPDATE LAB3_ROZGHON_USER set username = ?, password = ? where user_id = ?";
-    private static final String DELETE_ROLES_OF_DELETING_USER = "Delete from LAB3_ROZGHON_USER_ROLE where user_id = ?";
-    private static final String DELETE_USER = "Delete from LAB3_ROZGHON_USER where user_id = ?";
-    private static final String DELETE_ROLE_OF_USER = "Delete from LAB3_ROZGHON_USER_ROLE where user_id = ? and  role_id = ?";
-    private static final String CHECK_ROLE_OF_USER = "select count(user_id) AMOUNT from LAB3_ROZGHON_USER_ROLE where user_id=? and role_id=?";
-    private static final String ADD_ROLE_TO_USER = "insert into LAB3_ROZGHON_USER_ROLE values (?, ?)";
-    private static final String GET_COUNT_OF_USERS = "select count(USER_ID) as AMOUNT from LAB3_ROZGHON_USER ";
+    private static final String GET_ALL_USERS = "SELECT * FROM GRADEBOOK_USER order by user_id";
+    private static final String GET_USER_BY_USERNAME = "SELECT * FROM GRADEBOOK_USER where USERNAME=?";
+    private static final String GET_USER = "SELECT * FROM GRADEBOOK_USER where USER_ID=?";
+    private static final String INSERT_USER = "Insert into GRADEBOOK_USER values (USER_SEQ.nextval, ?, ?)";
+    private static final String UPDATE_USER = "UPDATE GRADEBOOK_USER set username = ?, password = ? where user_id = ?";
+    private static final String DELETE_ROLES_OF_DELETING_USER = "Delete from USER_ROLE where user_id = ?";
+    private static final String DELETE_USER = "Delete from GRADEBOOK_USER where user_id = ?";
+    private static final String DELETE_ROLE_OF_USER = "Delete from USER_ROLE where user_id = ? and  role_id = ?";
+    private static final String CHECK_ROLE_OF_USER = "select count(user_id) AMOUNT from USER_ROLE where user_id=? and role_id=?";
+    private static final String ADD_ROLE_TO_USER = "insert into USER_ROLE values (?, ?)";
+    private static final String GET_COUNT_OF_USERS = "select count(USER_ID) as AMOUNT from GRADEBOOK_USER ";
     private static final String GET_USERS_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
-            " (SELECT * FROM LAB3_ROZGHON_USER ORDER BY USER_ID) p) WHERE rn BETWEEN ? AND ?";
-    private static final String SEARCH_USERS_BY_ID = " SELECT * FROM LAB3_ROZGHON_USER where user_id like ? ORDER BY USER_ID";
-    private static final String SEARCH_USERS_BY_NAME = " SELECT * FROM LAB3_ROZGHON_USER where upper(USERNAME) like ? ORDER BY USER_ID";
-    private static final String SEARCH_USERS_BY_ROLES = " select distinct u.* from LAB3_ROZGHON_USER u join LAB3_ROZGHON_USER_ROLE ur on u.user_id=ur.user_id " +
-            "join LAB3_ROZGHON_ROLE r on r.role_id=ur.role_id where name like ? ORDER BY u.USER_ID";
+            " (SELECT * FROM GRADEBOOK_USER ORDER BY USER_ID) p) WHERE rn BETWEEN ? AND ?";
+    private static final String SEARCH_USERS_BY_ID = " SELECT * FROM GRADEBOOK_USER where user_id like ? ORDER BY USER_ID";
+    private static final String SEARCH_USERS_BY_NAME = " SELECT * FROM GRADEBOOK_USER where upper(USERNAME) like ? ORDER BY USER_ID";
+    private static final String SEARCH_USERS_BY_ROLES = " select distinct u.* from GRADEBOOK_USER u join USER_ROLE ur on u.user_id=ur.user_id " +
+            "join ROLE r on r.role_id=ur.role_id where name like ? ORDER BY u.USER_ID";
     private final ConnectionPool connectionPool;
-    private final OracleRoleDAO roleDAO;
+    private final RoleDAO roleDAO;
+    private final TeacherDAO teacherDAO;
+    private final PupilDAO pupilDAO;
     private static final Logger LOGGER = Logger.getLogger(OracleUserDAO.class.getName());
 
-    public OracleUserDAO(ConnectionPool connectionPool, OracleRoleDAO roleDAO) {
+    public OracleUserDAO(ConnectionPool connectionPool, RoleDAO roleDAO, TeacherDAO teacherDAO, PupilDAO pupilDAO) {
         this.connectionPool = connectionPool;
         this.roleDAO = roleDAO;
+        this.teacherDAO = teacherDAO;
+        this.pupilDAO = pupilDAO;
     }
 
     /**
@@ -101,7 +105,6 @@ public class OracleUserDAO implements UserDAO {
         try (Connection connection = connectionPool.getConnection();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_USERS)) {
-            LOGGER.info("Parsing users and put them into list.");
             while (resultSet.next()) {
                 list.add(parseUser(resultSet));
             }
@@ -182,23 +185,30 @@ public class OracleUserDAO implements UserDAO {
      * Delete user from database.
      * @param id user's id
      */
+    @Transactional
     @Override
     public void deleteUser(int id) {
-        String sql;
         LOGGER.info("Deleting user " + id + ".");
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_USER)) {
-            try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_ROLES_OF_DELETING_USER)) {
-                LOGGER.info("Deleting user's roles from database.");
-                preparedStatement1.setInt(1, id);
-                preparedStatement1.executeUpdate();
+        User user = getUserByID(id);
+        if (user.hasRole("TEACHER")) {
+            teacherDAO.deleteTeacher(id);
+        } else if (user.hasRole("PUPIL")) {
+            pupilDAO.deletePupil(id);
+        } else {
+            try (Connection connection = connectionPool.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(DELETE_USER)) {
+                try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_ROLES_OF_DELETING_USER)) {
+                    LOGGER.info("Deleting user's roles from database.");
+                    preparedStatement1.setInt(1, id);
+                    preparedStatement1.executeUpdate();
+                }
+                LOGGER.info("Deleting user from database.");
+                preparedStatement.setInt(1, id);
+                preparedStatement.executeUpdate();
+                LOGGER.info("Deleting complete");
+            } catch (SQLException throwables) {
+                LOGGER.error(throwables.getMessage(), throwables);
             }
-            LOGGER.info("Deleting user from database.");
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-            LOGGER.info("Deleting complete");
-        } catch (SQLException throwables) {
-            LOGGER.error(throwables.getMessage(), throwables);
         }
     }
 
