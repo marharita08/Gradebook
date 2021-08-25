@@ -5,11 +5,6 @@ import org.example.entities.Theme;
 import java.util.List;
 
 public interface ThemeDAO {
-    /**
-     * Read all themes from database and put them into list.
-     * @return List<Theme>
-     */
-    List<Theme> getAllThemes();
 
     /**
      * Read theme from database by id.

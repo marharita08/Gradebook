@@ -1,11 +1,14 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
+import org.example.dao.PupilDAO;
 import org.example.dao.RoleDAO;
+import org.example.dao.TeacherDAO;
 import org.example.dao.UserDAO;
 import org.example.entities.Role;
 import org.example.entities.User;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +22,17 @@ import java.util.Map;
 public class UserController {
     private final UserDAO dao;
     private final RoleDAO roleDAO;
+    private final TeacherDAO teacherDAO;
+    private final PupilDAO pupilDAO;
     private static final int userPerPage = 25;
     private final PasswordEncoder passwordEncoder;
     private static final Logger LOGGER = Logger.getLogger(UserController.class.getName());
 
-    public UserController(UserDAO dao, RoleDAO roleDAO, PasswordEncoder passwordEncoder) {
+    public UserController(UserDAO dao, RoleDAO roleDAO, TeacherDAO teacherDAO, PupilDAO pupilDAO, PasswordEncoder passwordEncoder) {
         this.dao = dao;
         this.roleDAO = roleDAO;
+        this.teacherDAO = teacherDAO;
+        this.pupilDAO = pupilDAO;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -66,7 +73,6 @@ public class UserController {
         model.put("command", user);
         model.put("title", "Add user");
         model.put("formAction", "saveAddedUser");
-        model.put("toRoot", "");
         LOGGER.info("Printing form for input user data.");
         return new ModelAndView("userForm", model);
     }
@@ -93,20 +99,25 @@ public class UserController {
     @RequestMapping(value = "/editUser/{id}")
     public ModelAndView editUser(@PathVariable int id) {
         LOGGER.info("Edit user.");
+        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = dao.getUserByID(id);
         if (user == null) {
             LOGGER.error("User " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        LOGGER.info("Form a model.");
-        Map<String, Object> model = new HashMap<>();
-        user.setPassword("");
-        model.put("command", user);
-        model.put("title", "Edit user");
-        model.put("formAction", "../saveEditedUser");
-        model.put("toRoot", "../");
-        LOGGER.info("Printing form for changing user data.");
-        return new ModelAndView("userForm", model);
+        if (currUser.hasRole("ADMIN") || currUser.equals(user)) {
+            LOGGER.info("Form a model.");
+            Map<String, Object> model = new HashMap<>();
+            user.setPassword("");
+            model.put("command", user);
+            model.put("title", "Edit user");
+            model.put("formAction", "../saveEditedUser");
+            model.put("toRoot", "../");
+            LOGGER.info("Printing form for changing user data.");
+            return new ModelAndView("userForm", model);
+        } else {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
     }
 
     /**
@@ -119,8 +130,14 @@ public class UserController {
         LOGGER.info("Saving edited user.");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         dao.updateUser(user);
-        LOGGER.info("Redirect to user list.");
-        return new ModelAndView("redirect:/viewAllUsers?page=1");
+        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (currUser.hasRole("ADMIN")) {
+            LOGGER.info("Redirect to user list.");
+            return new ModelAndView("redirect:/viewAllUsers?page=1");
+        } else {
+            LOGGER.info("Redirect to user page.");
+            return new ModelAndView("redirect:/userPage ");
+        }
     }
 
     /**
@@ -130,6 +147,9 @@ public class UserController {
      */
     @RequestMapping(value = "/deleteUser/{id}")
     public ModelAndView deleteUser(@PathVariable int id, @RequestParam("page") int pageNum) {
+        if (id == 1) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         LOGGER.info("Deleting user " + id + ".");
         User user = dao.getUserByID(id);
         if (user == null) {
@@ -173,6 +193,9 @@ public class UserController {
      */
     @RequestMapping(value = "/deleteRole/{userID}/{roleID}")
     public ModelAndView deleteRole(@PathVariable int userID, @PathVariable int roleID) {
+        if (userID == 1 && roleID == 1) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         LOGGER.info("Deleting role " + roleID + " from user " + userID + ".");
         User user = dao.getUserByID(userID);
         if (user == null) {
@@ -214,5 +237,17 @@ public class UserController {
             list = dao.getUsersByPage(1, userPerPage);
         }
         return list;
+    }
+
+    @RequestMapping(value = "/userPage")
+    public ModelAndView getUserPage() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, Object> model = new HashMap<>();
+        if (user.hasRole("TEACHER")) {
+            model.put("teacher", teacherDAO.getTeacher(user.getId()));
+        } else if (user.hasRole("PUPIL")){
+            model.put("pupil", pupilDAO.getPupil(user.getId()));
+        }
+        return new ModelAndView("userPage", model);
     }
 }

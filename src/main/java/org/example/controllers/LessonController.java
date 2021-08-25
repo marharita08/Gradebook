@@ -2,10 +2,9 @@ package org.example.controllers;
 
 import org.apache.log4j.Logger;
 import org.example.dao.*;
-import org.example.entities.Lesson;
-import org.example.entities.SubjectDetails;
-import org.example.entities.Theme;
+import org.example.entities.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -37,15 +36,15 @@ public class LessonController {
             LOGGER.error("Theme " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        SubjectDetails subjectDetails = theme.getSubjectDetails();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", new Lesson(theme));
-        model.put("theme", theme.getName());
-        model.put("teacher", subjectDetails.getTeacher().getName());
-        model.put("subject", subjectDetails.getSubject().getName());
-        model.put("class", subjectDetails.getPupilClass().getName());
         model.put("title", "Add lesson");
+        model.put("toRoot", "../");
         model.put("formAction", "../saveAddedLesson");
         LOGGER.info("Printing form for input lesson's data.");
         return new ModelAndView("lessonForm", model);
@@ -77,16 +76,16 @@ public class LessonController {
             LOGGER.error("Lesson " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
+        Theme theme = lesson.getTheme();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        Theme theme = lesson.getTheme();
-        SubjectDetails subjectDetails = theme.getSubjectDetails();
-        model.put("command", lesson);
-        model.put("teacher", subjectDetails.getTeacher().getName());
-        model.put("subject", subjectDetails.getSubject().getName());
-        model.put("class", subjectDetails.getPupilClass().getName());
-        model.put("theme", theme.getName());
         model.put("title", "Edit lesson");
+        model.put("command", lesson);
+        model.put("toRoot", "../");
         model.put("formAction", "../saveEditedLesson");
         LOGGER.info("Printing form for changing lesson's data.");
         return new ModelAndView("lessonForm", model);
@@ -118,10 +117,14 @@ public class LessonController {
             LOGGER.error("Lesson " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        int themeID = lesson.getTheme().getId();
+        Theme theme = lesson.getTheme();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         dao.deleteLesson(id);
-        LOGGER.info("Redirect to list of lessons for " + themeID + " theme.");
-        return new ModelAndView("redirect:/viewLessonsByTheme/" + themeID);
+        LOGGER.info("Redirect to list of lessons for " + theme.getId() + " theme.");
+        return new ModelAndView("redirect:/viewLessonsByTheme/" + theme.getId());
     }
 
     /**
@@ -137,19 +140,13 @@ public class LessonController {
             LOGGER.error("Theme " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        SubjectDetails subjectDetails = theme.getSubjectDetails();
         LOGGER.info("Form a model.");
         List<Lesson> list;
         Map<String, Object> model = new HashMap<>();
         list = dao.getLessonsByTheme(id);
         model.put("list", list);
-        model.put("subject", subjectDetails.getSubject().getName());
-        model.put("class", subjectDetails.getPupilClass().getName());
-        model.put("theme", theme.getName());
-        if (subjectDetails.getTeacher() != null) {
-            model.put("teacher", subjectDetails.getTeacher().getName());
-        }
-        model.put("themeID", theme.getId());
+        model.put("theme", theme);
+        model.put("toRoot", "../");
         LOGGER.info("Printing lessons list.");
         return new ModelAndView("viewLessonList", model);
     }

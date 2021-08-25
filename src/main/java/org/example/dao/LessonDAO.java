@@ -37,11 +37,4 @@ public interface LessonDAO {
      * @return List<Lesson>
      */
     List<Lesson> getLessonsByTheme(int id);
-
-    /**
-     * Read lesson from database by subject details.
-     * @param id subject details id
-     * @return List<Lesson>
-     */
-    List<Lesson> getLessonsBySubjectDetails(int id);
 }

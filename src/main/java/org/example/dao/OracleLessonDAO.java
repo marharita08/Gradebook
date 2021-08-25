@@ -17,8 +17,6 @@ public class OracleLessonDAO implements LessonDAO {
     private static final String DELETE_MARKS_FOR_LESSON = "Delete from MARK where LESSON_ID = ?";
     private static final String DELETE_LESSON = "Delete from LESSON where LESSON_ID = ?";
     private static final String GET_LESSONS_BY_THEME = "select * from LESSON where THEME_ID = ? order by LESSON_DATE";
-    private static final String GET_LESSONS_BY_SUBJECT_DETAILS = "select * from LESSON where THEME_ID in " +
-            "(select theme_id from theme where SUBJECT_DETAILS_id = ?) order by LESSON_DATE";
     private final ThemeDAO themeDAO;
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(OracleLessonDAO.class.getName());
@@ -139,30 +137,6 @@ public class OracleLessonDAO implements LessonDAO {
         List<Lesson> list = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(GET_LESSONS_BY_THEME)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()){
-                while (resultSet.next()) {
-                    list.add(parseLesson(resultSet));
-                }
-                LOGGER.info("List of lessons complete.");
-            }
-        } catch (SQLException throwables) {
-            LOGGER.error(throwables.getMessage(), throwables);
-        }
-        return list;
-    }
-
-    /**
-     * Read lesson from database by subject details.
-     * @param id subject details id
-     * @return List<Lesson>
-     */
-    @Override
-    public List<Lesson> getLessonsBySubjectDetails(int id) {
-        LOGGER.info("Reading lessons for " + id + " subject details.");
-        List<Lesson> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_LESSONS_BY_SUBJECT_DETAILS)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()){
                 while (resultSet.next()) {

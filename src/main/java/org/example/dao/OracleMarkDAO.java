@@ -15,10 +15,43 @@ public class OracleMarkDAO implements MarkDAO {
     private static final String INSERT_MARK = "Insert into MARK values (MARK_SEQ.nextval, ?, ?, ?)";
     private static final String UPDATE_MARK = "UPDATE MARK set PUPIL_ID = ?, LESSON_ID = ?, MARK = ? where MARK_ID = ?";
     private static final String DELETE_MARK = "Delete from MARK where MARK_ID = ?";
-    private static final String GET_MARKS_BY_PUPIL = "SELECT * FROM MARK where PUPIL_ID = ?";
-    private static final String GET_MARKS_BY_LESSON = "SELECT * FROM MARK where LESSON_ID = ?";
-    private static final String GET_MARKS_BY_SUBJECT_DETAILS = "SELECT * FROM MARK where LESSON_ID in (" +
-            "select LESSON_ID from LESSON where THEME_ID in (select THEME_ID from THEME where SUBJECT_DETAILS_ID = ?))";
+    private static final String GET_MARKS_BY_PUPIL = "SELECT MARK.* FROM MARK " +
+            "join LESSON L on MARK.LESSON_ID = L.LESSON_ID " +
+            "join THEME T on T.THEME_ID = L.THEME_ID " +
+            "join SUBJECT_DETAILS SD on T.SUBJECT_DETAILS_ID = SD.SUBJECT_DETAILS_ID " +
+            "join SEMESTER S on SD.SEMESTER_ID = S.SEMESTER_ID and SYSDATE between START_DATE and END_DATE " +
+            " where PUPIL_ID = ?";
+    private static final String GET_MARKS_BY_LESSON = "select p.PUPIL_ID, MARK_ID, M.LESSON_ID, MARK from PUPIL p " +
+            "join CLASS c on p.CLASS_ID = c.CLASS_ID " +
+            "join SUBJECT_DETAILS SD on c.CLASS_ID = SD.CLASS_ID " +
+            "join THEME t on SD.SUBJECT_DETAILS_ID = t.SUBJECT_DETAILS_ID " +
+            "join LESSON l on t.THEME_ID = l.THEME_ID and LESSON_ID = ? " +
+            "left join MARK M on p.PUPIL_ID = M.PUPIL_ID and l.LESSON_ID = M.LESSON_ID " +
+            "order by p.NAME";
+    private static final String GET_MARKS_BY_THEME_AND_PUPIL = "with tab as ( " +
+            "select p.*, MARK_ID, M.LESSON_ID, MARK, LESSON_DATE from PUPIL p " +
+            "join CLASS c on p.CLASS_ID = c.CLASS_ID " +
+            "join SUBJECT_DETAILS SD on c.CLASS_ID = SD.CLASS_ID " +
+            "join THEME t on SD.SUBJECT_DETAILS_ID = t.SUBJECT_DETAILS_ID and THEME_ID = ? " +
+            "join LESSON L on t.THEME_ID = L.THEME_ID " +
+            "left join MARK M on p.PUPIL_ID = M.PUPIL_ID  and M.LESSON_ID = L.LESSON_ID " +
+            "where p.PUPIL_ID = ?) " +
+            "select PUPIL_ID, CLASS_ID, NAME, LESSON_DATE, MARK_ID, LESSON_ID, MARK from tab " +
+            "union " +
+            "select PUPIL_ID, CLASS_ID, NAME, null, null, null , round(avg(MARK)) from tab " +
+            "group by PUPIL_ID, CLASS_ID, NAME " +
+            "order by LESSON_DATE ";
+    private static final String GET_SEMESTER_MARKS = "with tab as (" +
+            "select p.PUPIL_ID, p.NAME pupil_name, t.THEME_ID, t.NAME, round(avg(MARK)) Thematic from PUPIL p " +
+            "join CLASS c on p.CLASS_ID = c.CLASS_ID " +
+            "join SUBJECT_DETAILS SD on c.CLASS_ID = SD.CLASS_ID and SUBJECT_DETAILS_ID = ?" +
+            "join THEME t on SD.SUBJECT_DETAILS_ID = t.SUBJECT_DETAILS_ID " +
+            "join LESSON L on t.THEME_ID = L.THEME_ID " +
+            "left join MARK M on p.PUPIL_ID = M.PUPIL_ID  and M.LESSON_ID = L.LESSON_ID " +
+            "group by p.PUPIL_ID, p.NAME, t.THEME_ID, t.NAME) " +
+            "select PUPIL_ID, pupil_NAME, round(avg(Thematic)) mark, null mark_id, null lesson_id from tab " +
+            "group by PUPIL_ID, pupil_NAME " +
+            "order by pupil_name";
     private final LessonDAO lessonDAO;
     private final PupilDAO pupilDAO;
     private final ConnectionPool connectionPool;
@@ -39,7 +72,11 @@ public class OracleMarkDAO implements MarkDAO {
             int lessonID = resultSet.getInt("lesson_id");
             int pupilID = resultSet.getInt("pupil_id");
             int markInt = resultSet.getInt("mark");
-            mark = new Mark(id, pupilDAO.getPupil(pupilID), lessonDAO.getLesson(lessonID), markInt);
+            if (lessonID == 0) {
+                mark = new Mark(id, pupilDAO.getPupil(pupilID), null, markInt);
+            } else {
+                mark = new Mark(id, pupilDAO.getPupil(pupilID), lessonDAO.getLesson(lessonID), markInt);
+            }
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -190,16 +227,42 @@ public class OracleMarkDAO implements MarkDAO {
     }
 
     /**
-     * Get marks for subject details.
+     * Get marks for theme and pupil.
+     * @param themeID theme id
+     * @param pupilID pupil id
+     * @return List<Mark>
+     */
+    @Override
+    public List<Mark> getMarksByThemeAndPupil(int themeID, int pupilID) {
+        LOGGER.info("Reading marks for " + themeID + " theme and " + pupilID + " pupil.");
+        List<Mark> list = new ArrayList<>();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_MARKS_BY_THEME_AND_PUPIL)) {
+            preparedStatement.setInt(1, themeID);
+            preparedStatement.setInt(2, pupilID);
+            try(ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    list.add(parseMark(resultSet));
+                }
+                LOGGER.info("List of marks complete.");
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+        return list;
+    }
+
+    /**
+     * Get semester marks for subject details.
      * @param id subject details id
      * @return List<Mark>
      */
     @Override
-    public List<Mark> getMarksBySubjectDetails(int id) {
-        LOGGER.info("Reading marks for " + id + " subject details.");
+    public List<Mark> getSemesterMarks(int id) {
+        LOGGER.info("Reading semester marks for " + id + " subject details.");
         List<Mark> list = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_MARKS_BY_SUBJECT_DETAILS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_SEMESTER_MARKS)) {
             preparedStatement.setInt(1, id);
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {

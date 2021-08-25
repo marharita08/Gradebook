@@ -64,4 +64,10 @@ public interface PupilClassDAO {
      * @throws Exception if set parameter is wrong
      */
     List<PupilClass> searchPupilClasses(String val, String param) throws Exception;
+
+    /**
+     * Read classes from database by teacher and put them into list.
+     * @return List<PupilClass>
+     */
+    List<PupilClass> getPupilClassesByTeacher(int id);
 }

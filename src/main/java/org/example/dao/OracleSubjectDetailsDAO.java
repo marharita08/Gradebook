@@ -24,9 +24,23 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
             " (select THEME_ID from THEME where SUBJECT_DETAILS_ID = ?)";
     private static final String DELETE_THEMES_FOR_DELETING_SUBJECT_DETAILS = "Delete from THEME where SUBJECT_DETAILS_ID = ?";
     private static final String DELETE_SUBJECT_DETAILS = "Delete from SUBJECT_DETAILS where SUBJECT_DETAILS_ID = ?";
-    private static final String GET_SUBJECT_DETAILS_BY_SUBJECT = "SELECT * FROM SUBJECT_DETAILS where SUBJECT_ID = ? order by  SUBJECT_DETAILS_ID";
-    private static final String GET_SUBJECT_DETAILS_BY_TEACHER = "SELECT * FROM SUBJECT_DETAILS where TEACHER_ID = ? order by  SUBJECT_DETAILS_ID";
-    private static final String GET_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM SUBJECT_DETAILS where CLASS_ID = ? order by  SUBJECT_DETAILS_ID";
+    private static final String GET_SUBJECT_DETAILS_BY_SUBJECT = "SELECT * FROM SUBJECT_DETAILS " +
+            " join SEMESTER on SEMESTER.SEMESTER_ID=SUBJECT_DETAILS.SEMESTER_ID " +
+            " and SYSDATE between START_DATE and END_DATE " +
+            " where SUBJECT_ID = ? order by  SUBJECT_DETAILS_ID";
+    private static final String GET_SUBJECT_DETAILS_BY_TEACHER = "SELECT * FROM SUBJECT_DETAILS " +
+            " join SEMESTER on SEMESTER.SEMESTER_ID=SUBJECT_DETAILS.SEMESTER_ID " +
+            " and SYSDATE between START_DATE and END_DATE " +
+            "where TEACHER_ID = ? order by  SUBJECT_DETAILS_ID";
+    private static final String GET_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM SUBJECT_DETAILS " +
+            " join SEMESTER on SEMESTER.SEMESTER_ID=SUBJECT_DETAILS.SEMESTER_ID " +
+            " and SYSDATE between START_DATE and END_DATE " +
+            "where CLASS_ID = ? order by  SUBJECT_DETAILS_ID";
+    private static final String GET_SUBJECT_DETAILS_BY_SEMESTER_AND_TEACHER = "SELECT * from SUBJECT_DETAILS " +
+            " where semester_id = ? and teacher_id = ?";
+    private static final String GET_SUBJECT_DETAILS_BY_SEMESTER_AND_PUPIL = "SELECT * from SUBJECT_DETAILS sd " +
+            " join pupil p on p.class_id=sd.class_id" +
+            " where semester_id = ? and pupil_id = ?";
     private static final String GET_COUNT_OF_SUBJECT_DETAILS = "select count(SUBJECT_DETAILS_ID) as AMOUNT from SUBJECT_DETAILS ";
     private static final String GET_SUBJECT_DETAILS_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
             " (SELECT * FROM SUBJECT_DETAILS ORDER BY SUBJECT_DETAILS_ID) p) WHERE rn BETWEEN ? AND ?";
@@ -279,6 +293,54 @@ public class OracleSubjectDetailsDAO implements SubjectDetailsDAO{
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_SUBJECT)) {
             preparedStatement.setInt(1, id);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    list.add(parseSubjectDetails(resultSet));
+                }
+                LOGGER.info("List of subject details complete.");
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+        return list;
+    }
+
+    /**
+     * Read subject details by semester and teacher database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    @Override
+    public List<SubjectDetails> getSubjectDetailsBySemesterAndTeacher(int semesterID, int teacherID) {
+        LOGGER.info("Reading subject details for semester " + semesterID + " and teacher " + teacherID + ".");
+        List<SubjectDetails> list = new ArrayList<>();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_SEMESTER_AND_TEACHER)) {
+            preparedStatement.setInt(1, semesterID);
+            preparedStatement.setInt(2, teacherID);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    list.add(parseSubjectDetails(resultSet));
+                }
+                LOGGER.info("List of subject details complete.");
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+        return list;
+    }
+
+    /**
+     * Read subject details by semester and pupil database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    @Override
+    public List<SubjectDetails> getSubjectDetailsBySemesterAndPupil(int semesterID, int pupilID) {
+        LOGGER.info("Reading subject details for semester " + semesterID + " and pupil " + pupilID + ".");
+        List<SubjectDetails> list = new ArrayList<>();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_SEMESTER_AND_PUPIL)) {
+            preparedStatement.setInt(1, semesterID);
+            preparedStatement.setInt(2, pupilID);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
                     list.add(parseSubjectDetails(resultSet));

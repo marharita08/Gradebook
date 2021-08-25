@@ -16,7 +16,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     private static final String GET_CLASS = "SELECT * FROM CLASS where CLASS_ID=?";
     private static final String INSERT_CLASS = "Insert into CLASS values (CLASS_SEQ.nextval, ?, ?)";
     private static final String UPDATE_CLASS = "UPDATE CLASS set GRADE = ?, NAME = ? where CLASS_ID = ?";
-    private static final String UPDATE_PUPILS_OF_DELETING_CLASS = "update PUPILS set CLASS_ID = null where CLASS_ID = ?";
+    private static final String UPDATE_PUPILS_OF_DELETING_CLASS = "update PUPIL set CLASS_ID = null where CLASS_ID = ?";
     private static final String DELETE_MARKS_FOR_DELETING_CLASS = "Delete from MARK where LESSON_ID in (select LESSON_ID from LESSON " +
             " where theme_id in (select theme_id from theme " +
             "where SUBJECT_DETAILS_ID in (select SUBJECT_DETAILS_ID from SUBJECT_DETAILS where CLASS_ID = ?)))";
@@ -29,6 +29,8 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     private static final String DELETE_CLASS = "Delete from CLASS where CLASS_ID = ?";
     private static final String GET_CLASSES_BY_SUBJECT = "SELECT * FROM CLASS " +
             "join SUBJECT_DETAILS using(CLASS_ID) where SUBJECT_ID = ? order by GRADE, NAME";
+    private static final String GET_CLASSES_BY_TEACHER = "SELECT distinct CLASS.* FROM CLASS " +
+            "join SUBJECT_DETAILS on CLASS.CLASS_ID=SUBJECT_DETAILS.CLASS_ID where TEACHER_ID = ? order by GRADE, NAME";
     private static final String GET_COUNT_OF_CLASSES = "select count(CLASS_ID) as AMOUNT from CLASS ";
     private static final String GET_CLASSES_BY_PAGE = "SELECT * FROM (SELECT p.*, ROWNUM rn FROM" +
             " (SELECT * FROM CLASS order by GRADE, NAME) p) WHERE rn BETWEEN ? AND ?";
@@ -181,7 +183,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
     }
 
     /**
-     * Read classes from database dy subjects and put them into list.
+     * Read classes from database by subject and put them into list.
      * @return List<PupilClass>
      */
     @Override
@@ -190,6 +192,29 @@ public class OraclePupilClassDAO implements PupilClassDAO {
         List<PupilClass> list = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(GET_CLASSES_BY_SUBJECT)) {
+            preparedStatement.setInt(1, id);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    list.add(parsePupilClass(resultSet));
+                }
+                LOGGER.info("List of classes complete.");
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+        return list;
+    }
+
+    /**
+     * Read classes from database by teacher and put them into list.
+     * @return List<PupilClass>
+     */
+    @Override
+    public List<PupilClass> getPupilClassesByTeacher(int id) {
+        LOGGER.info("Reading classes for " + id + " teacher.");
+        List<PupilClass> list = new ArrayList<>();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_CLASSES_BY_TEACHER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {

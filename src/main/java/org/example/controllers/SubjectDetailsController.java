@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,18 +20,20 @@ public class SubjectDetailsController {
     private final TeacherDAO teacherDAO;
     private final SubjectDAO subjectDAO;
     private final SemesterDAO semesterDAO;
+    private final PupilDAO pupilDAO;
     private static final int subjectDetailsPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(SubjectDetailsController.class.getName());
 
     public SubjectDetailsController(SubjectDetailsDAO dao,
                                     PupilClassDAO classDAO,
                                     TeacherDAO teacherDAO,
-                                    SubjectDAO subjectDAO, SemesterDAO semesterDAO) {
+                                    SubjectDAO subjectDAO, SemesterDAO semesterDAO, PupilDAO pupilDAO) {
         this.dao = dao;
         this.classDAO = classDAO;
         this.teacherDAO = teacherDAO;
         this.subjectDAO = subjectDAO;
         this.semesterDAO = semesterDAO;
+        this.pupilDAO = pupilDAO;
     }
 
     /**
@@ -55,7 +58,6 @@ public class SubjectDetailsController {
         model.put("header", "Subject Details List");
         model.put("pageNum", page);
         model.put("param", "all");
-        model.put("toRoot", "");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -65,7 +67,19 @@ public class SubjectDetailsController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/addSubjectDetails")
-    public ModelAndView addSubjectDetails() {
+    public ModelAndView addSubjectDetails() throws Exception {
+        List<PupilClass> pupilClasses = classDAO.getAllPupilClasses();
+        if (pupilClasses == null) {
+            throw new Exception("There are no classes to add subject details.");
+        }
+        List<Subject> subjects = subjectDAO.getAllSubjects();
+        if (subjects == null) {
+            throw new Exception("There are no subjects to add subject details.");
+        }
+        List<Semester> semesters = semesterDAO.getAllSemesters();
+        if (semesters == null) {
+            throw new Exception("There are no semesters to add subject details.");
+        }
         LOGGER.info("Add new subject details.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
@@ -74,13 +88,12 @@ public class SubjectDetailsController {
         model.put("selectedTeacher", 0);
         model.put("selectedSubject", 0);
         model.put("selectedSemester", 0);
-        model.put("classList", classDAO.getAllPupilClasses());
+        model.put("classList", pupilClasses);
         model.put("teacherList", teacherDAO.getAllTeachers());
         model.put("subjectList", subjectDAO.getAllSubjects());
         model.put("semesterList", semesterDAO.getAllSemesters());
         model.put("title", "Add Subject Details");
         model.put("formAction", "saveAddedSubjectDetails");
-        model.put("toRoot", "");
         LOGGER.info("Printing form for input subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
     }
@@ -175,6 +188,11 @@ public class SubjectDetailsController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsByTeacher(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.hasRole("PUPIL") && !user.hasRole("ADMIN")) {
+            Pupil pupil = pupilDAO.getPupil(user.getId());
+            model.put("pupilClass", pupil.getPupilClass());
+        }
         model.put("list", list);
         model.put("param", "teacher");
         model.put("header", "Subjects of " + teacher.getName());
@@ -200,6 +218,11 @@ public class SubjectDetailsController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsByPupilClass(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.hasRole("PUPIL") && !user.hasRole("ADMIN")) {
+            Pupil pupil = pupilDAO.getPupil(user.getId());
+            model.put("pupilClass", pupil.getPupilClass());
+        }
         model.put("list", list);
         model.put("param", "class");
         model.put("header", "Subjects of " + pupilClass.getName());
@@ -225,6 +248,11 @@ public class SubjectDetailsController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsBySubject(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.hasRole("PUPIL") && !user.hasRole("ADMIN")) {
+            Pupil pupil = pupilDAO.getPupil(user.getId());
+            model.put("pupilClass", pupil.getPupilClass());
+        }
         model.put("list", list);
         model.put("param", "subject");
         model.put("header", "Subject " + subject.getName());
@@ -233,6 +261,81 @@ public class SubjectDetailsController {
         model.put("toRoot", "../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
+    }
+
+    /**
+     * Getting page to view subject details by semester and teacher.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewSubjectDetailsBySemesterAndTeacher/{semesterID}/{teacherID}")
+    public ModelAndView viewSubjectDetailsBySemesterAndTeacher(@PathVariable int semesterID, @PathVariable int teacherID) {
+        LOGGER.info("Getting list of subject details by " + semesterID + " semester and " + teacherID + " teacher.");
+        Teacher teacher = teacherDAO.getTeacher(teacherID);
+        if (teacher == null) {
+            LOGGER.error("Teacher " + teacherID + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        Semester semester = semesterDAO.getSemester(semesterID);
+        if (semester == null) {
+            LOGGER.error("Semester " + semesterID + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
+        List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndTeacher(semesterID, teacherID);
+        model.put("list", list);
+        model.put("param", "teacher");
+        model.put("header", "Subjects of " + teacher.getName() + " for " + semester.getName());
+        model.put("pagination", "");
+        model.put("pageNum", 1);
+        model.put("toRoot", "../../");
+        LOGGER.info("Printing subject details list.");
+        return new ModelAndView("viewSubjectDetailsList", model);
+    }
+
+    /**
+     * Getting page to view subject details by semester and pupil.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewSubjectDetailsBySemesterAndPupil/{semesterID}/{pupilID}")
+    public ModelAndView viewSubjectDetailsBySemesterAndPupil(@PathVariable int semesterID, @PathVariable int pupilID) {
+        LOGGER.info("Getting list of subject details by " + semesterID + " semester and " + pupilID + " teacher.");
+        Pupil pupil = pupilDAO.getPupil(pupilID);
+        if (pupil == null) {
+            LOGGER.error("Pupil " + pupilID + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        Semester semester = semesterDAO.getSemester(semesterID);
+        if (semester == null) {
+            LOGGER.error("Semester " + semesterID + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
+        List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndPupil(semesterID, pupilID);
+        model.put("list", list);
+        model.put("param", "teacher");
+        model.put("header", "Subjects of " + pupil.getPupilClass().getName() + " for " + semester.getName());
+        model.put("pagination", "");
+        model.put("pageNum", 1);
+        model.put("toRoot", "../../");
+        LOGGER.info("Printing subject details list.");
+        return new ModelAndView("viewSubjectDetailsList", model);
+    }
+
+    /**
+     * Getting page to view subject details by pupil.
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewSubjectDetailsByPupil/{id}")
+    public ModelAndView viewSubjectDetailsByPupil(@PathVariable int id) {
+        LOGGER.info("Getting list of subject details by " + id + " pupil.");
+        Pupil pupil = pupilDAO.getPupil(id);
+        if (pupil == null) {
+            LOGGER.error("Pupil " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        return new ModelAndView("redirect:../viewSubjectDetailsByPupilClass/" + pupil.getPupilClass().getId());
     }
 
     @RequestMapping(value = "/searchSubjectDetails")

@@ -4,7 +4,9 @@ import org.apache.log4j.Logger;
 import org.example.dao.*;
 import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
+import org.example.entities.User;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -46,7 +48,6 @@ public class PupilController {
         model.put("pagination", paginationController.makePagingLinks("viewAllPupils"));
         model.put("pageNum", page);
         model.put("header", "Pupil List");
-        model.put("toRoot", "");
         LOGGER.info("Printing pupil list.");
         return new ModelAndView("viewPupilList", model);
     }
@@ -65,7 +66,6 @@ public class PupilController {
         model.put("selectedClass", 0);
         model.put("title", "Add pupil");
         model.put("formAction", "saveAddedPupil");
-        model.put("toRoot", "");
         LOGGER.info("Printing form for input pupil data.");
         return new ModelAndView("pupilForm", model);
     }
@@ -156,6 +156,13 @@ public class PupilController {
             LOGGER.error("Class " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.hasRole("PUPIL") && !user.hasRole("ADMIN")) {
+            Pupil pupil = dao.getPupil(user.getId());
+            if (!pupil.getPupilClass().equals(pupilClass)) {
+                return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+            }
+        }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("header", "Pupils of " + pupilClass.getName() + " form");
@@ -165,6 +172,22 @@ public class PupilController {
         model.put("toRoot", "../");
         LOGGER.info("Printing pupil list.");
         return new ModelAndView("viewPupilList", model);
+    }
+
+    /**
+     * Get list of pupils studying in the class with set pupil.
+     * @param id pupil id
+     * @return List<Pupil>
+     */
+    @RequestMapping(value = "viewPupilsByPupil/{id}")
+    public ModelAndView viewPupilsByPupil(@PathVariable int id) {
+        LOGGER.info("Getting list of pupils by " + id + " pupil.");
+        Pupil pupil = dao.getPupil(id);
+        if (pupil == null) {
+            LOGGER.error("Pupil " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        return new ModelAndView("redirect:../viewPupilsByPupilClass/" + pupil.getPupilClass().getId());
     }
 
     @RequestMapping(value = "/searchPupils")

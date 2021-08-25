@@ -50,7 +50,6 @@ public class TeacherController {
         model.put("pagination", paginationController.makePagingLinks("viewAllTeachers"));
         model.put("header", "Teacher list");
         model.put("pageNum", page);
-        model.put("toRoot", "");
         LOGGER.info("Printing teachers list.");
         return new ModelAndView("viewTeacherList", model);
     }
@@ -67,7 +66,6 @@ public class TeacherController {
         model.put("command", new Teacher());
         model.put("title", "Add teacher");
         model.put("formAction", "saveAddedTeacher");
-        model.put("toRoot", "");
         LOGGER.info("Printing form for input teacher data.");
         return new ModelAndView("teacherForm", model);
     }

@@ -45,9 +45,17 @@ public interface MarkDAO {
     List<Mark> getMarksByLesson(int id);
 
     /**
-     * Get marks for subject details.
+     * Get marks for theme and pupil.
+     * @param themeID theme id
+     * @param pupilID pupil id
+     * @return List<Mark>
+     */
+    List<Mark> getMarksByThemeAndPupil(int themeID, int pupilID);
+
+    /**
+     * Get semester marks for subject details.
      * @param id subject details id
      * @return List<Mark>
      */
-    List<Mark> getMarksBySubjectDetails(int id);
+    List<Mark> getSemesterMarks(int id);
 }

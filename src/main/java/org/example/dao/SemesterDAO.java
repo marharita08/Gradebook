@@ -2,10 +2,7 @@ package org.example.dao;
 
 import org.example.entities.Semester;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public interface SemesterDAO {
     /**

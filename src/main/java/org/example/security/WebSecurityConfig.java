@@ -29,11 +29,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.authorizeRequests()
-                .antMatchers("/").authenticated()
-                .antMatchers(  "/add*", "/edit*", "/delete*", "/viewAllUsers").hasAuthority("ADMIN")
+                .antMatchers(  "/addPupil/*", "/addClass/*", "/addSchoolYear/*", "/addSemester/*",
+                        "/addSubject/*", "/addSubjectDetails/*", "/addUser/*",
+                        "/editPupil/*", "/editClass/*", "/editSchoolYear/*", "/editSemester/*",
+                        "/editSubject/*", "/editSubjectDetails/*",
+                        "/deletePupil/*", "deleteClass/*", "deleteSchoolYear/*", "deleteSemester/*",
+                        "/deleteSubject/*", "/deleteSubjectDetails/*", "/deleteUser/*",
+                        "/viewAllUsers", "/searchUsers", "/deleteRole/**", "/addRole/**",
+                        "/viewAllSubjectDetails", "viewAllPupils").hasAuthority("ADMIN")
                 .antMatchers("/addLesson/*", "/addMark/*", "/addTheme/*",
-                        "/editLesson/*", "/editMark/*", "/editTheme/*", "/deleteLesson/*", "/deleteMark/*", "/deleteTheme/*",
-                        "/save*Lesson", "/save*Mark", "/save*Theme").hasAuthority("TEACHER")
+                        "/editLesson/*", "/editMark/*", "/editTheme/*",
+                        "/deleteLesson/*", "/deleteMark/*", "/deleteTheme/*").hasAuthority("TEACHER")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()

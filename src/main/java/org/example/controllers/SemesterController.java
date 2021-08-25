@@ -3,6 +3,7 @@ package org.example.controllers;
 import org.apache.log4j.Logger;
 import org.example.dao.SchoolYearDAO;
 import org.example.dao.SemesterDAO;
+import org.example.entities.SchoolYear;
 import org.example.entities.Semester;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -46,7 +47,6 @@ public class SemesterController {
         model.put("pagination", paginationController.makePagingLinks("viewAllSemesters"));
         model.put("header", "Semesters list");
         model.put("pageNum", page);
-        model.put("toRoot", "");
         LOGGER.info("Printing semester list.");
         return new ModelAndView("viewSemesterList", model);
     }
@@ -56,16 +56,19 @@ public class SemesterController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/addSemester")
-    public ModelAndView addSemester() {
+    public ModelAndView addSemester() throws Exception {
+        List<SchoolYear> schoolYears = schoolYearDAO.getAllSchoolYears();
+        if (schoolYears == null) {
+            throw new Exception("There are no school years. You should add school year firstly.");
+        }
         LOGGER.info("Add new semester.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", new Semester());
-        model.put("list", schoolYearDAO.getAllSchoolYears());
+        model.put("list", schoolYears);
         model.put("selectedSchoolYear", 0);
         model.put("title", "Add semester");
         model.put("formAction", "saveAddedSemester");
-        model.put("toRoot", "");
         LOGGER.info("Printing form for input semester data.");
         return new ModelAndView("semesterForm", model);
     }

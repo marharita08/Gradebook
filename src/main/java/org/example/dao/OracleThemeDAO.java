@@ -12,7 +12,6 @@ import java.util.List;
 
 @Repository
 public class OracleThemeDAO implements ThemeDAO {
-    private static final String GET_ALL_THEMES = "SELECT * FROM THEME order by THEME_ID";
     private static final String GET_THEME = "SELECT * FROM THEME where THEME_ID=?";
     private static final String INSERT_THEME = "Insert into THEME values (THEME_SEQ.nextval, ?, ?)";
     private static final String UPDATE_THEME = "UPDATE THEME set SUBJECT_DETAILS_id = ?, name = ? where THEME_ID=?";
@@ -28,27 +27,6 @@ public class OracleThemeDAO implements ThemeDAO {
     public OracleThemeDAO(ConnectionPool connectionPool, SubjectDetailsDAO subjectDetailsDAO) {
         this.connectionPool = connectionPool;
         this.subjectDetailsDAO = subjectDetailsDAO;
-    }
-
-    /**
-     * Read all themes from database and put them into list.
-     * @return List<Theme>
-     */
-    @Override
-    public List<Theme> getAllThemes() {
-        LOGGER.info("Reading all themes from database");
-        List<Theme> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(GET_ALL_THEMES)) {
-            while (resultSet.next()) {
-                list.add(parseTheme(resultSet));
-            }
-            LOGGER.info("List of themes complete.");
-        } catch (SQLException throwables) {
-            LOGGER.error(throwables.getMessage(), throwables);
-        }
-        return list;
     }
 
     private Theme parseTheme(ResultSet resultSet) {

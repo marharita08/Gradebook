@@ -16,13 +16,15 @@ import java.util.Map;
 public class PupilClassController {
     private final PupilClassDAO dao;
     private final SubjectDAO subjectDAO;
+    private final TeacherDAO teacherDAO;
     private static final int pupilClassPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(PupilClassController.class.getName());
 
     public PupilClassController(PupilClassDAO dao,
-                                SubjectDAO subjectDAO) {
+                                SubjectDAO subjectDAO, TeacherDAO teacherDAO) {
         this.dao = dao;
         this.subjectDAO = subjectDAO;
+        this.teacherDAO = teacherDAO;
     }
 
     /**
@@ -46,7 +48,6 @@ public class PupilClassController {
         model.put("pagination", paginationController.makePagingLinks("viewAllClasses"));
         model.put("header", "All classes");
         model.put("pageNum", page);
-        model.put("toRoot", "");
         LOGGER.info("Printing class list.");
         return new ModelAndView("viewClassList", model);
     }
@@ -76,6 +77,30 @@ public class PupilClassController {
     }
 
     /**
+     * Get page to view classes by teacher.
+     * @param id subject id
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/viewPupilClassesByTeacher/{id}")
+    public ModelAndView viewPupilClassesByTeacher(@PathVariable int id) {
+        LOGGER.info("Getting list of classes by " + id + " teacher.");
+        Teacher teacher = teacherDAO.getTeacher(id);
+        if (teacher == null) {
+            LOGGER.error("Teacher " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
+        model.put("list", dao.getPupilClassesByTeacher(id));
+        model.put("header", "Classes taught by " + teacher.getName());
+        model.put("pagination", "");
+        model.put("pageNum", 1);
+        model.put("toRoot", "../");
+        LOGGER.info("Printing class list.");
+        return new ModelAndView("viewClassList", model);
+    }
+
+    /**
      * Getting page for class adding.
      * @return ModelAndView
      */
@@ -88,7 +113,6 @@ public class PupilClassController {
         model.put("selectedGrade", 1);
         model.put("title", "Add class");
         model.put("formAction", "saveAddedClass");
-        model.put("toRoot", "");
         LOGGER.info("Printing form for input class data.");
         return new ModelAndView("classForm", model);
     }

@@ -43,7 +43,6 @@ public class SchoolYearController {
         model.put("pagination", paginationController.makePagingLinks("viewAllSchoolYears"));
         model.put("header", "School years list");
         model.put("pageNum", page);
-        model.put("toRoot", "");
         LOGGER.info("Printing school years list.");
         return new ModelAndView("viewSchoolYearList", model);
     }
@@ -60,7 +59,6 @@ public class SchoolYearController {
         model.put("command", new SchoolYear());
         model.put("title", "Add school year");
         model.put("formAction", "saveAddedSchoolYear");
-        model.put("toRoot", "");
         LOGGER.info("Printing form for input school year data.");
         return new ModelAndView("schoolYearForm", model);
     }

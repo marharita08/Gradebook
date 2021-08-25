@@ -173,3 +173,18 @@ td, tr {
         width: 200px;
     }
 }
+.user-img {
+    width: 300px;
+}
+.user-div {
+    margin: 10px;
+}
+.user-data {
+    margin: 10px;
+}
+h2 {
+    text-align: center;
+}
+.username {
+    text-transform: none;
+}

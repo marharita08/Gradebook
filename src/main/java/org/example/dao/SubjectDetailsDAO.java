@@ -76,4 +76,16 @@ public interface SubjectDetailsDAO {
      * @throws Exception if set parameter is wrong
      */
     List<SubjectDetails> searchSubjectDetails(String val, String param) throws Exception;
+
+    /**
+     * Read subject details by semester and teacher database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    List<SubjectDetails> getSubjectDetailsBySemesterAndTeacher(int semesterID, int teacherID);
+
+    /**
+     * Read subject details by semester and pupil database and put them into list.
+     * @return List<SubjectDetails>
+     */
+    List<SubjectDetails> getSubjectDetailsBySemesterAndPupil(int semesterID, int pupilID);
 }

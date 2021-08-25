@@ -5,9 +5,9 @@ import org.example.dao.SubjectDetailsDAO;
 import org.example.dao.ThemeDAO;
 import org.example.entities.SubjectDetails;
 import org.example.entities.Theme;
+import org.example.entities.User;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -33,8 +33,8 @@ public class ThemeController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/viewThemesBySubjectDetails/{id}")
-    public ModelAndView viewLessonsBySubjectDetails(@PathVariable int id) {
-        LOGGER.info("Getting list of lessons for " + id + " subject details.");
+    public ModelAndView viewThemesBySubjectDetails(@PathVariable int id) {
+        LOGGER.info("Getting list of themes for " + id + " subject details.");
         SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
         if (subjectDetails == null) {
             LOGGER.error("Subject details " + id + " not found.");
@@ -48,10 +48,8 @@ public class ThemeController {
         model.put("header", "Themes for "
                 + subjectDetails.getSubject().getName()
                 + " " + subjectDetails.getPupilClass().getName());
-        if (subjectDetails.getTeacher() != null) {
-            model.put("teacher", "Teacher: " + subjectDetails.getTeacher().getName());
-        }
-        model.put("subjectDetails", subjectDetails.getId());
+        model.put("subjectDetails", subjectDetails);
+        model.put("toRoot", "../");
         LOGGER.info("Printing lessons list.");
         return new ModelAndView("viewThemeList", model);
     }
@@ -69,15 +67,16 @@ public class ThemeController {
             LOGGER.error("Subject details " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.getId() != subjectDetails.getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", new Theme(subjectDetails));
-        model.put("teacher", subjectDetails.getTeacher().getName());
-        model.put("subject", subjectDetails.getSubject().getName());
-        model.put("class", subjectDetails.getPupilClass().getName());
         model.put("title", "Add theme");
         model.put("formAction", "saveAddedTheme");
-        model.put("toRoot", "");
+        model.put("toRoot", "../");
         LOGGER.info("Printing form for input themes data.");
         return new ModelAndView("themeForm", model);
     }
@@ -109,14 +108,16 @@ public class ThemeController {
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         SubjectDetails subjectDetails = theme.getSubjectDetails();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.getId() != subjectDetails.getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", theme);
-        model.put("teacher", subjectDetails.getTeacher().getName());
-        model.put("subject", subjectDetails.getSubject().getName());
-        model.put("class", subjectDetails.getPupilClass().getName());
         model.put("title", "Edit theme");
         model.put("formAction", "../saveEditedTheme");
+        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing theme data.");
         return new ModelAndView("themeForm", model);
     }
@@ -141,12 +142,16 @@ public class ThemeController {
      */
     @RequestMapping(value = "/deleteTheme/{id}")
     public ModelAndView deleteTheme(@PathVariable int id) {
-        LOGGER.info("Deleting theme " + id + ".");
         Theme theme = dao.getTheme(id);
         if (theme == null) {
             LOGGER.error("Theme " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
+        LOGGER.info("Deleting theme " + id + ".");
         dao.deleteTheme(id);
         LOGGER.info("Redirect to theme list.");
         return new ModelAndView("redirect:/viewThemesBySubjectDetails/" + theme.getSubjectDetails().getId());
