@@ -1,8 +1,8 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.SchoolYearDAO;
-import org.example.dao.SemesterDAO;
+import org.example.dao.interfaces.SchoolYearDAO;
+import org.example.dao.interfaces.SemesterDAO;
 import org.example.entities.SchoolYear;
 import org.example.entities.Semester;
 import org.springframework.http.HttpStatus;
@@ -30,7 +30,7 @@ public class SemesterController {
      * Getting page to view all semesters list.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewAllSemesters")
+    @RequestMapping(value = "/semesters")
     public ModelAndView viewAllSemesters(@RequestParam("page") int page) {
         LOGGER.info("Getting list of semesters for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -44,7 +44,7 @@ public class SemesterController {
             list = dao.getSemestersByPage(page, semestersPerPage);
         }
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("viewAllSemesters"));
+        model.put("pagination", paginationController.makePagingLinks("semesters"));
         model.put("header", "Semesters list");
         model.put("pageNum", page);
         LOGGER.info("Printing semester list.");
@@ -55,7 +55,7 @@ public class SemesterController {
      * Getting page for semester adding.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/addSemester")
+    @RequestMapping(value = "/semester")
     public ModelAndView addSemester() throws Exception {
         List<SchoolYear> schoolYears = schoolYearDAO.getAllSchoolYears();
         if (schoolYears == null) {
@@ -78,12 +78,12 @@ public class SemesterController {
      * @param semester added semester
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveAddedSemester", method = RequestMethod.POST)
+    @RequestMapping(value = "/semester", method = RequestMethod.POST)
     public ModelAndView saveAddedSemester(@ModelAttribute Semester semester) {
         LOGGER.info("Saving added semester.");
         dao.addSemester(semester);
         LOGGER.info("Redirect to semester list.");
-        return new ModelAndView("redirect:/viewAllSemesters?page=1");
+        return new ModelAndView("redirect:/semesters?page=1");
     }
 
     /**
@@ -91,7 +91,7 @@ public class SemesterController {
      * @param id semester id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/editSemester/{id}")
+    @RequestMapping(value = "/semester/{id}")
     public ModelAndView editSemester(@PathVariable int id) {
         LOGGER.info("Edit semester.");
         Semester semester = dao.getSemester(id);
@@ -105,7 +105,7 @@ public class SemesterController {
         model.put("list", schoolYearDAO.getAllSchoolYears());
         model.put("selectedSchoolYear", semester.getSchoolYear().getId());
         model.put("title", "Edit semester");
-        model.put("formAction", "../saveEditedSemester");
+        model.put("formAction", "../semester/" + semester.getId());
         model.put("toRoot", "../");
         LOGGER.info("Printing form for changing semester data.");
         return new ModelAndView("semesterForm", model);
@@ -116,12 +116,12 @@ public class SemesterController {
      * @param semester edited semester
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveEditedSemester", method = RequestMethod.POST)
+    @RequestMapping(value = "/semester/{id}", method = RequestMethod.POST)
     public ModelAndView saveEditedSemester(@ModelAttribute Semester semester) {
         LOGGER.info("Saving edited semester.");
         dao.updateSemester(semester);
         LOGGER.info("Redirect to school semester.");
-        return new ModelAndView("redirect:/viewAllSemesters?page=1");
+        return new ModelAndView("redirect:/semesters?page=1");
     }
 
     /**
@@ -129,7 +129,7 @@ public class SemesterController {
      * @param id semester id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deleteSemester/{id}")
+    @RequestMapping(value = "/semester/{id}/delete")
     public ModelAndView deleteSemester(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting semester " + id + ".");
         Semester semester = dao.getSemester(id);
@@ -139,10 +139,10 @@ public class SemesterController {
         }
         dao.deleteSemester(id);
         LOGGER.info("Redirect to semester list on page " + pageNum + ".");
-        return new ModelAndView("redirect:/viewAllSemesters?page=" + pageNum);
+        return new ModelAndView("redirect:/semesters?page=" + pageNum);
     }
 
-    @RequestMapping(value = "/searchSemesters")
+    @RequestMapping(value = "/semesters/search")
     @ResponseBody
     public List<Semester> searchSemesters(@RequestParam("val") String val,
                                               @RequestParam("param")String param) throws Exception {

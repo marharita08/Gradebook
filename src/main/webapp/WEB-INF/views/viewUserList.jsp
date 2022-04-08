@@ -21,13 +21,12 @@
                     PaginationController paginationController = (PaginationController) request.getAttribute("pagination");
                     int pageNum = paginationController.getCurrentPageNumber();
                 %>
-                <ul class="pagination"><%=paginationController.makePagingLinks("viewAllUsers")%></ul>
+                <ul class="pagination"><%=paginationController.makePagingLinks("users")%></ul>
                 <table id="myTable">
                     <tr>
                         <th>ID</th>
                         <th>Username</th>
                         <th>Roles</th>
-                        <th>Add role</th>
                         <th>EDIT</th>
                         <th>DELETE</th>
                     </tr>
@@ -38,7 +37,6 @@
                                 <th><input type="text" id="id" onkeyup="search(id)" class="search-slim"></th>
                                 <th><input type="text" id="username" onkeyup="search(id)" class="search"></th>
                                 <th><input type="text" id="roles" onkeyup="search(id)" class="search"></th>
-                                <th></th>
                                 <th></th>
                                 <th></th>
                             </tr>
@@ -57,26 +55,17 @@
                                             for (Role role:user.getRoles()) {
                                         %>
                                                 <p>
-                                                    <%=role.getName() + " "%>
-                                                    <%
-                                                        if(role.getId()==1 && user.getId()!=1) {
-                                                    %>
-                                                            <a href="deleteRole/<%=user.getId()%>/<%=role.getId()%>">
-                                                                Delete
-                                                            </a>
-                                                    <%
-                                                        }
-                                                    %>
+                                                    <%=role.getName()%>
                                                 </p>
                                         <%
                                             }
                                         %>
                                     </td>
-                                    <td><a href="addRole/<%=user.getId()%>/1">ADMIN</a></td>
-                                    <td><a href="editUser/<%=user.getId()%>">Edit</a></td>
+                                    <td><a href="user/<%=user.getId()%>">Edit</a></td>
                                     <td>
-                                        <%=user.getId() == 1 ? "" : "<a href=\"deleteUser/"
-                                            + user.getId() + "?page=" + pageNum + "\">Delete</a>"%>
+                                        <%if (user.getId() != 0) {%>
+                                            <a href="user/<%= user.getId()%>/delete?page=<%=pageNum%>">Delete</a>
+                                        <%}%>
                                     </td>
                                 </tr>
                         <%
@@ -86,7 +75,7 @@
                 </table>
                 <br/>
                 <button onclick='location.href="index.jsp"'>Menu</button>
-                <button onclick='location.href="addUser"'>Add</button>
+                <button onclick='location.href="user"'>Add</button>
             </div>
         </div>
         <%@include file="footer.jsp"%>
@@ -95,7 +84,7 @@
         var request = new XMLHttpRequest();
         function search(param) {
             var val = document.getElementById(param).value;
-            var url = "searchUsers?val=" + val + "&param=" + param;
+            var url = "user/search?val=" + val + "&param=" + param;
             try {
                 request.onreadystatechange = function () {
                     if (request.readyState === 4) {
@@ -110,20 +99,14 @@
                             var roles = obj[i].roles;
                             for (let j in roles) {
                                 result += "<p>";
-                                result += roles[j].name + " ";
-                                if(roles[j].id === 1 && id !== 1) {
-                                    result += "<a href=\"deleteRole/" + id +
-                                        "/" + roles[j].id + "\">Delete</a>";
-                                }
+                                result += roles[j].name;
                                 result += "</p>";
                             }
                             result += "</td><td>";
-                            result += "<p><a href=\"addRole/" + id + "/1\">ADMIN</a></p>";
+                            result += "<a href=\"user/" + id + "\">Edit</a>";
                             result += "</td><td>";
-                            result += "<a href=\"editUser/" + id + "\">Edit</a>";
-                            result += "</td><td>";
-                            if (id !== 1) {
-                                result += "<a href=\"deleteUser/" + id + "?page=1\">Delete</a>";
+                            if (id !== 0) {
+                                result += "<a href=\"user/" + id + "/delete?page=1\">Delete</a>";
                             }
                             result += "</td>";
                             result += "</tr>";

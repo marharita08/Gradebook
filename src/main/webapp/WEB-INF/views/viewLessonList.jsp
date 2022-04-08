@@ -82,14 +82,14 @@
                                     </sec:authorize>
                                     <td><%=lesson.getDate()%></td>
                                     <td><%=lesson.getTopic()%></td>
-                                    <td><a href="../viewMarksByLesson/<%=lesson.getId()%>">view marks</a></td>
+                                    <td><a href="../../lesson/<%=lesson.getId()%>/marks">view marks</a></td>
                                     <sec:authorize access="hasAuthority('TEACHER')">
                                         <%
                                             if(teacher != null && currUser.getId() == teacher.getId()) {
                                         %>
-                                                <td><a href="../addMark/<%=lesson.getId()%>">add mark</a></td>
-                                                <td><a href="../editLesson/<%=lesson.getId()%>">edit lesson</a></td>
-                                                <td><a href="../deleteLesson/<%=lesson.getId()%>">delete lesson</a></td>
+                                                <td><a href="../../mark/<%=lesson.getId()%>">add mark</a></td>
+                                                <td><a href="../../lesson/<%=lesson.getId()%>">edit lesson</a></td>
+                                                <td><a href="../../lesson/<%=lesson.getId()%>/delete">delete lesson</a></td>
                                         <%
                                             }
                                         %>
@@ -101,16 +101,16 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="../index.jsp"'>Menu</button>
+                <button onclick='location.href="../../index.jsp"'>Menu</button>
                 <button onclick=history.back()>Back</button>
-                <button onclick='location.href="../viewThemesBySubjectDetails/<%=subjectDetails.getId()%>"'>
+                <button onclick='location.href="../../subject-details/<%=subjectDetails.getId()%>/themes"'>
                     To themes
                 </button>
                 <sec:authorize access="hasAuthority('TEACHER')">
                     <%
                         if(teacher != null && currUser.getId() == teacher.getId()) {
                     %>
-                            <button onclick='location.href="../addLesson/<%=theme.getId()%>"'>Add</button>
+                            <button onclick='location.href="../../lesson/<%=theme.getId()%>"'>Add</button>
                     <%
                         }
                     %>

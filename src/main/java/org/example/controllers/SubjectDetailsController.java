@@ -1,7 +1,7 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.*;
+import org.example.dao.interfaces.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,7 +40,7 @@ public class SubjectDetailsController {
      * Getting page to view all subject details list.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewAllSubjectDetails")
+    @RequestMapping(value = "/subject-details")
     public ModelAndView viewAllSubjectDetails(@RequestParam("page") int page) {
         LOGGER.info("Getting list of subject details for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -57,7 +57,6 @@ public class SubjectDetailsController {
         model.put("pagination", paginationController.makePagingLinks("viewAllSubjectDetails"));
         model.put("header", "Subject Details List");
         model.put("pageNum", page);
-        model.put("param", "all");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -66,7 +65,7 @@ public class SubjectDetailsController {
      * Getting page for subject details adding.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/addSubjectDetails")
+    @RequestMapping(value = "/subject-detail")
     public ModelAndView addSubjectDetails() throws Exception {
         List<PupilClass> pupilClasses = classDAO.getAllPupilClasses();
         if (pupilClasses == null) {
@@ -93,7 +92,7 @@ public class SubjectDetailsController {
         model.put("subjectList", subjectDAO.getAllSubjects());
         model.put("semesterList", semesterDAO.getAllSemesters());
         model.put("title", "Add Subject Details");
-        model.put("formAction", "saveAddedSubjectDetails");
+        model.put("formAction", "subject-detail");
         LOGGER.info("Printing form for input subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
     }
@@ -103,12 +102,12 @@ public class SubjectDetailsController {
      * @param subjectDetails added subject details
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveAddedSubjectDetails", method = RequestMethod.POST)
+    @RequestMapping(value = "/subject-detail", method = RequestMethod.POST)
     public ModelAndView saveAddedSubjectDetails(@ModelAttribute SubjectDetails subjectDetails) throws Exception {
         LOGGER.info("Saving added subject details.");
         dao.addSubjectDetails(subjectDetails);
         LOGGER.info("Redirect to subject details list.");
-        return new ModelAndView("redirect:/viewAllSubjectDetails?page=1");
+        return new ModelAndView("redirect:/subject-details?page=1");
     }
 
     /**
@@ -116,7 +115,7 @@ public class SubjectDetailsController {
      * @param id subject details id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/editSubjectDetails/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/subject-detail/{id}", method = RequestMethod.GET)
     public ModelAndView editSubjectDetails(@PathVariable int id) {
         LOGGER.info("Edit subject details.");
         SubjectDetails subjectDetails = dao.getSubjectDetails(id);
@@ -136,7 +135,7 @@ public class SubjectDetailsController {
         model.put("subjectList", subjectDAO.getAllSubjects());
         model.put("semesterList", semesterDAO.getAllSemesters());
         model.put("title", "Edit subject details");
-        model.put("formAction", "../saveEditedSubjectDetails");
+        model.put("formAction", "../subject-details");
         model.put("toRoot", "../");
         LOGGER.info("Printing form for changing subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
@@ -147,12 +146,12 @@ public class SubjectDetailsController {
      * @param subjectDetails edited subject details
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveEditedSubjectDetails", method = RequestMethod.POST)
+    @RequestMapping(value = "/subject-detail/{id}", method = RequestMethod.POST)
     public ModelAndView saveEditedSubjectDetails(@ModelAttribute SubjectDetails subjectDetails) throws Exception {
         LOGGER.info("Saving edited subject details.");
         dao.updateSubjectDetails(subjectDetails);
         LOGGER.info("Redirect to subject details list.");
-        return new ModelAndView("redirect:/viewAllSubjectDetails?page=1");
+        return new ModelAndView("redirect:/subject-details?page=1");
     }
 
     /**
@@ -160,7 +159,7 @@ public class SubjectDetailsController {
      * @param id subject details id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deleteSubjectDetails/{id}")
+    @RequestMapping(value = "/subject-detail/{id}/delete")
     public ModelAndView deleteSubjectDetails(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting subject details " + id + ".");
         SubjectDetails subjectDetails = dao.getSubjectDetails(id);
@@ -170,14 +169,14 @@ public class SubjectDetailsController {
         }
         dao.deleteSubjectDetails(id);
         LOGGER.info("Redirect to subject details list on page " + pageNum + ".");
-        return new ModelAndView("redirect:/viewAllSubjectDetails?page=" + pageNum);
+        return new ModelAndView("redirect:/subject-details?page=" + pageNum);
     }
 
     /**
      * Getting page to view subject details by teacher.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewSubjectDetailsByTeacher/{id}")
+    @RequestMapping(value = "/teacher/{id}/subject-detail")
     public ModelAndView viewSubjectDetailsByTeacher(@PathVariable int id) {
         LOGGER.info("Getting list of subject details by " + id + " teacher.");
         Teacher teacher = teacherDAO.getTeacher(id);
@@ -194,11 +193,10 @@ public class SubjectDetailsController {
             model.put("pupilClass", pupil.getPupilClass());
         }
         model.put("list", list);
-        model.put("param", "teacher");
         model.put("header", "Subjects of " + teacher.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
-        model.put("toRoot", "../");
+        model.put("toRoot", "../../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -207,7 +205,7 @@ public class SubjectDetailsController {
      * Getting page to view subject details by class.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewSubjectDetailsByPupilClass/{id}")
+    @RequestMapping(value = "/class/{id}/subject-detail")
     public ModelAndView viewSubjectDetailsByPupilClass(@PathVariable int id) {
         LOGGER.info("Getting list of subject details by " + id + " class.");
         PupilClass pupilClass = classDAO.getPupilClass(id);
@@ -224,11 +222,10 @@ public class SubjectDetailsController {
             model.put("pupilClass", pupil.getPupilClass());
         }
         model.put("list", list);
-        model.put("param", "class");
         model.put("header", "Subjects of " + pupilClass.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
-        model.put("toRoot", "../");
+        model.put("toRoot", "../../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -237,7 +234,7 @@ public class SubjectDetailsController {
      * Getting page to view subject details by subject.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewSubjectDetailsBySubject/{id}")
+    @RequestMapping(value = "/subject/{id}/subject-detail")
     public ModelAndView viewSubjectDetailsBySubject(@PathVariable int id) {
         LOGGER.info("Getting list of subject details by " + id + " subject.");
         Subject subject = subjectDAO.getSubject(id);
@@ -254,11 +251,10 @@ public class SubjectDetailsController {
             model.put("pupilClass", pupil.getPupilClass());
         }
         model.put("list", list);
-        model.put("param", "subject");
         model.put("header", "Subject " + subject.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
-        model.put("toRoot", "../");
+        model.put("toRoot", "../../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -267,7 +263,7 @@ public class SubjectDetailsController {
      * Getting page to view subject details by semester and teacher.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewSubjectDetailsBySemesterAndTeacher/{semesterID}/{teacherID}")
+    @RequestMapping(value = "/semester/{semesterID}/teacher/{teacherID}")
     public ModelAndView viewSubjectDetailsBySemesterAndTeacher(@PathVariable int semesterID, @PathVariable int teacherID) {
         LOGGER.info("Getting list of subject details by " + semesterID + " semester and " + teacherID + " teacher.");
         Teacher teacher = teacherDAO.getTeacher(teacherID);
@@ -284,11 +280,10 @@ public class SubjectDetailsController {
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndTeacher(semesterID, teacherID);
         model.put("list", list);
-        model.put("param", "teacher");
         model.put("header", "Subjects of " + teacher.getName() + " for " + semester.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
-        model.put("toRoot", "../../");
+        model.put("toRoot", "../../../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -297,7 +292,7 @@ public class SubjectDetailsController {
      * Getting page to view subject details by semester and pupil.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewSubjectDetailsBySemesterAndPupil/{semesterID}/{pupilID}")
+    @RequestMapping(value = "/semester/{semesterID}/pupil/{pupilID}")
     public ModelAndView viewSubjectDetailsBySemesterAndPupil(@PathVariable int semesterID, @PathVariable int pupilID) {
         LOGGER.info("Getting list of subject details by " + semesterID + " semester and " + pupilID + " teacher.");
         Pupil pupil = pupilDAO.getPupil(pupilID);
@@ -314,11 +309,10 @@ public class SubjectDetailsController {
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndPupil(semesterID, pupilID);
         model.put("list", list);
-        model.put("param", "teacher");
         model.put("header", "Subjects of " + pupil.getPupilClass().getName() + " for " + semester.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
-        model.put("toRoot", "../../");
+        model.put("toRoot", "../../../");
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
     }
@@ -327,7 +321,7 @@ public class SubjectDetailsController {
      * Getting page to view subject details by pupil.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewSubjectDetailsByPupil/{id}")
+    @RequestMapping(value = "/pupil/{id}/subject-details")
     public ModelAndView viewSubjectDetailsByPupil(@PathVariable int id) {
         LOGGER.info("Getting list of subject details by " + id + " pupil.");
         Pupil pupil = pupilDAO.getPupil(id);
@@ -335,10 +329,10 @@ public class SubjectDetailsController {
             LOGGER.error("Pupil " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        return new ModelAndView("redirect:../viewSubjectDetailsByPupilClass/" + pupil.getPupilClass().getId());
+        return new ModelAndView("redirect:../class/" + pupil.getPupilClass().getId() + "/subject-details");
     }
 
-    @RequestMapping(value = "/searchSubjectDetails")
+    @RequestMapping(value = "/subject-details/search")
     @ResponseBody
     public List<SubjectDetails> searchSubjectDetails(@RequestParam("val") String val,
                                             @RequestParam("param")String param) throws Exception {

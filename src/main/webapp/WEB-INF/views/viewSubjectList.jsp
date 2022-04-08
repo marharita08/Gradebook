@@ -3,13 +3,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-    <%
-        String toRoot1 = (String) request.getAttribute("toRoot");
-    %>
     <head>
         <title>Subject List</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <link rel="icon" type="img/png" href="<%=toRoot1%>images/icon.png">
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
@@ -21,10 +18,7 @@
                 <%
                     int pageNum = (int)request.getAttribute("pageNum");
                     String pagination = (String) request.getAttribute("pagination");
-                    boolean isAdmin = false;
-                    if (currUser.hasRole("ADMIN")) {
-                        isAdmin = true;
-                    }
+                    boolean isAdmin = currUser.hasRole("ADMIN");
                 %>
                 <ul class="pagination"><%=pagination%></ul>
                 <table id="myTable">
@@ -37,8 +31,6 @@
                             <th>EDIT</th>
                             <th>DELETE</th>
                         </sec:authorize>
-                        <th></th>
-                        <th></th>
                         <th></th>
                     </tr>
                     <%
@@ -68,8 +60,6 @@
                                     <th></th>
                                 </sec:authorize>
                                 <th></th>
-                                <th></th>
-                                <th></th>
                             </tr>
                     <%
                         }
@@ -84,25 +74,15 @@
                                     </sec:authorize>
                                     <td><%=subject.getName()%></td>
                                     <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td><a href="<%=toRoot%>editSubject/<%=subject.getId()%>">Edit</a></td>
+                                        <td><a href="<%=root%>subject/<%=subject.getId()%>">Edit</a></td>
                                         <td>
-                                            <a href="<%=toRoot%>deleteSubject/<%=subject.getId()%>?page=<%=pageNum%>">
+                                            <a href="<%=root%>subject/<%=subject.getId()%>/delete?page=<%=pageNum%>">
                                                 Delete</a>
                                         </td>
                                     </sec:authorize>
                                     <td>
-                                        <a href="<%=toRoot%>viewPupilClassesBySubject/<%=subject.getId()%>">
-                                            view classes
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="<%=toRoot%>viewTeachersBySubject/<%=subject.getId()%>">
-                                            view teachers
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="<%=toRoot%>viewSubjectDetailsBySubject/<%=subject.getId()%>">
-                                            view class-teacher list
+                                        <a href="<%=root%>subject/<%=subject.getId()%>/subject-details">
+                                            view subject details
                                         </a>
                                     </td>
                                 </tr>
@@ -112,10 +92,10 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
+                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
                 <button onclick='history.back()'>Back</button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=toRoot%>addSubject"'>Add</button>
+                    <button onclick='location.href="<%=root%>addSubject"'>Add</button>
                 </sec:authorize>
             </div>
         </div>
@@ -125,7 +105,7 @@
         var request = new XMLHttpRequest();
         function search(param, isAdmin) {
             var val = document.getElementById(param).value;
-            var url = "searchSubjects?val=" + val + "&param=" + param;
+            var url = "subject/search?val=" + val + "&param=" + param;
             try {
                 request.onreadystatechange = function () {
                     if (request.readyState === 4) {
@@ -140,17 +120,13 @@
                             result += "<td>" + obj[i].name + "</td>";
                             if (isAdmin === true) {
                                 result += "</td><td>";
-                                result += "<a href=\"editSubject/" + id + "\">Edit</a>";
+                                result += "<a href=\"subject/" + id + "\">Edit</a>";
                                 result += "</td><td>";
-                                result += "<a href=\"deleteSubject/"+ id + "?page=1\">Delete</a></td>";
+                                result += "<a href=\"subject/"+ id + "delete?page=1\">Delete</a></td>";
                                 result += "</td>";
                             }
                             result += "<td>";
-                            result += "<a href=\"viewPupilClassesBySubject/" + id + "\">view classes</a>";
-                            result += "</td><td>";
-                            result += "<a href=\"viewTeachersBySubject/" + id + "\">view teachers</a>";
-                            result += "</td><td>";
-                            result += "<a href=\"viewSubjectDetailsBySubject/" + id + "\">view class-teacher list</a>";
+                            result += "<a href=\"subject/" + id + "subject-details\">view subject details</a>";
                             result += "</td>";
                             result += "</tr>";
                         }

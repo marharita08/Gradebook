@@ -3,15 +3,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-    <%
-        String toRoot1 = (String) request.getAttribute("toRoot");
-    %>
     <head>
         <title>Semester List</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <link rel="icon" type="img/png" href="<%=toRoot1%>images/icon.png">
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
     </head>
     <body>
         <%@include file="header.jsp"%>
@@ -21,10 +18,7 @@
                 <%
                     int pageNum = (int)request.getAttribute("pageNum");
                     String pagination = (String) request.getAttribute("pagination");
-                    boolean isAdmin = false;
-                    if (currUser.hasRole("ADMIN")) {
-                        isAdmin = true;
-                    }
+                    boolean isAdmin = currUser.hasRole("ADMIN");
                 %>
                 <ul class="pagination"><%=pagination%></ul>
                 <table id="myTable">
@@ -108,23 +102,23 @@
                                     <td><%=semester.getStartDate()%></td>
                                     <td><%=semester.getEndDate()%></td>
                                     <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td><a href="<%=toRoot%>editSemester/<%=semester.getId()%>">Edit</a></td>
+                                        <td><a href="<%=root%>semester/<%=semester.getId()%>">Edit</a></td>
                                         <td>
-                                            <a href="<%=toRoot%>deleteSemester/<%=semester.getId()%>?page=<%=pageNum%>">
+                                            <a href="<%=root%>semester/<%=semester.getId()%>/delete?page=<%=pageNum%>">
                                                 Delete
                                             </a>
                                         </td>
                                     </sec:authorize>
                                     <sec:authorize access="hasAuthority('TEACHER')">
                                         <td>
-                                            <a href="<%=toRoot%>viewSubjectDetailsBySemesterAndTeacher/<%=semester.getId()%>/<%=currUser.getId()%>">
+                                            <a href="<%=root%>semester/<%=semester.getId()%>/teacher/<%=currUser.getId()%>">
                                                 My subjects
                                             </a>
                                         </td>
                                     </sec:authorize>
                                     <sec:authorize access="hasAuthority('PUPIL')">
                                         <td>
-                                            <a href="<%=toRoot%>viewSubjectDetailsBySemesterAndPupil/<%=semester.getId()%>/<%=currUser.getId()%>">
+                                            <a href="<%=root%>semester/<%=semester.getId()%>/pupil/<%=currUser.getId()%>">
                                                 My subjects
                                             </a>
                                         </td>
@@ -136,10 +130,10 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
+                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
                 <button onclick='history.back()'>Back</button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=toRoot%>addSemester"'>Add</button>
+                    <button onclick='location.href="<%=root%>semester"'>Add</button>
                 </sec:authorize>
             </div>
         </div>
@@ -167,9 +161,9 @@
                             if (isAdmin === true) {
                                 var id = obj[i].id;
                                 result += "<td>";
-                                result += "<a href=\"editSemester/" + id + "\">Edit</a>";
+                                result += "<a href=\"semester/" + id + "\">Edit</a>";
                                 result += "</td><td>";
-                                result += "<a href=\"deleteSemester/" + id + "?page=1\">Delete</a></td>";
+                                result += "<a href=\"semester/" + id + "/delete?page=1\">Delete</a></td>";
                                 result += "</td>";
                             }
                             result += "</tr>";

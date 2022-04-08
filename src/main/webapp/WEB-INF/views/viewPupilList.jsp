@@ -3,13 +3,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-    <%
-        String toRoot1 = (String) request.getAttribute("toRoot");
-    %>
     <head>
         <title>Pupil List</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <link rel="icon" type="img/png" href="<%=toRoot1%>images/icon.png">
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
@@ -98,9 +95,9 @@
                                     </sec:authorize>
                                     <td><%=pupil.getName()%></td>
                                     <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td><a href="<%=toRoot%>editPupil/<%=pupil.getId()%>">Edit</a></td>
+                                        <td><a href="<%=root%>user/<%=pupil.getId()%>">Edit</a></td>
                                         <td>
-                                            <a href="<%=toRoot%>deletePupil/<%=pupil.getId()%>?page=<%=pageNum%>">
+                                            <a href="<%=root%>pupil/<%=pupil.getId()%>/delete?page=<%=pageNum%>">
                                                 Delete
                                             </a>
                                         </td>
@@ -110,7 +107,7 @@
                                             if((currUser.hasRole("ADMIN") || currUser.hasRole("TEACHER")
                                                     || currUser.getId() == pupil.getId())) {
                                         %>
-                                                <a href="<%=toRoot%>viewMarksByPupil/<%=pupil.getId()%>">view marks</a>
+                                                <a href="<%=root%>pupil/<%=pupil.getId()%>/marks">view marks</a>
                                         <%
                                             }
                                         %>
@@ -122,10 +119,10 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
+                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
                 <button onclick='history.back()'>Back</button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=toRoot%>addPupil"'>Add</button>
+                    <button onclick='location.href="<%=root%>user"'>Add</button>
                 </sec:authorize>
             </div>
         </div>
@@ -135,7 +132,7 @@
         var request = new XMLHttpRequest();
         function search(param, isAdmin) {
             var val = document.getElementById(param).value;
-            var url = "searchPupils?val=" + val + "&param=" + param;
+            var url = "pupils/search?val=" + val + "&param=" + param;
             try {
                 request.onreadystatechange = function () {
                     if (request.readyState === 4) {
@@ -157,13 +154,13 @@
                             result += "<td>" + obj[i].name + "</td>";
                             if (isAdmin === true) {
                                 result += "<td>";
-                                result += "<a href=\"editPupil/" + id + "\">Edit</a>";
+                                result += "<a href=\"user/" + id + "\">Edit</a>";
                                 result += "</td><td>";
-                                result += "<a href=\"deletePupil/" + id + "?page=1\">Delete</a></td>";
+                                result += "<a href=\"pupil/" + id + "delete?page=1\">Delete</a></td>";
                                 result += "</td>";
                             }
                             result += "<td>";
-                            result += "<a href=\"viewMarksByPupil/" + id + "\">view marks</a>";
+                            result += "<a href=\"pupil/" + id + "/marks\">view marks</a>";
                             result += "</td>";
                             result += "</tr>";
                         }

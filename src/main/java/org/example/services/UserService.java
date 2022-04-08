@@ -1,6 +1,6 @@
 package org.example.services;
 
-import org.example.dao.UserDAO;
+import org.example.dao.interfaces.UserDAO;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

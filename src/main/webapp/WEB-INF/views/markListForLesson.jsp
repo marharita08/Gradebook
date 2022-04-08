@@ -75,8 +75,8 @@
                                             <%
                                                 if(teacher != null && currUser.getId() == teacher.getId()) {
                                             %>
-                                                    <td><a href="../editMark/<%=mark.getId()%>">edit mark</a></td>
-                                                    <td><a href="../deleteMark/<%=mark.getId()%>">delete mark</a></td>
+                                                    <td><a href="../mark/<%=mark.getId()%>">edit mark</a></td>
+                                                    <td><a href="../mark/<%=mark.getId()%>/delete">delete mark</a></td>
                                             <%
                                                 }
                                             %>
@@ -106,12 +106,12 @@
                 <br/>
                 <button onclick='location.href="../index.jsp"'>Menu</button>
                 <button onclick=history.back()>Back</button>
-                <button onclick='location.href="../viewLessonsByTheme/<%=theme.getId()%>"'>To lessons</button>
+                <button onclick='location.href="../theme/<%=theme.getId()%>/lessons"'>To lessons</button>
                 <sec:authorize access="hasAuthority('TEACHER')">
                     <%
                         if(teacher != null && currUser.getId() == teacher.getId()) {
                     %>
-                            <button onclick='location.href="../addMark/<%=lesson.getId()%>"'>Add mark</button>
+                            <button onclick='location.href="../mark/<%=lesson.getId()%>"'>Add mark</button>
                     <%
                         }
                     %>

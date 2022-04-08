@@ -1,9 +1,9 @@
 package org.example.services;
 
-import org.example.dao.LessonDAO;
-import org.example.dao.MarkDAO;
-import org.example.dao.PupilDAO;
-import org.example.dao.ThemeDAO;
+import org.example.dao.interfaces.LessonDAO;
+import org.example.dao.interfaces.MarkDAO;
+import org.example.dao.interfaces.PupilDAO;
+import org.example.dao.interfaces.ThemeDAO;
 import org.example.entities.*;
 import org.springframework.stereotype.Service;
 

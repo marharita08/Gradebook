@@ -67,10 +67,10 @@
                         %>
                         <td>
                             <%
-                                if (currUser.hasRole("ADMIN") || currUser.hasRole("TEACHER")
-                                        || currUser.getId() == mark.getPupil().getId()) {
+                                if (mark != null && (currUser.hasRole("ADMIN") || currUser.hasRole("TEACHER")
+                                        || currUser.getId() == mark.getPupil().getId())) {
                             %>
-                                    <%=mark != null ? mark.getMark() : ""%>
+                                    <%=mark.getMark()%>
                             <%
                                 }
                             %>

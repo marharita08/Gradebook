@@ -3,15 +3,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-    <%
-        String toRoot1 = (String) request.getAttribute("toRoot");
-    %>
     <head>
         <title>School Years List</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <link rel="icon" type="img/png" href="<%=toRoot1%>images/icon.png">
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
     </head>
     <body>
         <%@include file="header.jsp"%>
@@ -21,10 +18,7 @@
                 <%
                     int pageNum = (int)request.getAttribute("pageNum");
                     String pagination = (String) request.getAttribute("pagination");
-                    boolean isAdmin = false;
-                    if (currUser.hasRole("ADMIN")) {
-                        isAdmin = true;
-                    }
+                    boolean isAdmin = currUser.hasRole("ADMIN");
                 %>
                 <ul class="pagination"><%=pagination%></ul>
                 <table id="myTable">
@@ -70,7 +64,7 @@
                                 <th><input type="text" id="startDate" onkeyup="<%=searchFunc%>" class="search"></th>
                                 <%
                                     if(pagination.equals("")) {
-                                        searchFunc = "filter(id," + i++ + ")";
+                                        searchFunc = "filter(id," + i + ")";
                                     }
                                 %>
                                 <th><input type="text" id="endDate" onkeyup="<%=searchFunc%>" class="search"></th>
@@ -94,8 +88,12 @@
                                     <td><%=schoolYear.getStartDate()%></td>
                                     <td><%=schoolYear.getEndDate()%></td>
                                     <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td><a href="<%=toRoot%>editSchoolYear/<%=schoolYear.getId()%>">Edit</a></td>
-                                        <td><a href="<%=toRoot%>deleteSchoolYear/<%=schoolYear.getId()%>?page=<%=pageNum%>">Delete</a></td>
+                                        <td><a href="<%=root%>year/<%=schoolYear.getId()%>">Edit</a></td>
+                                        <td>
+                                            <a href="<%=root%>year/<%=schoolYear.getId()%>/delete?page=<%=pageNum%>">
+                                                Delete
+                                            </a>
+                                        </td>
                                     </sec:authorize>
                                 </tr>
                         <%
@@ -104,10 +102,10 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
+                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
                 <button onclick='history.back()'>Back</button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=toRoot%>addSchoolYear"'>Add</button>
+                    <button onclick='location.href="<%=root%>year"'>Add</button>
                 </sec:authorize>
             </div>
         </div>
@@ -117,7 +115,7 @@
         var request = new XMLHttpRequest();
         function search(param, isAdmin) {
             var val = document.getElementById(param).value;
-            var url = "searchSchoolYears?val=" + val + "&param=" + param;
+            var url = "years/search?val=" + val + "&param=" + param;
             try {
                 request.onreadystatechange = function () {
                     if (request.readyState === 4) {
@@ -134,9 +132,9 @@
                             if (isAdmin === true) {
                                 var id = obj[i].id;
                                 result += "<td>";
-                                result += "<a href=\"editSchoolYear/" + id + "\">Edit</a>";
+                                result += "<a href=\"year/" + id + "\">Edit</a>";
                                 result += "</td><td>";
-                                result += "<a href=\"deleteSchoolYear/" + id + "?page=1\">Delete</a></td>";
+                                result += "<a href=\"year/" + id + "/delete?page=1\">Delete</a></td>";
                                 result += "</td>";
                             }
                             result += "</tr>";

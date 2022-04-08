@@ -3,13 +3,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-    <%
-        String toRoot1 = (String) request.getAttribute("toRoot");
-    %>
     <head>
         <title>Class List</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <link rel="icon" type="img/png" href="<%=toRoot1%>images/icon.png">
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
@@ -21,18 +18,16 @@
                 <%
                     int pageNum = (int)request.getAttribute("pageNum");
                     String pagination = (String) request.getAttribute("pagination");
-                    boolean isAdmin = false;
-                    if (currUser.hasRole("ADMIN")) {
-                        isAdmin = true;
-                    }
+                    boolean isAdmin = currUser.hasRole("ADMIN");
+                    boolean isTeacher = currUser.hasRole("TEACHER");
                 %>
                 <ul class="pagination"><%=pagination%></ul>
                 <table id="myTable">
                     <tr>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>ID</th>
-                            <th>Grade</th>
                         </sec:authorize>
+                        <th>Grade</th>
                         <th>Name</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>EDIT</th>
@@ -41,8 +36,6 @@
                         <sec:authorize access="hasAnyAuthority('ADMIN', 'TEACHER')">
                             <th></th>
                         </sec:authorize>
-                        <th></th>
-                        <th></th>
                         <th></th>
                     </tr>
                     <%
@@ -55,7 +48,7 @@
                                     if(pagination.equals("")) {
                                         searchFunc = "filter(id," + i++ + ")";
                                     } else {
-                                        searchFunc = "search(id, " + isAdmin + ")";
+                                        searchFunc = "search(id, " + isAdmin + "," + isTeacher + ")";
                                     }
                                 %>
                                 <sec:authorize access="hasAuthority('ADMIN')">
@@ -67,6 +60,7 @@
                                             searchFunc = "filter(id," + i++ + ")";
                                         }
                                     %>
+                                </sec:authorize>
                                     <th>
                                         <input type="text" id="grade" onkeyup="<%=searchFunc%>" class="search-slim">
                                     </th>
@@ -75,7 +69,6 @@
                                             searchFunc = "filter(id," + i + ")";
                                         }
                                     %>
-                                </sec:authorize>
                                 <th><input type="text" id="name" onkeyup="<%=searchFunc%>" class="search-slim"></th>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th></th>
@@ -84,8 +77,6 @@
                                 <sec:authorize access="hasAnyAuthority('ADMIN', 'TEACHER')">
                                     <th></th>
                                 </sec:authorize>
-                                <th></th>
-                                <th></th>
                                 <th></th>
                             </tr>
                     <%
@@ -98,37 +89,27 @@
                             <tr>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <td><%=pupilClass.getId()%></td>
-                                    <td><%=pupilClass.getGrade()%></td>
                                 </sec:authorize>
+                                <td><%=pupilClass.getGrade()%></td>
                                 <td><%=pupilClass.getName()%></td>
                                 <sec:authorize access="hasAuthority('ADMIN')">
-                                    <td><a href="<%=toRoot%>editClass/<%=pupilClass.getId()%>">Edit</a></td>
+                                    <td><a href="<%=root%>class/<%=pupilClass.getId()%>">Edit</a></td>
                                     <td>
-                                        <a href="<%=toRoot%>deleteClass/<%=pupilClass.getId()%>?page=<%=pageNum%>">
+                                        <a href="<%=root%>class/<%=pupilClass.getId()%>/delete?page=<%=pageNum%>">
                                             Delete
                                         </a>
                                     </td>
                                 </sec:authorize>
                                 <sec:authorize access="hasAnyAuthority('ADMIN', 'TEACHER')">
                                     <td>
-                                        <a href="<%=toRoot%>viewPupilsByPupilClass/<%=pupilClass.getId()%>">
-                                            view pupil list
+                                        <a href="<%=root%>class/<%=pupilClass.getId()%>/pupils">
+                                            view pupils
                                         </a>
                                     </td>
                                 </sec:authorize>
                                 <td>
-                                    <a href="<%=toRoot%>viewSubjectsByPupilClass/ <%=pupilClass.getId()%>">
+                                    <a href="<%=root%>class/<%= pupilClass.getId()%>/subject-details">
                                         view subjects
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="<%=toRoot%>viewTeachersByPupilClass/ <%= pupilClass.getId()%>">
-                                        view teacher list
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="<%=toRoot%>viewSubjectDetailsByPupilClass/<%= pupilClass.getId()%>">
-                                        view teacher-subject list
                                     </a>
                                 </td>
                             </tr>
@@ -138,10 +119,10 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
+                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
                 <button onclick='history.back()'>Back</button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=toRoot%>addClass"'>Add</button>
+                    <button onclick='location.href="<%=root%>class"'>Add</button>
                 </sec:authorize>
             </div>
         </div>
@@ -149,9 +130,9 @@
     </body>
     <script>
         var request = new XMLHttpRequest();
-        function search(param, isAdmin) {
+        function search(param, isAdmin, isTeacher) {
             var val = document.getElementById(param).value;
-            var url = "searchPupilClasses?val=" + val + "&param=" + param;
+            var url = "classes/search?val=" + val + "&param=" + param;
             try {
                 request.onreadystatechange = function () {
                     if (request.readyState === 4) {
@@ -160,27 +141,25 @@
                         for (let i in obj) {
                             var id = obj[i].id;
                             result += "<tr>";
-                            if (isAdmin === true) {
+                            if (isAdmin) {
                                 result += "<td>" + id + "</td>";
-                                result += "<td>" + obj[i].grade + "</td>";
                             }
+                            result += "<td>" + obj[i].grade + "</td>";
                             result += "<td>" + obj[i].name + "</td>";
-                            if (isAdmin === true) {
+                            if (isAdmin) {
                                 result += "<td>";
-                                result += "<a href=\"editClass/" + id + "\">Edit</a>";
+                                result += "<a href=\"class/" + id + "\">Edit</a>";
                                 result += "</td><td>";
-                                result += "<a href=\"deleteClass/" + id + "?page=1\">Delete</a></td>";
+                                result += "<a href=\"class/" + id + "delete?page=1\">Delete</a></td>";
                                 result += "</td>";
                             }
-                            result += "<td>";
-                            result += "<a href=\"viewPupilsByPupilClass/" + id + "\">view pupil list</a>";
-                            result += "</td><td>";
-                            result += "<a href=\"viewSubjectsByPupilClass/" + id + "\">view subjects</a>";
-                            result += "</td>";
-                            result += "<td>";
-                            result += "<a href=\"viewTeachersByPupilClass/" + id + "\">view teacher list</a>";
-                            result += "</td><td>";
-                            result += "<a href=\"viewSubjectDetailsByPupilClass/" + id + "\">view teacher-subject list</a>";
+                            if (isAdmin || isTeacher) {
+                                result += "<td>";
+                                result += "<a href=\"class/" + id + "pupils\">view pupils</a>";
+                                result += "</td>";
+                            }
+                            result +=  "<td>";
+                            result += "<a href=\"class/" + id + "subject-details\">view subjects</a>";
                             result += "</td>";
                             result += "</tr>";
                         }

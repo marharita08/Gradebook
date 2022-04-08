@@ -3,13 +3,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-    <%
-        String toRoot1 = (String) request.getAttribute("toRoot");
-    %>
     <head>
         <title>Subject Details List</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <link rel="icon" type="img/png" href="<%=toRoot1%>images/icon.png">
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
@@ -37,23 +34,9 @@
                             <th>ID</th>
                             <th>Semester</th>
                         </sec:authorize>
-                        <%
-                            if(request.getAttribute("param") != "class") {
-                        %>
-                                <th>Class</th>
-                        <%
-                            }
-                            if(request.getAttribute("param") != "teacher") {
-                        %>
-                                <th>Teacher</th>
-                        <%
-                            }
-                            if(request.getAttribute("param") != "subject") {
-                        %>
-                                <th>Subject</th>
-                        <%
-                            }
-                        %>
+                        <th>Class</th>
+                        <th>Teacher</th>
+                        <th>Subject</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>EDIT</th>
                             <th>DELETE</th>
@@ -91,33 +74,24 @@
                                         }
                                     %>
                                 </sec:authorize>
+                                <th>
+                                    <input type="text" id="class" onkeyup="<%=searchFunc%>" class="search-slim">
+                                </th>
                                 <%
-                                    if(request.getAttribute("param") != "class") {
-                                %>
-                                        <th>
-                                            <input type="text" id="class" onkeyup="<%=searchFunc%>" class="search-slim">
-                                        </th>
-                                <%
-                                            if(pagination.equals("")) {
-                                                searchFunc = "filter(id," + i++ + ")";
-                                            }
+                                    if(pagination.equals("")) {
+                                        searchFunc = "filter(id," + i++ + ")";
                                     }
-                                    if(request.getAttribute("param") != "teacher") {
+
                                 %>
-                                        <th>
-                                            <input type="text" id="teacher" onkeyup="<%=searchFunc%>" class="search">
-                                        </th>
+                                <th>
+                                    <input type="text" id="teacher" onkeyup="<%=searchFunc%>" class="search">
+                                </th>
                                 <%
-                                        if(pagination.equals("")) {
-                                            searchFunc = "filter(id," + i + ")";
-                                        }
-                                    }
-                                    if(request.getAttribute("param") != "subject") {
-                                %>
-                                    <th><input type="text" id="subject" onkeyup="<%=searchFunc%>" class="search"></th>
-                                <%
+                                    if(pagination.equals("")) {
+                                        searchFunc = "filter(id," + i + ")";
                                     }
                                 %>
+                                <th><input type="text" id="subject" onkeyup="<%=searchFunc%>" class="search"></th>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th></th>
                                     <th></th>
@@ -143,43 +117,35 @@
                                                 + subjectDetails.getSemester().getName()%>
                                         </td>
                                     </sec:authorize>
+
+                                    <td><%=subjectDetails.getPupilClass().getName()%></td>
                                     <%
-                                        if(request.getAttribute("param") != "class") {
+                                        if(subjectDetails.getTeacher() != null) {
                                     %>
-                                            <td><%=subjectDetails.getPupilClass().getName()%></td>
+                                        <td><%=subjectDetails.getTeacher().getName()%></td>
                                     <%
-                                        }
-                                        if(request.getAttribute("param") != "teacher") {
-                                            if(subjectDetails.getTeacher() != null) {
+                                        } else {
                                     %>
-                                            <td><%=subjectDetails.getTeacher().getName()%></td>
-                                    <%
-                                            } else {
-                                    %>
-                                                <td>-</td>
+                                        <td>-</td>
                                     <%
                                             }
-                                        }
-                                        if(request.getAttribute("param") != "subject") {
+
                                     %>
-                                            <td><%=subjectDetails.getSubject().getName()%></td>
-                                    <%
-                                        }
-                                    %>
+                                    <td><%=subjectDetails.getSubject().getName()%></td>
                                     <sec:authorize access="hasAuthority('ADMIN')">
                                         <td>
-                                            <a href="<%=toRoot%>editSubjectDetails/<%=subjectDetails.getId()%>">
+                                            <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>">
                                                 Edit
                                             </a>
                                         </td>
                                         <td>
-                                            <a href="<%=toRoot%>deleteSubjectDetails/<%=subjectDetails.getId()%>?page=<%=pageNum%>">
+                                            <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>/delete?page=<%=pageNum%>">
                                                 Delete
                                             </a>
                                         </td>
                                     </sec:authorize>
                                     <td>
-                                        <a href="<%=toRoot%>viewThemesBySubjectDetails/<%=subjectDetails.getId()%>">
+                                        <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>/themes">
                                             view themes
                                         </a>
                                     </td>
@@ -189,7 +155,9 @@
                                                 Teacher teacher = subjectDetails.getTeacher();
                                                 if(teacher != null && currUser.getId() == teacher.getId()) {
                                             %>
-                                                    <a href="<%=toRoot%>addTheme/<%=subjectDetails.getId()%>">add theme</a>
+                                                    <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>/theme">
+                                                        add theme
+                                                    </a>
                                             <%
                                                 }
                                             %>
@@ -200,7 +168,7 @@
                                             PupilClass pupilClass = (PupilClass) request.getAttribute("pupilClass");
                                             if (pupilClass == null || pupilClass.equals(subjectDetails.getPupilClass())) {
                                         %>
-                                                <a href="<%=toRoot%>viewMarksBySubjectDetails/<%=subjectDetails.getId()%>">
+                                                <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>/marks">
                                                     view marks
                                                 </a>
                                         <%
@@ -214,10 +182,10 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
+                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
                 <button onclick=history.back()>Back</button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=toRoot%>addSubjectDetails"'>Add</button>
+                    <button onclick='location.href="<%=root%>subject-detail"'>Add</button>
                 </sec:authorize>
             </div>
         </div>
@@ -227,7 +195,7 @@
         var request = new XMLHttpRequest();
         function search(param, isAdmin, isTeacher) {
             var val = document.getElementById(param).value;
-            var url = "searchSubjectDetails?val=" + val + "&param=" + param;
+            var url = "subject-details/search?val=" + val + "&param=" + param;
             try {
                 request.onreadystatechange = function () {
                     if (request.readyState === 4) {
@@ -251,21 +219,21 @@
                             result += "<td>" + obj[i].subject.name + "</td>";
                             if (isAdmin === true) {
                                 result += "<td>";
-                                result += "<a href=\"editSubjectDetails/" + id + "\">Edit</a>";
+                                result += "<a href=\"subject-details/" + id + "\">Edit</a>";
                                 result += "</td><td>";
-                                result += "<a href=\"deleteSubjectDetails/" + id + "?page=1\">Delete</a></td>";
+                                result += "<a href=\"subject-details/" + id + "delete?page=1\">Delete</a></td>";
                                 result += "</td>";
                             }
                             result += "<td>";
-                            result += "<a href=\"viewThemesBySubjectDetails/" + id + "\">view themes</a>";
+                            result += "<a href=\"subject-details/" + id + "/themes\">view themes</a>";
                             result += "</td>";
                             if (isTeacher === true) {
                                 result += "<td>";
-                                result += "<a href=\"addTheme/" + id + "\">add theme</a>";
+                                result += "<a href=\"subject-details/" + id + "theme\">add theme</a>";
                                 result += "</td>";
                             }
                             result += "<td>";
-                            result += "<a href=\"viewMarksBySubjectDetails/" + id + "\">view marks</a>";
+                            result += "<a href=\"subject-details/" + id + "marks\">view marks</a>";
                             result += "</td>";
                             result += "</tr>";
                         }

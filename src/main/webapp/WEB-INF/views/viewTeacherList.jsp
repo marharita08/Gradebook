@@ -3,15 +3,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-    <%
-        String toRoot1 = (String) request.getAttribute("toRoot");
-    %>
     <head>
         <title>Teacher List</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <link rel="icon" type="img/png" href="<%=toRoot1%>images/icon.png">
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
     </head>
     <body>
         <%@include file="header.jsp"%>
@@ -38,7 +35,6 @@
                             <th>EDIT</th>
                             <th>DELETE</th>
                         </sec:authorize>
-                        <th></th>
                         <th></th>
                     </tr>
                     <%
@@ -74,7 +70,6 @@
                                     <th></th>
                                 </sec:authorize>
                                 <th></th>
-                                <th></th>
                             </tr>
                     <%
                         }
@@ -90,21 +85,16 @@
                                     <td><%=teacher.getName()%></td>
                                     <td><%=teacher.getPosition()%></td>
                                     <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td><a href="<%=toRoot%>editTeacher/<%=teacher.getId()%>">Edit</a></td>
+                                        <td><a href="<%=root%>user/<%=teacher.getId()%>">Edit</a></td>
                                         <td>
-                                            <a href="<%=toRoot%>deleteTeacher/<%=teacher.getId()%>?page=<%=pageNum%>">
+                                            <a href="<%=root%>teacher/<%=teacher.getId()%>/delete?page=<%=pageNum%>">
                                                 Delete
                                             </a>
                                         </td>
                                     </sec:authorize>
                                     <td>
-                                        <a href="<%=toRoot%>viewSubjectsByTeacher/<%=teacher.getId()%>">
+                                        <a href="<%=root%>teacher/<%=teacher.getId()%>/subject-details">
                                             view subjects
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="<%=toRoot%>viewSubjectDetailsByTeacher/<%=teacher.getId()%>">
-                                            view subject-class list
                                         </a>
                                     </td>
                                 </tr>
@@ -114,10 +104,10 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
+                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
                 <button onclick='history.back()'>Back</button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=toRoot%>addTeacher"'>Add</button>
+                    <button onclick='location.href="<%=root%>user"'>Add</button>
                 </sec:authorize>
             </div>
         </div>
@@ -149,15 +139,13 @@
                                 }
                                 var id = obj[i].id;
                                 result += "<td>";
-                                result += "<a href=\"editTeacher/" + id + "\">Edit</a>";
+                                result += "<a href=\"user/" + id + "\">Edit</a>";
                                 result += "</td><td>";
-                                result += "<a href=\"deleteTeacher/" + id + "?page=1\">Delete</a></td>";
+                                result += "<a href=\"teacher/" + id + "delete?page=1\">Delete</a></td>";
                                 result += "</td>";
                             }
                             result += "<td>";
-                            result += "<a href=\"viewSubjectsByTeacher/" + id + "\">view subjects</a>";
-                            result += "</td><td>";
-                            result += "<a href=\"viewSubjectDetailsByTeacher/" + id + "\">view subject-class list</a>";
+                            result += "<a href=\"teacher/" + id + "/subject-details\">view subjects</a>";
                             result += "</td>";
                             result += "</tr>";
                         }

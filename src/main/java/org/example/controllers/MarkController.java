@@ -1,7 +1,7 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.*;
+import org.example.dao.interfaces.*;
 import org.example.entities.*;
 import org.example.services.MarkService;
 import org.springframework.http.HttpStatus;
@@ -44,7 +44,7 @@ public class MarkController {
      * Getting page for mark adding.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/addMark/{id}")
+    @RequestMapping(value = "/lesson/{id}/mark")
     public ModelAndView addMark(@PathVariable int id) throws Exception {
         LOGGER.info("Add new mark for lesson " + id + ".");
         Lesson lesson = lessonDAO.getLesson(id);
@@ -70,7 +70,7 @@ public class MarkController {
         model.put("selectedMark", 0);
         model.put("title", "Add mark");
         model.put("toRoot", "../");
-        model.put("formAction", "../saveAddedMark/");
+        model.put("formAction", "../mark/");
         LOGGER.info("Printing form for input mark's data.");
         return new ModelAndView("markForm", model);
     }
@@ -80,12 +80,12 @@ public class MarkController {
      * @param mark added mark
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveAddedMark", method = RequestMethod.POST)
+    @RequestMapping(value = "/mark", method = RequestMethod.POST)
     public ModelAndView saveAddedMark(@ModelAttribute Mark mark) throws Exception {
         LOGGER.info("Saving added mark.");
         dao.addMark(mark);
         LOGGER.info("Redirect to list of marks for " + mark.getLesson().getId() + " lesson.");
-        return new ModelAndView("redirect:/viewMarksByLesson/" + mark.getLesson().getId());
+        return new ModelAndView("redirect:/lesson/" + mark.getLesson().getId() + "/marks");
     }
 
     /**
@@ -93,7 +93,7 @@ public class MarkController {
      * @param id mark id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/editMark/{id}")
+    @RequestMapping(value = "/mark/{id}")
     public ModelAndView editMark(@PathVariable int id) {
         LOGGER.info("Edit mark " + id + ".");
         Mark mark = dao.getMark(id);
@@ -114,7 +114,7 @@ public class MarkController {
         model.put("list", pupilDAO.getPupilsByPupilClass(mark.getPupil().getPupilClass().getId()));
         model.put("title", "Edit mark");
         model.put("toRoot", "../");
-        model.put("formAction", "../saveEditedMark/");
+        model.put("formAction", "../mark/" + mark.getId());
         LOGGER.info("Printing form for changing mark's data.");
         return new ModelAndView("markForm", model);
     }
@@ -124,7 +124,7 @@ public class MarkController {
      * @param mark edited mark
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveEditedMark", method = RequestMethod.POST)
+    @RequestMapping(value = "/mark/{id}", method = RequestMethod.POST)
     public ModelAndView saveEditedMark(@ModelAttribute Mark mark) throws Exception {
         LOGGER.info("Saving edited mark.");
         dao.updateMark(mark);
@@ -137,7 +137,7 @@ public class MarkController {
      * @param id mark id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deleteMark/{id}")
+    @RequestMapping(value = "/mark/{id}/delete")
     public ModelAndView deleteMark(@PathVariable int id) {
         LOGGER.info("Deleting mark " + id + ".");
         Mark mark = dao.getMark(id);
@@ -153,7 +153,7 @@ public class MarkController {
         int lessonID = mark.getLesson().getId();
         dao.deleteMark(id);
         LOGGER.info("Redirect to list of marks for " + lessonID + " lesson.");
-        return new ModelAndView("redirect:/viewMarksByLesson/" + lessonID);
+        return new ModelAndView("redirect:/lesson/" + lessonID + "/mark");
     }
 
     /**
@@ -161,7 +161,7 @@ public class MarkController {
      * @param id pupil id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewMarksByPupil/{id}")
+    @RequestMapping(value = "/pupil/{id}/marks")
     public ModelAndView viewMarksByPupil(@PathVariable int id) {
         LOGGER.info("Getting list of marks for " + id + " pupil.");
         Pupil pupil = pupilDAO.getPupil(id);
@@ -170,12 +170,12 @@ public class MarkController {
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if ((user.hasRole("PUPIL") && user.getId() == pupil.getId()) || !user.hasRole("PUPIL")) {
+        if (!user.hasRole("PUPIL") || (user.hasRole("PUPIL") && user.getId() == pupil.getId())) {
             LOGGER.info("Form a model.");
             Map<String, Object> model = new HashMap<>();
             model.put("list", dao.getMarksByPupil(id));
             model.put("header", "Marks for " + pupil.getName());
-            model.put("toRoot", "../");
+            model.put("toRoot", "../../");
             model.put("subjectList", subjectDAO.getSubjectsByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
             LOGGER.info("Printing marks.");
             return new ModelAndView("markListForPupil", model);
@@ -189,7 +189,7 @@ public class MarkController {
      * @param id lesson id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewMarksByLesson/{id}")
+    @RequestMapping(value = "/lesson/{id}/marks")
     public ModelAndView viewMarksByLesson(@PathVariable int id) {
         LOGGER.info("Getting list of marks for " + id + " lesson.");
         Lesson lesson = lessonDAO.getLesson(id);
@@ -202,7 +202,7 @@ public class MarkController {
         model.put("list", dao.getMarksByLesson(id));
         model.put("header", "Marks for lesson");
         model.put("lesson", lesson);
-        model.put("toRoot", "../");
+        model.put("toRoot", "../../");
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForLesson", model);
     }
@@ -212,7 +212,7 @@ public class MarkController {
      * @param id subject details id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewMarksBySubjectDetails/{id}")
+    @RequestMapping(value = "/subject-details/{id}/marks")
     public ModelAndView viewMarksBySubjectDetails(@PathVariable int id) {
         LOGGER.info("Getting list of marks for " + id + " subject details.");
         SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
@@ -230,7 +230,7 @@ public class MarkController {
         model.put("lessons", lessons);
         model.put("semesterMarks", semesterMarks);
         model.put("subjectDetails", subjectDetails);
-        model.put("toRoot", "../");
+        model.put("toRoot", "../../");
         LOGGER.info("Printing marks.");
         return new ModelAndView("marks", model);
     }

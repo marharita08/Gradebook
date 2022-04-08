@@ -63,14 +63,14 @@
                                         <td><%=theme.getId()%></td>
                                     </sec:authorize>
                                     <td><%=theme.getName()%></td>
-                                    <td><a href="../viewLessonsByTheme/<%=theme.getId()%>">view lessons</a></td>
+                                    <td><a href="../../theme/<%=theme.getId()%>/lessons">view lessons</a></td>
                                     <sec:authorize access="hasAuthority('TEACHER')">
                                         <%
                                             if(teacher != null && currUser.getId() == teacher.getId()) {
                                         %>
-                                        <td><a href="../addLesson/<%=theme.getId()%>">add lesson</a></td>
-                                        <td><a href="../editTheme/<%=theme.getId()%>">edit theme</a></td>
-                                        <td><a href="../deleteTheme/<%=theme.getId()%>">delete theme</a></td>
+                                        <td><a href="../../theme/<%=theme.getId()%>/lesson">add lesson</a></td>
+                                        <td><a href="../../theme/<%=theme.getId()%>">edit theme</a></td>
+                                        <td><a href="../../theme/<%=theme.getId()%>/delete">delete theme</a></td>
                                         <%
                                             }
                                         %>
@@ -84,12 +84,14 @@
                 <br/>
                 <button onclick='location.href="../index.jsp"'>Menu</button>
                 <button onclick=history.back()>Back</button>
-                <button onclick='location.href="../viewSubjectDetailsByTeacher/<%=teacher.getId()%>"'>To subjects</button>
                 <sec:authorize access="hasAuthority('TEACHER')">
                     <%
                         if(teacher != null && currUser.getId() == teacher.getId()) {
                     %>
-                            <button onclick='location.href="../addTheme/<%=subjectDetails.getId()%>"'>Add</button>
+                            <button onclick='location.href="../../teacher/<%=teacher.getId()%>/subject-details"'>
+                                To subjects
+                            </button>
+                            <button onclick='location.href="../../subject-details/<%=subjectDetails.getId()%>/theme"'>Add</button>
                     <%
                         }
                     %>

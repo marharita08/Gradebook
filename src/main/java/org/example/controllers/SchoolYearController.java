@@ -1,7 +1,7 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.SchoolYearDAO;
+import org.example.dao.interfaces.SchoolYearDAO;
 import org.example.entities.SchoolYear;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -26,7 +26,7 @@ public class SchoolYearController {
      * Getting page to view all school years list.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewAllSchoolYears")
+    @RequestMapping(value = "/years")
     public ModelAndView viewAllSchoolYears(@RequestParam("page") int page) {
         LOGGER.info("Getting list of school years for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -40,7 +40,7 @@ public class SchoolYearController {
             list = dao.getSchoolYearsByPage(page, schoolYearsPerPage);
         }
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("viewAllSchoolYears"));
+        model.put("pagination", paginationController.makePagingLinks("years"));
         model.put("header", "School years list");
         model.put("pageNum", page);
         LOGGER.info("Printing school years list.");
@@ -51,14 +51,14 @@ public class SchoolYearController {
      * Getting page for school year adding.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/addSchoolYear")
+    @RequestMapping(value = "/year")
     public ModelAndView addSchoolYear() {
         LOGGER.info("Add new school year.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", new SchoolYear());
         model.put("title", "Add school year");
-        model.put("formAction", "saveAddedSchoolYear");
+        model.put("formAction", "year");
         LOGGER.info("Printing form for input school year data.");
         return new ModelAndView("schoolYearForm", model);
     }
@@ -68,12 +68,12 @@ public class SchoolYearController {
      * @param schoolYear added school year
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveAddedSchoolYear", method = RequestMethod.POST)
+    @RequestMapping(value = "/year", method = RequestMethod.POST)
     public ModelAndView saveAddedSchoolYear(@ModelAttribute SchoolYear schoolYear) {
         LOGGER.info("Saving added school year.");
         dao.addSchoolYear(schoolYear);
         LOGGER.info("Redirect to school year list.");
-        return new ModelAndView("redirect:/viewAllSchoolYears?page=1");
+        return new ModelAndView("redirect:/years?page=1");
     }
 
     /**
@@ -81,7 +81,7 @@ public class SchoolYearController {
      * @param id school year id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/editSchoolYear/{id}")
+    @RequestMapping(value = "/year/{id}", method = RequestMethod.GET)
     public ModelAndView editSchoolYear(@PathVariable int id) {
         LOGGER.info("Edit school year.");
         SchoolYear schoolYear = dao.getSchoolYear(id);
@@ -104,12 +104,12 @@ public class SchoolYearController {
      * @param schoolYear edited school year
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveEditedSchoolYear", method = RequestMethod.POST)
-    public ModelAndView saveEditedTeacher(@ModelAttribute SchoolYear schoolYear) {
+    @RequestMapping(value = "/year/{id}", method = RequestMethod.POST)
+    public ModelAndView saveEditedSchoolYear(@ModelAttribute SchoolYear schoolYear) {
         LOGGER.info("Saving edited school year.");
         dao.updateSchoolYear(schoolYear);
         LOGGER.info("Redirect to school year list.");
-        return new ModelAndView("redirect:/viewAllSchoolYears?page=1");
+        return new ModelAndView("redirect:/years?page=1");
     }
 
     /**
@@ -117,7 +117,7 @@ public class SchoolYearController {
      * @param id school year id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deleteSchoolYear/{id}")
+    @RequestMapping(value = "/year/{id}/delete")
     public ModelAndView deleteSchoolYear(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting school year " + id + ".");
         SchoolYear schoolYear = dao.getSchoolYear(id);
@@ -127,10 +127,10 @@ public class SchoolYearController {
         }
         dao.deleteSchoolYear(id);
         LOGGER.info("Redirect to school year list on page " + pageNum + ".");
-        return new ModelAndView("redirect:/viewAllSchoolYears?page=" + pageNum);
+        return new ModelAndView("redirect:/years?page=" + pageNum);
     }
 
-    @RequestMapping(value = "/searchSchoolYears")
+    @RequestMapping(value = "/years/search")
     @ResponseBody
     public List<SchoolYear> searchSchoolYears(@RequestParam("val") String val,
                                         @RequestParam("param")String param) throws Exception {

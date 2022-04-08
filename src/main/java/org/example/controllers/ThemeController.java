@@ -1,8 +1,8 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.SubjectDetailsDAO;
-import org.example.dao.ThemeDAO;
+import org.example.dao.interfaces.SubjectDetailsDAO;
+import org.example.dao.interfaces.ThemeDAO;
 import org.example.entities.SubjectDetails;
 import org.example.entities.Theme;
 import org.example.entities.User;
@@ -32,7 +32,7 @@ public class ThemeController {
      * @param id subject details id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewThemesBySubjectDetails/{id}")
+    @RequestMapping(value = "/subject-details/{id}/themes")
     public ModelAndView viewThemesBySubjectDetails(@PathVariable int id) {
         LOGGER.info("Getting list of themes for " + id + " subject details.");
         SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
@@ -59,7 +59,7 @@ public class ThemeController {
      * Getting page for theme adding.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/addTheme/{id}")
+    @RequestMapping(value = "/subject-details/{id}/theme")
     public ModelAndView addTheme(@PathVariable int id) {
         LOGGER.info("Add new theme for subject details " + id + ".");
         SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
@@ -75,8 +75,8 @@ public class ThemeController {
         Map<String, Object> model = new HashMap<>();
         model.put("command", new Theme(subjectDetails));
         model.put("title", "Add theme");
-        model.put("formAction", "saveAddedTheme");
-        model.put("toRoot", "../");
+        model.put("formAction", "theme");
+        model.put("toRoot", "../../");
         LOGGER.info("Printing form for input themes data.");
         return new ModelAndView("themeForm", model);
     }
@@ -86,12 +86,12 @@ public class ThemeController {
      * @param theme added theme
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveAddedTheme", method = RequestMethod.POST)
+    @RequestMapping(value = "/theme", method = RequestMethod.POST)
     public ModelAndView saveAddedTheme(@ModelAttribute Theme theme) {
         LOGGER.info("Saving added theme.");
         dao.addTheme(theme);
         LOGGER.info("Redirect to theme list.");
-        return new ModelAndView("redirect:/viewThemesBySubjectDetails/" + theme.getSubjectDetails().getId());
+        return new ModelAndView("redirect:/subject-details/" + theme.getSubjectDetails().getId() + "theme");
     }
 
     /**
@@ -99,7 +99,7 @@ public class ThemeController {
      * @param id theme id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/editTheme/{id}")
+    @RequestMapping(value = "/theme/{id}")
     public ModelAndView editTheme(@PathVariable int id) {
         LOGGER.info("Edit theme.");
         Theme theme = dao.getTheme(id);
@@ -116,7 +116,7 @@ public class ThemeController {
         Map<String, Object> model = new HashMap<>();
         model.put("command", theme);
         model.put("title", "Edit theme");
-        model.put("formAction", "../saveEditedTheme");
+        model.put("formAction", "../theme/" + theme.getId());
         model.put("toRoot", "../");
         LOGGER.info("Printing form for changing theme data.");
         return new ModelAndView("themeForm", model);
@@ -127,12 +127,12 @@ public class ThemeController {
      * @param theme edited theme
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveEditedTheme", method = RequestMethod.POST)
+    @RequestMapping(value = "/theme/{id}", method = RequestMethod.POST)
     public ModelAndView saveEditedTheme(@ModelAttribute Theme theme) {
         LOGGER.info("Saving edited theme.");
         dao.updateTheme(theme);
         LOGGER.info("Redirect to theme list.");
-        return new ModelAndView("redirect:/viewThemesBySubjectDetails/" + theme.getSubjectDetails().getId());
+        return new ModelAndView("redirect:/subject-details/" + theme.getSubjectDetails().getId() + "/themes");
     }
 
     /**
@@ -140,7 +140,7 @@ public class ThemeController {
      * @param id semester id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deleteTheme/{id}")
+    @RequestMapping(value = "/theme/{id}/delete")
     public ModelAndView deleteTheme(@PathVariable int id) {
         Theme theme = dao.getTheme(id);
         if (theme == null) {
@@ -154,6 +154,6 @@ public class ThemeController {
         LOGGER.info("Deleting theme " + id + ".");
         dao.deleteTheme(id);
         LOGGER.info("Redirect to theme list.");
-        return new ModelAndView("redirect:/viewThemesBySubjectDetails/" + theme.getSubjectDetails().getId());
+        return new ModelAndView("redirect:/subject-details/" + theme.getSubjectDetails().getId() + "/themes");
     }
 }
