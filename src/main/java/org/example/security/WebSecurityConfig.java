@@ -31,9 +31,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf()
                 .disable();
         http.authorizeRequests()
-                .anyRequest().authenticated()
+                .antMatchers("/login*").permitAll()
+                .antMatchers("/*").authenticated()
                 .and()
                 .formLogin()
+                .loginPage("/login.jsp")
+                .loginProcessingUrl("/login")
                 .defaultSuccessUrl("/")
                 .and().logout().logoutUrl("/logout");
     }

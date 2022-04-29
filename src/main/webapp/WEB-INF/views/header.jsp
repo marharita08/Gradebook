@@ -8,7 +8,9 @@
     <%
         User currUser = null;
         try {
-            currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if(!SecurityContextHolder.getContext().getAuthentication().getPrincipal().equals("anonymousUser")) {
+                currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            }
         } catch (Exception e) {
             Logger.getLogger("Header").error(e.getMessage(), e);
         }
@@ -85,6 +87,14 @@
                     <a href="<%=root%>logout">
                         <div class="inline"><i class='material-icons'>logout</i></div>
                         <div class="inline">Logout</div>
+                    </a>
+                </li>
+            </sec:authorize>
+            <sec:authorize access="!isAuthenticated()">
+                <li class="logout">
+                    <a href="<%=root%>login">
+                        <div class="inline"><i class='material-icons'>login</i></div>
+                        <div class="inline">Login</div>
                     </a>
                 </li>
             </sec:authorize>
