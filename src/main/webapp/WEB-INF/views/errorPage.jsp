@@ -10,7 +10,7 @@
     <body>
         <%@include file="header.jsp"%>
         <div align="center">
-            <div align="left" class="box">
+            <div align="center" class="box">
                 <%
                     int status = response.getStatus();
                     if(status == 500) {
@@ -46,8 +46,15 @@
                         <h2>Error: <%=status%></h2>
                 <%
                     }
+                    String msg = (String) request.getAttribute("message");
                 %>
-                <button onclick='history.back()'>Back</button>
+                <p><%=msg != null ? "Message: " + msg : ""%></p>
+                <img alt="user image" src="<%=root%>images/Oopsbutton.jpg" class="user-img">
+                <br/>
+                <button onclick="history.back()" type="button" class="bg-primary">
+                    <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                    <div class="inline">Back</div>
+                </button>
             </div>
         </div>
         <%@include file="footer.jsp"%>

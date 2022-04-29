@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.interfaces.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -57,6 +58,7 @@ public class UserController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/users")
+    @Secured("ADMIN")
     public ModelAndView viewAllUsers(@RequestParam("page") int page) {
         LOGGER.info("Getting list of users for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -81,6 +83,7 @@ public class UserController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/user")
+    @Secured("ADMIN")
     public ModelAndView addUser() {
         LOGGER.info("Add new user.");
         LOGGER.info("Form a model.");
@@ -104,6 +107,7 @@ public class UserController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/user", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveAddedUser(@ModelAttribute User user,
                                        @ModelAttribute Pupil pupil,
                                        @ModelAttribute Teacher teacher,
@@ -137,6 +141,7 @@ public class UserController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/user/{id}", method = RequestMethod.POST)
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView saveEditedUser(@ModelAttribute User user,
                                        @ModelAttribute Pupil pupil,
                                        @ModelAttribute Teacher teacher,
@@ -144,9 +149,17 @@ public class UserController {
                                        @RequestParam(value = "PUPIL", required = false) String pupilRole,
                                        @RequestParam(value = "TEACHER", required = false) String teacherRole) throws Exception {
         LOGGER.info("Saving edited user.");
-        User oldUser = dao.getUserByID(user.getId());
-        dao.updateUser(user);
         User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!currUser.hasRole("ADMIN") && user.getId() != currUser.getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
+        User oldUser = dao.getUserByID(user.getId());
+        if (user.getPassword().equals("")) {
+            user.setPassword(oldUser.getPassword());
+        } else {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        dao.updateUser(user);
         if (currUser.hasRole("ADMIN")) {
             int id = user.getId();
             if (adminRole != null && !oldUser.hasRole("ADMIN")) {
@@ -169,11 +182,11 @@ public class UserController {
             } else if (teacherRole == null && oldUser.hasRole("TEACHER")) {
                 dao.deleteUserRole(id, 2);
                 teacherDAO.deleteTeacher(id);
-            } else if (pupilRole != null && oldUser.hasRole("TEACHER")) {
+            } else if (teacherRole != null && oldUser.hasRole("TEACHER")) {
                 teacherDAO.updateTeacher(teacher);
             }
             LOGGER.info("Redirect to user list.");
-            return new ModelAndView("redirect:../viewAllUsers?page=1");
+            return new ModelAndView("redirect:../users?page=1");
         } else {
             LOGGER.info("Redirect to user page.");
             return new ModelAndView("redirect:/user/" + user.getId());
@@ -186,6 +199,7 @@ public class UserController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/user/{id}/delete", method = RequestMethod.GET)
+    @Secured("ADMIN")
     public ModelAndView deleteUser(@PathVariable int id, @RequestParam("page") int pageNum) {
         if (id == 0) {
             return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
@@ -202,6 +216,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "/checkUsername", method = RequestMethod.GET)
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
     public String checkUsername(@RequestParam("val") String name, @RequestParam("id") int id){
         User user = dao.getUserByUsername(name);
@@ -215,6 +230,7 @@ public class UserController {
     }
 
     @RequestMapping(value = "user/search")
+    @Secured("ADMIN")
     @ResponseBody
     public List<User> searchUsers(@RequestParam("val") String val,
                               @RequestParam("param")String param) throws Exception {
@@ -229,9 +245,14 @@ public class UserController {
     }
 
     @RequestMapping(value = "/user/{id}")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView getUserPage(@PathVariable int id) {
         User user = dao.getUserByID(id);
         Map<String, Object> model = new HashMap<>();
+        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!currUser.hasRole("ADMIN") && user.getId() != currUser.getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         Teacher teacher = teacherDAO.getTeacher(id);
         if (teacher == null) {
             teacher = new Teacher();
@@ -244,9 +265,7 @@ public class UserController {
         model.put("pupil", pupil);
         model.put("user", user);
         model.put("roles", roleDAO.getAllRoles());
-        model.put("toRoot", "../");
         model.put("action", "../user/" + id);
-        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (currUser.hasRole("ADMIN")) {
             model.put("list", pupilClassDAO.getAllPupilClasses());
         }

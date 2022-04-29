@@ -1,5 +1,6 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.*" %>
+<%@ page import="com.google.gson.Gson" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
@@ -18,14 +19,18 @@
                 <%
                     int pageNum = (int)request.getAttribute("pageNum");
                     String pagination = (String) request.getAttribute("pagination");
-                    boolean isAdmin = false;
-                    boolean isTeacher = false;
-                    if (currUser.hasRole("ADMIN")) {
-                        isAdmin = true;
+                    boolean isAdmin = currUser.hasRole("ADMIN");
+                    boolean isTeacher = currUser.hasRole("TEACHER");
+                    List<SubjectDetails> list = (List<SubjectDetails>)request.getAttribute("list");
+                    PupilClass pupilClass = (PupilClass) request.getAttribute("pupilClass");
+                    int colspan = 4;
+                    if (isTeacher) {
+                        colspan ++;
                     }
-                    if (currUser.hasRole("TEACHER")) {
-                        isTeacher = true;
+                    if (isAdmin) {
+                        colspan += 4;
                     }
+                    String entity = "'subject-details'";
                 %>
                 <ul class="pagination"><%=pagination%></ul>
                 <table id="myTable">
@@ -38,8 +43,8 @@
                         <th>Teacher</th>
                         <th>Subject</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
-                            <th>EDIT</th>
-                            <th>DELETE</th>
+                            <th></th>
+                            <th></th>
                         </sec:authorize>
                         <th></th>
                         <sec:authorize access="hasAuthority('TEACHER')">
@@ -49,49 +54,56 @@
                     </tr>
                     <%
                         if (pageNum == 1) {
+                            int i = 0;
                     %>
                             <tr>
-                                <%
-                                    String searchFunc;
-                                    int i = 0;
-                                    if(pagination.equals("")) {
-                                        searchFunc = "filter(id," + i++ + ")";
-                                    } else {
-                                        searchFunc = "search(id, " + isAdmin + ", " + isTeacher + ")";
-                                    }
-                                %>
                                 <sec:authorize access="hasAuthority('ADMIN')">
-                                    <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="search-slim"></th>
-                                    <%
-                                        if(pagination.equals("")) {
-                                            searchFunc = "filter(id," + i++ + ")";
-                                        }
-                                    %>
-                                    <th><input type="text" id="semester" onkeyup="<%=searchFunc%>" class="search"></th>
-                                    <%
-                                        if(pagination.equals("")) {
-                                            searchFunc = "filter(id," + i++ + ")";
-                                        }
-                                    %>
+                                    <th>
+                                        <input
+                                                type="text"
+                                                id="id"
+                                                onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                                class="search-slim"
+                                                placeholder="Search..."
+                                        >
+                                    </th>
+                                    <th>
+                                        <input
+                                                type="text"
+                                                id="semester"
+                                                onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                                class="search"
+                                                placeholder="Search..."
+                                        >
+                                    </th>
                                 </sec:authorize>
                                 <th>
-                                    <input type="text" id="class" onkeyup="<%=searchFunc%>" class="search-slim">
+                                    <input
+                                            type="text"
+                                            id="class"
+                                            onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                            class="search-slim"
+                                            placeholder="Search..."
+                                    >
                                 </th>
-                                <%
-                                    if(pagination.equals("")) {
-                                        searchFunc = "filter(id," + i++ + ")";
-                                    }
-
-                                %>
                                 <th>
-                                    <input type="text" id="teacher" onkeyup="<%=searchFunc%>" class="search">
+                                    <input
+                                            type="text"
+                                            id="teacher"
+                                            onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                            class="search"
+                                            placeholder="Search..."
+                                    >
                                 </th>
-                                <%
-                                    if(pagination.equals("")) {
-                                        searchFunc = "filter(id," + i + ")";
-                                    }
-                                %>
-                                <th><input type="text" id="subject" onkeyup="<%=searchFunc%>" class="search"></th>
+                                <th>
+                                    <input
+                                            type="text"
+                                            id="subject"
+                                            onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
+                                            class="search"
+                                            placeholder="Search..."
+                                    >
+                                </th>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th></th>
                                     <th></th>
@@ -106,145 +118,122 @@
                         }
                     %>
                     <tbody id="placeToShow">
-                        <%
-                            for (SubjectDetails subjectDetails:(List<SubjectDetails>)request.getAttribute("list")) {
-                        %>
-                                <tr>
-                                    <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td><%=subjectDetails.getId()%></td>
-                                        <td>
-                                            <%=subjectDetails.getSemester().getSchoolYear().getName() + " "
-                                                + subjectDetails.getSemester().getName()%>
-                                        </td>
-                                    </sec:authorize>
-
-                                    <td><%=subjectDetails.getPupilClass().getName()%></td>
-                                    <%
-                                        if(subjectDetails.getTeacher() != null) {
-                                    %>
-                                        <td><%=subjectDetails.getTeacher().getName()%></td>
-                                    <%
-                                        } else {
-                                    %>
-                                        <td>-</td>
-                                    <%
-                                            }
-
-                                    %>
-                                    <td><%=subjectDetails.getSubject().getName()%></td>
-                                    <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td>
-                                            <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>">
-                                                Edit
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>/delete?page=<%=pageNum%>">
-                                                Delete
-                                            </a>
-                                        </td>
-                                    </sec:authorize>
-                                    <td>
-                                        <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>/themes">
-                                            view themes
-                                        </a>
-                                    </td>
-                                    <sec:authorize access="hasAuthority('TEACHER')">
-                                        <td>
-                                            <%
-                                                Teacher teacher = subjectDetails.getTeacher();
-                                                if(teacher != null && currUser.getId() == teacher.getId()) {
-                                            %>
-                                                    <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>/theme">
-                                                        add theme
-                                                    </a>
-                                            <%
-                                                }
-                                            %>
-                                        </td>
-                                    </sec:authorize>
-                                    <td>
-                                        <%
-                                            PupilClass pupilClass = (PupilClass) request.getAttribute("pupilClass");
-                                            if (pupilClass == null || pupilClass.equals(subjectDetails.getPupilClass())) {
-                                        %>
-                                                <a href="<%=root%>subject-details/<%=subjectDetails.getId()%>/marks">
-                                                    view marks
-                                                </a>
-                                        <%
-                                            }
-                                        %>
-                                    </td>
-                                </tr>
-                        <%
-                            }
-                        %>
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
-                <button onclick=history.back()>Back</button>
+                <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
+                    <div class="inline"><i class='material-icons'>list</i></div>
+                    <div class="inline">Menu</div>
+                </button>
+                <button onclick=history.back() class="bg-primary">
+                    <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                    <div class="inline">Back</div>
+                </button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=root%>subject-detail"'>Add</button>
+                    <button onclick='location.href="<%=root%>subject-detail"' class="bg-primary">
+                        <div class="inline"><i class='material-icons'>post_add</i></div>
+                        <div class="inline">Add</div>
+                    </button>
                 </sec:authorize>
             </div>
         </div>
         <%@include file="footer.jsp"%>
     </body>
     <script>
-        var request = new XMLHttpRequest();
-        function search(param, isAdmin, isTeacher) {
-            var val = document.getElementById(param).value;
-            var url = "subject-details/search?val=" + val + "&param=" + param;
-            try {
-                request.onreadystatechange = function () {
-                    if (request.readyState === 4) {
-                        var obj = JSON.parse(request.responseText);
-                        var result = "";
-                        for (let i in obj) {
-                            var id = obj[i].id;
-                            result += "<tr>";
-                            if (isAdmin === true) {
-                                result += "<td>" + id + "</td>";
-                                result += "<td>" + obj[i].semester.name + "</td>";
-                            }
-                            result += "<td>" + obj[i].pupilClass.name + "</td>";
-                            result += "<td>";
-                            if (obj[i].teacher != null) {
-                                result += obj[i].teacher.name;
-                            } else {
-                                result += "-";
-                            }
-                            result += "</td>";
-                            result += "<td>" + obj[i].subject.name + "</td>";
-                            if (isAdmin === true) {
-                                result += "<td>";
-                                result += "<a href=\"subject-details/" + id + "\">Edit</a>";
-                                result += "</td><td>";
-                                result += "<a href=\"subject-details/" + id + "delete?page=1\">Delete</a></td>";
-                                result += "</td>";
-                            }
-                            result += "<td>";
-                            result += "<a href=\"subject-details/" + id + "/themes\">view themes</a>";
-                            result += "</td>";
-                            if (isTeacher === true) {
-                                result += "<td>";
-                                result += "<a href=\"subject-details/" + id + "theme\">add theme</a>";
-                                result += "</td>";
-                            }
-                            result += "<td>";
-                            result += "<a href=\"subject-details/" + id + "marks\">view marks</a>";
-                            result += "</td>";
-                            result += "</tr>";
-                        }
-                        document.getElementById("placeToShow").innerHTML = result;
+        function showTable(obj) {
+            var html = [];
+            if (!obj.length) {
+                html.push(
+                    "<tr class='card'>",
+                    "<td colspan='<%=colspan%>'>List of subject details is empty</td>",
+                    "</tr>"
+                );
+            } else {
+                for (let i in obj) {
+                    var id = obj[i].id;
+                    html.push("<tr class='card'>");
+                    if (<%=isAdmin%>) {
+                        html.push(
+                            "<td>", id, "</td>",
+                            "<td>",
+                            "<div class='inline'>", "<i class='material-icons'>calendar_month</i>", "</div>",
+                            "<div class='inline'>", obj[i].semester.schoolYear.name, obj[i].semester.name, "</div>",
+                            "</td>"
+                        );
                     }
+                    html.push(
+                        "<td>",
+                        "<div class='inline'>", "<i class='material-icons'>group</i>", "</div>",
+                        "<div class='inline'>", obj[i].pupilClass.name, "</div>",
+                        "</td>",
+                        "<td>",
+                        "<div class='inline'>", "<i class='material-icons'>person</i>", "</div>",
+                        "<div class='inline'>"
+                    );
+                    if (obj[i].teacher != null) {
+                        html.push(obj[i].teacher.name);
+                    } else {
+                        html.push("-");
+                    }
+                    html.push(
+                        "</div>",
+                        "</td>",
+                        "<td>",
+                        "<div class='inline'>", "<i class='material-icons'>import_contacts</i>", "</div>",
+                        "<div class='inline'>", obj[i].subject.name, "</div>",
+                        "</td>"
+                    );
+                    if (<%=isAdmin%>) {
+                        html.push(
+                            "<td>",
+                            "<a href='<%=root%>subject-detail/", id, "'><i class='material-icons'>edit</i></a>",
+                            "</td><td>",
+                            "<a href='<%=root%>subject-detail/", id, "delete?page=1'><i class='material-icons'>delete</i></a>",
+                            "</td>"
+                        );
+                    }
+                    html.push(
+                        "<td>",
+                        "<a href='<%=root%>subject-details/", id, "/themes'>view themes</a>",
+                        "</td>"
+                    );
+                    if (<%=isTeacher%>) {
+                        html.push(
+                            "<td>"
+                        );
+                        if (obj[i].teacher != null && obj[i].teacher.id === <%=currUser.getId()%>) {
+                            html.push(
+                                "<td>",
+                                "<a href='<%=root%>subject-details/", id, "/theme'>add theme</a>",
+                                "</td>"
+                            );
+                        }
+                        html.push(
+                            "</td>"
+                        );
+                    }
+                    html.push(
+                        "<td>"
+                    );
+                    if (obj[i].pupilClass.id === <%=pupilClass == null ? 0 : pupilClass.getId()%>
+                        || <%=isAdmin%> || <%=isTeacher%>) {
+                        html.push(
+                            "<td>",
+                            "<a href='<%=root%>subject-details/", id, "/marks?page=1'>view marks</a>",
+                            "</td>",
+                        );
+                    }
+                    html.push(
+                        "</td>",
+                        "</tr>"
+                    );
                 }
-                request.open("GET", url, true);
-                request.send();
-            } catch (e) {
-                alert("Unable to connect to server");
             }
+            document.getElementById("placeToShow").innerHTML = html.join("");
+        }
+        <%@include file="../js/search.js"%>
+        window.onload = function load() {
+            showTable(<%=new Gson().toJson(list)%>);
         }
         <%@include file="../js/filter.js"%>
     </script>

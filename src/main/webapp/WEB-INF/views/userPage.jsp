@@ -34,83 +34,148 @@
                     <div class="user-div">
                         <img alt="user image" src="<%=root%>images/user.png" class="user-img">
                     </div>
-                    <div class="user-data">
+                    <div class="user-data card" style="width: 60%" align="center">
                         <form action="<%=action%>" method="post">
                             <br/>
                             <% if(action.contains(String.valueOf(id))) { %>
-                                <label>ID:</label>
-                                <input value="<%=user.getId()%>" name="user.id" readonly="readonly"/>
+                                <div class="row">
+                                    <div class="col-25">
+                                        <label>ID</label>
+                                    </div>
+                                    <div class="col-75">
+                                        <input value="<%=user.getId()%>" name="user.id" readonly="readonly" type="text"/>
+                                    </div>
+                                </div>
                             <%}%>
                             <p id="placeToShow" class="warning"></p>
-                            <label>Username:</label>
-                            <input required onkeyup="<%=func%>" name="username" value="<%=user.getUsername()==null?"":user.getUsername()%>"/>
-                            <br/>
-                            <label>Password:</label>
-                            <input required type="password" name="password"/>
-                            <label>Roles:</label>
-                            <%
-                                StringBuilder userRoles = new StringBuilder();
-                                for (Role role: user.getRoles()) {
-                                    userRoles.append(role.getName());
-                                }
-                            %>
-                            <sec:authorize access="hasAnyAuthority('PUPIL', 'TEACHER')">
-                            <input readonly value="<%=userRoles.toString()%>"/>
-                            </sec:authorize>
-                            <sec:authorize access="hasAuthority('ADMIN')">
-                                <%for (Role role:roles) {
-                                    String roleName = role.getName();
-                                %>
-                                    <input type="checkbox" id="<%="ch" + roleName%>" onclick="roleDiv('<%=roleName%>')"
-                                           value="<%=role.getId()%>" name="<%=roleName%>" <%=user.hasRole(roleName)?"checked":""%>/>
-                                    <label for="<%=roleName%>"><%=roleName%></label>
-                                <%}%>
-                            </sec:authorize>
+                            <div class="row">
+                                <div class="col-25">
+                                    <label>Username</label>
+                                </div>
+                                <div class="col-75">
+                                    <input required onkeyup="<%=func%>" name="username" id="username"
+                                           value="<%=user.getUsername()==null?"":user.getUsername()%>" type="text"/>
+                                    <br/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-25">
+                                    <label>Password</label>
+                                </div>
+                                <div class="col-75">
+                                    <input type="password" name="password" <%=user.getUsername() == null ? "required" : ""%>/>
+                                    <br/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-25">
+                                    <label>Roles</label>
+                                </div>
+                                <div class="col-75">
+                                    <sec:authorize access="hasAnyAuthority('PUPIL', 'TEACHER')">
+                                        <%
+                                            StringBuilder userRoles = new StringBuilder();
+                                            for (Role role: user.getRoles()) {
+                                                userRoles.append(role.getName());
+                                            }
+                                        %>
+                                        <input readonly value="<%=userRoles.toString()%>" type="text"/>
+                                    </sec:authorize>
+                                    <sec:authorize access="hasAuthority('ADMIN')">
+                                        <%for (Role role:roles) {
+                                            String roleName = role.getName();
+                                        %>
+                                        <input type="checkbox" id="<%="ch" + roleName%>" onclick="roleDiv('<%=roleName%>')"
+                                               value="<%=role.getId()%>" name="<%=roleName%>" <%=user.hasRole(roleName)?"checked":""%>/>
+                                        <label for="<%=roleName%>"><%=roleName%></label>
+                                        <%}%>
+                                        <br/>
+                                    </sec:authorize>
+                                </div>
+                            </div>
                             <div id="divTEACHER" <%=!user.hasRole("TEACHER")?"style=\"display:none\"":""%>>
                                 <input type="hidden" value="<%=user.getId()%>" name="teacher.id"/>
-                                <label>Name:</label>
-                                <input id="teacher.name" name="teacher.name" value="<%=teacher.getName()==null?"":teacher.getName()%>"
-                                        <%=!currUser.hasRole("ADMIN")?"readonly":""%> <%=user.hasRole("TEACHER")?"required":""%>/>
-                                <br/>
-                                <label>Position:</label>
-                                <input name="position" value="<%=teacher.getPosition()==null?"":teacher.getPosition()%>"
-                                        <%=!currUser.hasRole("ADMIN")?"readonly":""%>/>
+                                <div class="row">
+                                    <div class="col-25">
+                                        <label>Full name</label>
+                                    </div>
+                                    <div class="col-75">
+                                        <input id="teacher.name" name="teacher.name" value="<%=teacher.getName()==null?"":teacher.getName()%>"
+                                                <%=!currUser.hasRole("ADMIN")?"readonly":""%> <%=user.hasRole("TEACHER")?"required":""%> type="text"/>
+                                        <br/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-25">
+                                        <label>Position</label>
+                                    </div>
+                                    <div class="col-75">
+                                        <input name="position" value="<%=teacher.getPosition()==null?"":teacher.getPosition()%>"
+                                                <%=!currUser.hasRole("ADMIN")?"readonly":""%> type="text"/>
+                                    </div>
+                                </div>
                             </div>
                             <div id="divPUPIL" <%=!user.hasRole("PUPIL")?"style=\"display:none\"":""%>>
                                 <input type="hidden" value="<%=user.getId()%>" name="pupil.id"/>
-                                <label>Name:</label>
-                                <input id="pupil.name" value="<%=pupil.getName()==null?"":pupil.getName()%>" name="pupil.name"
-                                        <%=!currUser.hasRole("ADMIN")?"readonly":""%>  <%=user.hasRole("TEACHER")?"required":""%>/>
-                                <br/>
+                                <div class="row">
+                                    <div class="col-25">
+                                        <label>Full name</label>
+                                    </div>
+                                    <div class="col-75">
+                                        <input id="pupil.name" value="<%=pupil.getName()==null?"":pupil.getName()%>" name="pupil.name"
+                                                <%=!currUser.hasRole("ADMIN")?"readonly":""%>  <%=user.hasRole("PUPIL")?"required":""%> type="text"/>
+                                        <br/>
+                                    </div>
+                                </div>
                                 <% if(pupil.getPupilClass() != null) {%>
-                                    <label>Class:</label>
                                     <sec:authorize access="hasAnyAuthority('PUPIL', 'TEACHER')">
-                                    <input value="<%=pupil.getPupilClass().getName()%> readonly"/>
+                                        <div class="row">
+                                            <div class="col-25">
+                                                <label>Class</label>
+                                            </div>
+                                            <div class="col-75">
+                                                <input value="<%=pupil.getPupilClass().getName()%>" readonly type="text"/>
+                                            </div>
+                                        </div>
                                     </sec:authorize>
                                 <%}%>
                                 <sec:authorize access="hasAuthority('ADMIN')">
-                                    <label>Class:</label>
-                                    <select name="pupil.pupilClass.id">
-                                        <option value="0">-</option>
-                                        <%
-                                            for (PupilClass pupilClass:(List<PupilClass>)request.getAttribute("list")) {
-                                                String selected = "";
-                                                if(pupil.getPupilClass() != null) {
-                                                    if(pupil.getPupilClass().getId() == pupilClass.getId()) {
-                                                        selected = "selected='selected'";
+                                    <div class="row">
+                                        <div class="col-25">
+                                            <label>Class</label>
+                                        </div>
+                                        <div class="col-75">
+                                            <select name="pupil.pupilClass.id">
+                                                <option value="0">-</option>
+                                                <%
+                                                    for (PupilClass pupilClass:(List<PupilClass>)request.getAttribute("list")) {
+                                                        String selected = "";
+                                                        if(pupil.getPupilClass() != null) {
+                                                            if(pupil.getPupilClass().getId() == pupilClass.getId()) {
+                                                                selected = "selected='selected'";
+                                                            }
+                                                        }
+                                                %>
+                                                <option value="<%=pupilClass.getId()%>" <%=selected%>>
+                                                    <%=pupilClass.getName()%>
+                                                </option>
+                                                <%
                                                     }
-                                                }
-                                        %>
-                                        <option value="<%=pupilClass.getId()%>" <%=selected%>>
-                                            <%=pupilClass.getName()%>
-                                        </option>
-                                        <%
-                                            }
-                                        %>
-                                    </select>
+                                                %>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </sec:authorize>
                             </div>
-                            <button type="submit">Save</button><br/><br/>
+                            <button onclick="history.back()" type="button" class="bg-primary">
+                                <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                                <div class="inline">Back</div>
+                            </button>
+                            <button type="submit" class="bg-primary">
+                                <div class="inline"><i class='material-icons'>save</i></div>
+                                <div class="inline">Save</div>
+                            </button>
+                            <br/><br/>
                         </form>
                     </div>
                 </div>

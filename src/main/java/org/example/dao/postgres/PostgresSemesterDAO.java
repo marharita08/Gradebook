@@ -21,12 +21,12 @@ public class PostgresSemesterDAO implements SemesterDAO {
     private static final String DELETE_SEMESTER = "Delete from SEMESTER where SEMESTER_id = ?";
     private static final String GET_COUNT_OF_SEMESTERS = "select count(SEMESTER_ID) as AMOUNT from SEMESTER ";
     private static final String GET_SEMESTERS_BY_PAGE = "SELECT * FROM SEMESTER ORDER BY SEMESTER_ID limit ? offset ?";
-    private static final String SEARCH_SEMESTERS_BY_ID = " SELECT * FROM SEMESTER where SEMESTER_id like ? order by SEMESTER_id";
+    private static final String SEARCH_SEMESTERS_BY_ID = " SELECT * FROM SEMESTER where to_char(SEMESTER_id, '9999') like ? order by SEMESTER_id";
     private static final String SEARCH_SEMESTERS_BY_SCHOOL_YEAR = " SELECT * FROM SEMESTER " +
             " join SCHOOL_YEAR using(school_year_id) where upper(school_year.name) like ? order by SEMESTER_id";
     private static final String SEARCH_SEMESTERS_BY_NAME = " SELECT * FROM SEMESTER where upper(name) like ? order by SEMESTER_id";
-    private static final String SEARCH_SEMESTERS_BY_START_DATE = "SELECT * FROM SEMESTER where START_DATE like ? order by START_DATE";
-    private static final String SEARCH_SEMESTERS_BY_END_DATE = "SELECT * FROM SEMESTER where END_DATE like ? order by END_DATE";
+    private static final String SEARCH_SEMESTERS_BY_START_DATE = "SELECT * FROM SEMESTER where to_char(START_DATE, 'dd.mm.yyyy') like ? order by START_DATE";
+    private static final String SEARCH_SEMESTERS_BY_END_DATE = "SELECT * FROM SEMESTER where to_char(END_DATE, 'dd.mm.yyyy') like ? order by END_DATE";
     private final ConnectionPool connectionPool;
     private final SchoolYearDAO schoolYearDAO;
     private static final Logger LOGGER = Logger.getLogger(PostgresSchoolYearDAO.class.getName());
@@ -188,8 +188,8 @@ public class PostgresSemesterDAO implements SemesterDAO {
         LOGGER.info("Reading semesters for " + page + " page.");
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SEMESTERS_BY_PAGE)) {
-            preparedStatement.setInt(1, (page - 1)*range + 1);
-            preparedStatement.setInt(2, page*range);
+            preparedStatement.setInt(1, range);
+            preparedStatement.setInt(2, (page - 1) * range);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
                     list.add(parseSemester(resultSet));

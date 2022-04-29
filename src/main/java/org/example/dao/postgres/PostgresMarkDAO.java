@@ -14,33 +14,45 @@ import java.util.List;
 
 public class PostgresMarkDAO implements MarkDAO {
     private static final String GET_MARK = "SELECT * FROM MARK where MARK_ID = ?";
-    private static final String INSERT_MARK = "Insert into MARK (lesson_id, pupil_id, mark) values (?, ?, ?)";
-    private static final String UPDATE_MARK = "UPDATE MARK set PUPIL_ID = ?, LESSON_ID = ?, MARK = ? where MARK_ID = ?";
-    private static final String DELETE_MARK = "Delete from MARK where MARK_ID = ?";
+    private static final String UPSERT_MARK = "Insert into MARK (lesson_id, pupil_id, mark) values (?, ?, ?) " +
+            "ON CONFLICT ON CONSTRAINT MARK_UNIQUE " +
+            "DO UPDATE SET mark = ? ";
+
+    private static final String INSERT_ABSENT = "Insert into ABSENT (lesson_id, pupil_id) values (?, ?) " +
+            "ON CONFLICT DO NOTHING";
+    private static final String UPDATE_MARK = "UPDATE MARK set MARK = ? where PUPIL_ID = ? and LESSON_ID = ?";
+    private static final String DELETE_MARK = "Delete from MARK where PUPIL_ID = ? and LESSON_ID = ?";
+    private static final String DELETE_ABSENT = "Delete from ABSENT where PUPIL_ID = ? and LESSON_ID = ?";
     private static final String GET_MARKS_BY_PUPIL = "SELECT MARK.* FROM MARK " +
             "join LESSON L on MARK.LESSON_ID = L.LESSON_ID " +
             "join THEME T on T.THEME_ID = L.THEME_ID " +
             "join SUBJECT_DETAILS SD on T.SUBJECT_DETAILS_ID = SD.SUBJECT_DETAILS_ID " +
-            "join SEMESTER S on SD.SEMESTER_ID = S.SEMESTER_ID and SYSDATE between START_DATE and END_DATE " +
+            "join SEMESTER S on SD.SEMESTER_ID = S.SEMESTER_ID and CURRENT_DATE between START_DATE and END_DATE " +
             " where PUPIL_ID = ?";
-    private static final String GET_MARKS_BY_LESSON = "select p.PUPIL_ID, MARK_ID, M.LESSON_ID, MARK from PUPIL p " +
+    private static final String GET_MARKS_BY_LESSON = "select p.PUPIL_ID, COALESCE(MARK_ID, ABSENT_ID) as MARK_ID, M.LESSON_ID, " +
+            "CASE WHEN absent_id is not null THEN 'a' ELSE to_char(mark, '99') END as mark " +
+            "from PUPIL p " +
             "join CLASS c on p.CLASS_ID = c.CLASS_ID " +
             "join SUBJECT_DETAILS SD on c.CLASS_ID = SD.CLASS_ID " +
             "join THEME t on SD.SUBJECT_DETAILS_ID = t.SUBJECT_DETAILS_ID " +
             "join LESSON l on t.THEME_ID = l.THEME_ID and LESSON_ID = ? " +
             "left join MARK M on p.PUPIL_ID = M.PUPIL_ID and l.LESSON_ID = M.LESSON_ID " +
-            "order by p.NAME";
+            "left join absent A on p.PUPIL_ID = A.PUPIL_ID and l.LESSON_ID = A.LESSON_ID " +
+            "order by regexp_replace(p.NAME, '^.* ', '')";
     private static final String GET_MARKS_BY_THEME_AND_PUPIL = "with tab as ( " +
-            "select p.*, MARK_ID, M.LESSON_ID, MARK, LESSON_DATE from PUPIL p " +
+            "select p.*, MARK_ID, L.LESSON_ID, MARK, LESSON_DATE from PUPIL p " +
             "join CLASS c on p.CLASS_ID = c.CLASS_ID " +
             "join SUBJECT_DETAILS SD on c.CLASS_ID = SD.CLASS_ID " +
             "join THEME t on SD.SUBJECT_DETAILS_ID = t.SUBJECT_DETAILS_ID and THEME_ID = ? " +
             "join LESSON L on t.THEME_ID = L.THEME_ID " +
             "left join MARK M on p.PUPIL_ID = M.PUPIL_ID  and M.LESSON_ID = L.LESSON_ID " +
             "where p.PUPIL_ID = ?) " +
-            "select PUPIL_ID, CLASS_ID, NAME, LESSON_DATE, MARK_ID, LESSON_ID, MARK from tab " +
+            "select tab.PUPIL_ID, tab.CLASS_ID, tab.NAME, tab.LESSON_DATE, COALESCE(MARK_ID, ABSENT_ID) as MARK_ID, tab.LESSON_ID, " +
+            "CASE WHEN absent_id is not null THEN 'a' ELSE to_char(mark, '99') END as mark " +
+            "from tab " +
+            "left join ABSENT a on a.lesson_id=tab.lesson_id and a.pupil_id=tab.pupil_id " +
             "union " +
-            "select PUPIL_ID, CLASS_ID, NAME, null, null, null , round(avg(MARK)) from tab " +
+            "select PUPIL_ID, CLASS_ID, NAME, null, null, null , to_char(round(avg(MARK)), '99') from tab " +
             "group by PUPIL_ID, CLASS_ID, NAME " +
             "order by LESSON_DATE ";
     private static final String GET_SEMESTER_MARKS = "with tab as (" +
@@ -53,7 +65,7 @@ public class PostgresMarkDAO implements MarkDAO {
             "group by p.PUPIL_ID, p.NAME, t.THEME_ID, t.NAME) " +
             "select PUPIL_ID, pupil_NAME, round(avg(Thematic)) mark, null mark_id, null lesson_id from tab " +
             "group by PUPIL_ID, pupil_NAME " +
-            "order by pupil_name";
+            "order by regexp_replace(pupil_name, '^.* ', '')";
     private final LessonDAO lessonDAO;
     private final PupilDAO pupilDAO;
     private final ConnectionPool connectionPool;
@@ -73,7 +85,10 @@ public class PostgresMarkDAO implements MarkDAO {
             int id = resultSet.getInt("mark_ID");
             int lessonID = resultSet.getInt("lesson_id");
             int pupilID = resultSet.getInt("pupil_id");
-            int markInt = resultSet.getInt("mark");
+            String markInt = resultSet.getString("mark");
+            if (markInt != null) {
+                markInt = markInt.replaceAll("\\s+", " ").trim();
+            }
             if (lessonID == 0) {
                 mark = new Mark(id, pupilDAO.getPupil(pupilID), null, markInt);
             } else {
@@ -115,12 +130,33 @@ public class PostgresMarkDAO implements MarkDAO {
      */
     @Override
     public void addMark(Mark mark) throws Exception {
-        LOGGER.info("Inserting mark " + mark.getId() + " into database.");
+        LOGGER.info("Inserting mark into database.");
         try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_MARK)) {
-            preparedStatement.setInt(1, mark.getPupil().getId());
-            preparedStatement.setInt(2, mark.getLesson().getId());
-            preparedStatement.setInt(3, mark.getMark());
+             PreparedStatement preparedStatement = connection.prepareStatement(UPSERT_MARK)) {
+            preparedStatement.setInt(1, mark.getLesson().getId());
+            preparedStatement.setInt(2, mark.getPupil().getId());
+            preparedStatement.setInt(3, Integer.parseInt(mark.getMark()));
+            preparedStatement.setInt(4, Integer.parseInt(mark.getMark()));
+            preparedStatement.executeUpdate();
+            LOGGER.info("Inserting complete.");
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throwException(mark);
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+    }
+
+    /**
+     * Insert absent into database.
+     * @param mark adding absent
+     */
+    @Override
+    public void addAbsent(Mark mark) throws Exception {
+        LOGGER.info("Inserting mark into database.");
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_ABSENT)) {
+            preparedStatement.setInt(1, mark.getLesson().getId());
+            preparedStatement.setInt(2, mark.getPupil().getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Inserting complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
@@ -139,10 +175,9 @@ public class PostgresMarkDAO implements MarkDAO {
         LOGGER.info("Updating mark " + mark.getId() + ".");
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_MARK)) {
-            preparedStatement.setInt(1, mark.getPupil().getId());
-            preparedStatement.setInt(2, mark.getLesson().getId());
-            preparedStatement.setInt(3, mark.getMark());
-            preparedStatement.setInt(4, mark.getId());
+            preparedStatement.setString(1, mark.getMark());
+            preparedStatement.setInt(2, mark.getPupil().getId());
+            preparedStatement.setInt(3, mark.getLesson().getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Updating complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
@@ -165,14 +200,33 @@ public class PostgresMarkDAO implements MarkDAO {
 
     /**
      * Delete mark from database.
-     * @param id mark id
+     * @param mark deleted mark
      */
     @Override
-    public void deleteMark(int id) {
-        LOGGER.info("Deleting " + id + " mark.");
+    public void deleteMark(Mark mark) {
+        LOGGER.info("Deleting " + mark.getId() + " mark.");
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_MARK)) {
-            preparedStatement.setInt(1, id);
+            preparedStatement.setInt(1, mark.getPupil().getId());
+            preparedStatement.setInt(2, mark.getLesson().getId());
+            preparedStatement.executeUpdate();
+            LOGGER.info("Deleting complete.");
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+    }
+
+    /**
+     * Delete mark from database.
+     * @param mark deleted absent
+     */
+    @Override
+    public void deleteAbsent(Mark mark) {
+        LOGGER.info("Deleting " + mark.getId() + " absent.");
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ABSENT)) {
+            preparedStatement.setInt(1, mark.getPupil().getId());
+            preparedStatement.setInt(2, mark.getLesson().getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Deleting complete.");
         } catch (SQLException throwables) {

@@ -37,4 +37,11 @@ public interface LessonDAO {
      * @return List<Lesson>
      */
     List<Lesson> getLessonsByTheme(int id);
+
+    /**
+     * Count lessons from database by subject details.
+     * @param id subject details id
+     * @return int count
+     */
+    int getCountOfLessonsBySubjectDetails(int id);
 }

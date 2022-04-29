@@ -6,6 +6,7 @@ import org.example.dao.interfaces.SemesterDAO;
 import org.example.entities.SchoolYear;
 import org.example.entities.Semester;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -31,6 +32,7 @@ public class SemesterController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/semesters")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewAllSemesters(@RequestParam("page") int page) {
         LOGGER.info("Getting list of semesters for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -56,6 +58,7 @@ public class SemesterController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/semester")
+    @Secured("ADMIN")
     public ModelAndView addSemester() throws Exception {
         List<SchoolYear> schoolYears = schoolYearDAO.getAllSchoolYears();
         if (schoolYears == null) {
@@ -68,7 +71,7 @@ public class SemesterController {
         model.put("list", schoolYears);
         model.put("selectedSchoolYear", 0);
         model.put("title", "Add semester");
-        model.put("formAction", "saveAddedSemester");
+        model.put("formAction", "semester");
         LOGGER.info("Printing form for input semester data.");
         return new ModelAndView("semesterForm", model);
     }
@@ -79,6 +82,7 @@ public class SemesterController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/semester", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveAddedSemester(@ModelAttribute Semester semester) {
         LOGGER.info("Saving added semester.");
         dao.addSemester(semester);
@@ -92,6 +96,7 @@ public class SemesterController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/semester/{id}")
+    @Secured("ADMIN")
     public ModelAndView editSemester(@PathVariable int id) {
         LOGGER.info("Edit semester.");
         Semester semester = dao.getSemester(id);
@@ -117,6 +122,7 @@ public class SemesterController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/semester/{id}", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveEditedSemester(@ModelAttribute Semester semester) {
         LOGGER.info("Saving edited semester.");
         dao.updateSemester(semester);
@@ -130,6 +136,7 @@ public class SemesterController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/semester/{id}/delete")
+    @Secured("ADMIN")
     public ModelAndView deleteSemester(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting semester " + id + ".");
         Semester semester = dao.getSemester(id);
@@ -143,6 +150,7 @@ public class SemesterController {
     }
 
     @RequestMapping(value = "/semesters/search")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
     public List<Semester> searchSemesters(@RequestParam("val") String val,
                                               @RequestParam("param")String param) throws Exception {

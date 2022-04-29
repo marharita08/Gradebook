@@ -1,5 +1,4 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
-<%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.*" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
@@ -21,101 +20,113 @@
                     SubjectDetails subjectDetails = theme.getSubjectDetails();
                     Teacher teacher = subjectDetails.getTeacher();
                 %>
-                <p>Subject:<%=subjectDetails.getSubject().getName()%></p>
-                <%
-                    if (teacher != null) {
-                %>
-                        <p>Teacher:<%=teacher.getName()%></p>
-                <%
-                    }
-                %>
-                <p>Theme:<%=theme.getName()%></p>
-                <p>Date:<%=lesson.getDate()%></p>
-                <p>Topic:<%=lesson.getTopic()%></p>
-                <table id="myTable">
+                <table>
                     <tr>
-                        <th>Pupil</th>
-                        <th>Mark</th>
-                        <sec:authorize access="hasAuthority('TEACHER')">
-                            <%
-                                if(teacher != null && currUser.getId() == teacher.getId()) {
-                            %>
-                                    <th>EDIT</th>
-                                    <th>DELETE</th>
-                            <%
-                                }
-                            %>
-                        </sec:authorize>
+                        <td>Class:</td>
+                        <td><%=subjectDetails.getPupilClass().getName()%></td>
                     </tr>
                     <tr>
-                        <th><input type="text" id="pupil" onkeyup="filter(id, 0)" class="search"></th>
-                        <th></th>
-                        <sec:authorize access="hasAuthority('TEACHER')">
-                            <%
-                                if(teacher != null && currUser.getId() == teacher.getId()) {
-                            %>
-                                    <th></th>
-                                    <th></th>
-                            <%
-                                }
-                            %>
-                        </sec:authorize>
+                        <td>Subject:</td>
+                        <td><%=subjectDetails.getSubject().getName()%></td>
                     </tr>
                     <%
-                        for (Mark mark:(List<Mark>)request.getAttribute("list")) {
+                        if(teacher != null) {
                     %>
                             <tr>
-                                <td><%=mark.getPupil().getName()%></td>
-                                <%
-                                    if(mark.getMark() != 0 && (currUser.hasRole("ADMIN")
-                                        || currUser.hasRole("TEACHER") || currUser.getId() == mark.getPupil().getId())) {
-                                %>
-                                        <td><%=mark.getMark()%></td>
-                                        <sec:authorize access="hasAuthority('TEACHER')">
-                                            <%
-                                                if(teacher != null && currUser.getId() == teacher.getId()) {
-                                            %>
-                                                    <td><a href="../mark/<%=mark.getId()%>">edit mark</a></td>
-                                                    <td><a href="../mark/<%=mark.getId()%>/delete">delete mark</a></td>
-                                            <%
-                                                }
-                                            %>
-                                        </sec:authorize>
-                                <%
-                                    } else {
-                                %>
-                                        <td></td>
-                                        <sec:authorize access="hasAuthority('TEACHER')">
-                                            <%
-                                                if(teacher != null && currUser.getId() == teacher.getId()) {
-                                            %>
-                                                    <td></td>
-                                                    <td></td>
-                                            <%
-                                                }
-                                            %>
-                                        </sec:authorize>
-                                <%
-                                    }
-                                %>
+                                <td>Teacher:</td>
+                                <td><%=teacher.getName()%></td>
                             </tr>
                     <%
                         }
                     %>
+                    <tr>
+                        <td>Theme:</td>
+                        <td><%=theme.getName()%></td>
+                    </tr>
+                    <tr>
+                        <td>Date:</td>
+                        <td><%=lesson.getDate()%></td>
+                    </tr>
+                    <tr>
+                        <td>Topic:</td>
+                        <td><%=lesson.getTopic()%></td>
+                    </tr>
                 </table>
-                <br/>
-                <button onclick='location.href="../index.jsp"'>Menu</button>
-                <button onclick=history.back()>Back</button>
-                <button onclick='location.href="../theme/<%=theme.getId()%>/lessons"'>To lessons</button>
-                <sec:authorize access="hasAuthority('TEACHER')">
+                <form action="save-marks" method="post">
+                    <table id="myTable">
+                        <tr>
+                            <th>Pupil</th>
+                            <th>Mark</th>
+                        </tr>
+                        <tr>
+                            <th>
+                                <input id="pupil" onkeyup="filter(id, 0)" class="search" placeholder="Search...">
+                            </th>
+                            <th></th>
+                        </tr>
+                        <%
+                            int i = 0;
+                            for (Mark mark:((MarkList)request.getAttribute("list")).getList()) {
+                        %>
+                                <tr class="borders">
+                                    <td class="borders">
+                                        <div class="inline"><i class='material-icons'>person</i></div>
+                                        <div class="inline"><%=mark.getPupil().getName()%></div>
+                                    </td>
+                                    <%
+                                        if(teacher!=null && teacher.getId() == currUser.getId()) {
+                                    %>
+                                            <td class="borders">
+                                                <input name="list[<%=i%>].id" value="<%=mark.getId()%>" type="hidden"/>
+                                                <input name="list[<%=i%>].pupil.id" value="<%=mark.getPupil().getId()%>" type="hidden"/>
+                                                <input name="list[<%=i%>].lesson.id" value="<%=lesson.getId()%>" type="hidden"/>
+                                                <input name="list[<%=i++%>].mark"
+                                                       value="<%=mark.getMark()==null?"":mark.getMark()%>"
+                                                       pattern="a|[1-9]|1[0-2]"
+                                                       oninvalid="this.setCustomValidity('Inputted value is invalid')"
+                                                       oninput="this.setCustomValidity('')"/>
+                                            </td>
+                                    <%
+                                        } else if (currUser.hasRole("ADMIN") || currUser.hasRole("TEACHER")
+                                            || currUser.getId() == mark.getPupil().getId()) {
+                                    %>
+                                            <td class="borders"><%=mark.getMark()==null?"":mark.getMark()%></td>
+                                    <%
+                                        } else {
+                                    %>
+                                            <td class="borders"></td>
+                                    <%
+                                        }
+                                    %>
+                                </tr>
+                        <%
+                            }
+                        %>
+                    </table>
+                    <br/>
                     <%
-                        if(teacher != null && currUser.getId() == teacher.getId()) {
+                        if(teacher!=null && teacher.getId() == currUser.getId()) {
                     %>
-                            <button onclick='location.href="../mark/<%=lesson.getId()%>"'>Add mark</button>
+                            <button type="submit" class="bg-primary">
+                                <div class="inline"><i class='material-icons'>save</i></div>
+                                <div class="inline">Save</div>
+                            </button>
                     <%
                         }
                     %>
-                </sec:authorize>
+                </form>
+                <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
+                    <div class="inline"><i class='material-icons'>list</i></div>
+                    <div class="inline">Menu</div>
+                </button>
+                <button onclick=history.back() class="bg-primary">
+                    <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                    <div class="inline">Back</div>
+                </button>
+                <button onclick='location.href="../../theme/<%=theme.getId()%>/lessons"' class="bg-primary">
+                    <div class="inline"><i class='material-icons'>event_note</i></div>
+                    <div class="inline">To lessons</div>
+                </button>
             </div>
         </div>
         <%@include file="footer.jsp"%>

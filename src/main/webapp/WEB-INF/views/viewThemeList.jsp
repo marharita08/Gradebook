@@ -20,12 +20,35 @@
                 <%
                     SubjectDetails subjectDetails = (SubjectDetails) request.getAttribute("subjectDetails");
                     Teacher teacher = subjectDetails.getTeacher();
-                    if(teacher != null) {
-                %>
-                        <p>Teacher:<%=teacher.getName()%></p>
-                <%
+                    List<Theme> list = (List<Theme>)request.getAttribute("list");
+                    int colspan = 2;
+                    if (currUser.hasRole("ADMIN")) {
+                        colspan ++;
+                    }
+                    if (currUser.hasRole("TEACHER")) {
+                        colspan += 2;
                     }
                 %>
+                <table>
+                    <tr>
+                        <td>Class:</td>
+                        <td><%=subjectDetails.getPupilClass().getName()%></td>
+                    </tr>
+                    <tr>
+                        <td>Subject:</td>
+                        <td><%=subjectDetails.getSubject().getName()%></td>
+                    </tr>
+                    <%
+                        if(teacher != null) {
+                    %>
+                            <tr>
+                                <td>Teacher:</td>
+                                <td><%=teacher.getName()%></td>
+                            </tr>
+                    <%
+                        }
+                    %>
+                </table>
                 <table id="myTable">
                     <tr>
                         <sec:authorize access="hasAuthority('ADMIN')">
@@ -41,12 +64,24 @@
                     </tr>
                     <tr>
                         <%
-                            int i = 1;
+                            int i = 0;
                         %>
                         <sec:authorize access="hasAuthority('ADMIN')">
-                            <th><input type="text" id="id" onkeyup="filter(id, <%=i++%>)" class="search-slim"></th>
+                            <th>
+                                <input type="text"
+                                       id="id"
+                                       onkeyup="filter(id, <%=i++%>)"
+                                       class="search-slim"
+                                       placeholder="Search...">
+                            </th>
                         </sec:authorize>
-                        <th><input type="text" id="name" onkeyup="filter(id, <%=i%>)" class="search"></th>
+                        <th>
+                            <input type="text"
+                                   id="name"
+                                   onkeyup="filter(id, <%=i%>)"
+                                   class="search"
+                                   placeholder="Search...">
+                        </th>
                         <th></th>
                         <sec:authorize access="hasAuthority('TEACHER')">
                             <th></th>
@@ -56,21 +91,43 @@
                     </tr>
                     <tbody>
                         <%
-                            for (Theme theme:(List<Theme>)request.getAttribute("list")) {
+                            if (list.isEmpty()) {
                         %>
-                                <tr>
+                                <tr class="card">
+                                    <td colspan="<%=colspan%>">List of themes is empty</td>
+                                </tr>
+                        <%
+                            }
+                            for (Theme theme:list) {
+                        %>
+                                <tr class="card" onclick="location.href='../../theme/<%=theme.getId()%>'">
                                     <sec:authorize access="hasAuthority('ADMIN')">
                                         <td><%=theme.getId()%></td>
                                     </sec:authorize>
-                                    <td><%=theme.getName()%></td>
-                                    <td><a href="../../theme/<%=theme.getId()%>/lessons">view lessons</a></td>
+                                    <td>
+                                        <div class="inline"><i class='material-icons'>text_snippet</i></div>
+                                        <div class="inline"><%=theme.getName()%></div>
+                                    </td>
+                                    <td>
+                                        <a href="<%=root%>theme/<%=theme.getId()%>/lessons">view lessons</a>
+                                    </td>
                                     <sec:authorize access="hasAuthority('TEACHER')">
                                         <%
                                             if(teacher != null && currUser.getId() == teacher.getId()) {
                                         %>
-                                        <td><a href="../../theme/<%=theme.getId()%>/lesson">add lesson</a></td>
-                                        <td><a href="../../theme/<%=theme.getId()%>">edit theme</a></td>
-                                        <td><a href="../../theme/<%=theme.getId()%>/delete">delete theme</a></td>
+                                        <td>
+                                            <a href="<%=root%>theme/<%=theme.getId()%>/lesson">add lesson</a>
+                                        </td>
+                                        <td>
+                                            <a href="<%=root%>theme/<%=theme.getId()%>">
+                                                <i class="material-icons">edit</i>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a href="<%=root%>theme/<%=theme.getId()%>/delete">
+                                                <i class="material-icons">delete</i>
+                                            </a>
+                                        </td>
                                         <%
                                             }
                                         %>
@@ -82,16 +139,29 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="../index.jsp"'>Menu</button>
-                <button onclick=history.back()>Back</button>
+                <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
+                    <div class="inline"><i class='material-icons'>list</i></div>
+                    <div class="inline">Menu</div>
+                </button>
+                <button onclick=history.back() class="bg-primary">
+                    <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                    <div class="inline">Back</div>
+                </button>
                 <sec:authorize access="hasAuthority('TEACHER')">
                     <%
                         if(teacher != null && currUser.getId() == teacher.getId()) {
                     %>
-                            <button onclick='location.href="../../teacher/<%=teacher.getId()%>/subject-details"'>
-                                To subjects
+                            <button
+                                    onclick='location.href="<%=root%>teacher/<%=teacher.getId()%>/subject-details"'
+                                    class="bg-primary"
+                            >
+                                <div class='inline'><i class='material-icons'>import_contacts</i></div>
+                                <div class='inline'>To subjects</div>
                             </button>
-                            <button onclick='location.href="../../subject-details/<%=subjectDetails.getId()%>/theme"'>Add</button>
+                            <button onclick='location.href="theme"' class="bg-primary">
+                                <div class="inline"><i class='material-icons'>note_add</i></div>
+                                <div class="inline">Add</div>
+                            </button>
                     <%
                         }
                     %>

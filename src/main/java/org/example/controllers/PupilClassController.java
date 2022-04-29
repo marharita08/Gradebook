@@ -6,6 +6,7 @@ import org.example.dao.interfaces.SubjectDAO;
 import org.example.dao.interfaces.TeacherDAO;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -34,6 +35,7 @@ public class PupilClassController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/classes")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewAllClasses(@RequestParam("page") int page) {
         LOGGER.info("Getting list of classes for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -55,10 +57,35 @@ public class PupilClassController {
     }
 
     /**
+     * Get page to view classes by teacher.
+     * @param id subject id
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/teacher/{id}/classes")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
+    public ModelAndView viewPupilClassesByTeacher(@PathVariable int id) {
+        LOGGER.info("Getting list of classes by " + id + " teacher.");
+        Teacher teacher = teacherDAO.getTeacher(id);
+        if (teacher == null) {
+            LOGGER.error("Teacher " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        LOGGER.info("Form a model.");
+        Map<String, Object> model = new HashMap<>();
+        model.put("list", dao.getPupilClassesByTeacher(id));
+        model.put("header", "Classes taught by " + teacher.getName());
+        model.put("pagination", "");
+        model.put("pageNum", 1);
+        LOGGER.info("Printing class list.");
+        return new ModelAndView("viewClassList", model);
+    }
+
+    /**
      * Getting page for class adding.
      * @return ModelAndView
      */
     @RequestMapping(value = "/class")
+    @Secured("ADMIN")
     public ModelAndView addClass() {
         LOGGER.info("Add new class.");
         LOGGER.info("Form a model.");
@@ -66,7 +93,7 @@ public class PupilClassController {
         model.put("command", new PupilClass());
         model.put("selectedGrade", 1);
         model.put("title", "Add class");
-        model.put("formAction", "saveAddedClass");
+        model.put("formAction", "class");
         LOGGER.info("Printing form for input class data.");
         return new ModelAndView("classForm", model);
     }
@@ -77,6 +104,7 @@ public class PupilClassController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/class", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveAddedClass(@ModelAttribute PupilClass pupilClass) {
         LOGGER.info("Saving added class.");
         dao.addPupilClass(pupilClass);
@@ -90,6 +118,7 @@ public class PupilClassController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/class/{id}")
+    @Secured("ADMIN")
     public ModelAndView editClass(@PathVariable int id) {
         LOGGER.info("Edit class.");
         PupilClass pupilClass = dao.getPupilClass(id);
@@ -102,8 +131,7 @@ public class PupilClassController {
         model.put("command", pupilClass);
         model.put("selectedGrade", pupilClass.getGrade());
         model.put("title", "Edit class");
-        model.put("formAction", "../class" + pupilClass.getId());
-        model.put("toRoot", "../");
+        model.put("formAction", "../class/" + pupilClass.getId());
         LOGGER.info("Printing form for changing class data.");
         return new ModelAndView("classForm", model);
     }
@@ -114,6 +142,7 @@ public class PupilClassController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/class/{id}", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveEditedClass(@ModelAttribute PupilClass pupilClass) {
         LOGGER.info("Saving edited class.");
         dao.updatePupilClass(pupilClass);
@@ -127,6 +156,7 @@ public class PupilClassController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/class/{id}/delete")
+    @Secured("ADMIN")
     public ModelAndView deleteClass(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting class " + id + ".");
         PupilClass pupilClass = dao.getPupilClass(id);
@@ -140,6 +170,7 @@ public class PupilClassController {
     }
 
     @RequestMapping(value = "classes/search")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
     public List<PupilClass> searchPupilClasses(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {

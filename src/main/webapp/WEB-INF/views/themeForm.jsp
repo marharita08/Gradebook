@@ -15,23 +15,40 @@
         <%@include file="header.jsp"%>
         <div align="center">
             <div align="center" class="box">
-                <h2 align="center"><%=request.getAttribute("title")%></h2>
-                <%
-                    Theme theme = (Theme) request.getAttribute("command");
-                    SubjectDetails subjectDetails = theme.getSubjectDetails();
-                %>
-                <p>Subject:<%=subjectDetails.getSubject().getName()%></p>
-                <p>Teacher:<%=subjectDetails.getTeacher().getName()%></p>
-                <p>Class:<%=subjectDetails.getPupilClass().getName()%></p>
-                <form:form>
+                <br/>
+                <div class="card" style="width: 50%">
                     <br/>
-                    Name:
-                    <form:input path="name" required="true"/><br/><br/>
-                    <form:input path="id" type="hidden"/>
-                    <form:input path="subjectDetails.id" type="hidden"/>
-                    <button onclick="history.back()" type="button">Cancel</button>
-                    <button formmethod="post" formaction="../<%=request.getAttribute("formAction")%>">Save</button><br/><br/>
-                </form:form>
+                    <h2 align="center"><%=request.getAttribute("title")%></h2>
+                    <%
+                        Theme theme = (Theme) request.getAttribute("command");
+                        SubjectDetails subjectDetails = theme.getSubjectDetails();
+                    %>
+                    <p>Subject:<%=subjectDetails.getSubject().getName()%></p>
+                    <p>Teacher:<%=subjectDetails.getTeacher().getName()%></p>
+                    <p>Class:<%=subjectDetails.getPupilClass().getName()%></p>
+                    <form:form>
+                        <br/>
+                        <div class="row">
+                            <div class="col-25">
+                                <label>Name</label>
+                            </div>
+                            <div class="col-75">
+                                <form:input path="name" required="true"/><br/><br/>
+                            </div>
+                        </div>
+                        <form:input path="id" type="hidden"/>
+                        <form:input path="subjectDetails.id" type="hidden"/>
+                        <button onclick="history.back()" type="button" class="bg-primary">
+                            <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                            <div class="inline">Cancel</div>
+                        </button>
+                        <button formmethod="post" formaction="../../<%=request.getAttribute("formAction")%>" class="bg-primary">
+                            <div class="inline"><i class='material-icons'>save</i></div>
+                            <div class="inline">Save</div>
+                        </button>
+                        <br/><br/>
+                    </form:form>
+                </div>
             </div>
         </div>
         <%@include file="footer.jsp"%>

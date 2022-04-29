@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.interfaces.SchoolYearDAO;
 import org.example.entities.SchoolYear;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -27,6 +28,7 @@ public class SchoolYearController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/years")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewAllSchoolYears(@RequestParam("page") int page) {
         LOGGER.info("Getting list of school years for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -52,6 +54,7 @@ public class SchoolYearController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/year")
+    @Secured("ADMIN")
     public ModelAndView addSchoolYear() {
         LOGGER.info("Add new school year.");
         LOGGER.info("Form a model.");
@@ -69,6 +72,7 @@ public class SchoolYearController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/year", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveAddedSchoolYear(@ModelAttribute SchoolYear schoolYear) {
         LOGGER.info("Saving added school year.");
         dao.addSchoolYear(schoolYear);
@@ -82,6 +86,7 @@ public class SchoolYearController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/year/{id}", method = RequestMethod.GET)
+    @Secured("ADMIN")
     public ModelAndView editSchoolYear(@PathVariable int id) {
         LOGGER.info("Edit school year.");
         SchoolYear schoolYear = dao.getSchoolYear(id);
@@ -105,6 +110,7 @@ public class SchoolYearController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/year/{id}", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveEditedSchoolYear(@ModelAttribute SchoolYear schoolYear) {
         LOGGER.info("Saving edited school year.");
         dao.updateSchoolYear(schoolYear);
@@ -118,6 +124,7 @@ public class SchoolYearController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/year/{id}/delete")
+    @Secured("ADMIN")
     public ModelAndView deleteSchoolYear(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting school year " + id + ".");
         SchoolYear schoolYear = dao.getSchoolYear(id);
@@ -131,6 +138,7 @@ public class SchoolYearController {
     }
 
     @RequestMapping(value = "/years/search")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
     public List<SchoolYear> searchSchoolYears(@RequestParam("val") String val,
                                         @RequestParam("param")String param) throws Exception {

@@ -7,6 +7,7 @@ import org.example.entities.SubjectDetails;
 import org.example.entities.Theme;
 import org.example.entities.User;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ public class ThemeController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/subject-details/{id}/themes")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewThemesBySubjectDetails(@PathVariable int id) {
         LOGGER.info("Getting list of themes for " + id + " subject details.");
         SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
@@ -49,7 +51,6 @@ public class ThemeController {
                 + subjectDetails.getSubject().getName()
                 + " " + subjectDetails.getPupilClass().getName());
         model.put("subjectDetails", subjectDetails);
-        model.put("toRoot", "../");
         LOGGER.info("Printing lessons list.");
         return new ModelAndView("viewThemeList", model);
     }
@@ -60,6 +61,7 @@ public class ThemeController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/subject-details/{id}/theme")
+    @Secured("TEACHER")
     public ModelAndView addTheme(@PathVariable int id) {
         LOGGER.info("Add new theme for subject details " + id + ".");
         SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
@@ -76,7 +78,6 @@ public class ThemeController {
         model.put("command", new Theme(subjectDetails));
         model.put("title", "Add theme");
         model.put("formAction", "theme");
-        model.put("toRoot", "../../");
         LOGGER.info("Printing form for input themes data.");
         return new ModelAndView("themeForm", model);
     }
@@ -87,11 +88,12 @@ public class ThemeController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/theme", method = RequestMethod.POST)
+    @Secured("TEACHER")
     public ModelAndView saveAddedTheme(@ModelAttribute Theme theme) {
         LOGGER.info("Saving added theme.");
         dao.addTheme(theme);
         LOGGER.info("Redirect to theme list.");
-        return new ModelAndView("redirect:/subject-details/" + theme.getSubjectDetails().getId() + "theme");
+        return new ModelAndView("redirect:/subject-details/" + theme.getSubjectDetails().getId() + "/themes");
     }
 
     /**
@@ -100,6 +102,7 @@ public class ThemeController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/theme/{id}")
+    @Secured("TEACHER")
     public ModelAndView editTheme(@PathVariable int id) {
         LOGGER.info("Edit theme.");
         Theme theme = dao.getTheme(id);
@@ -128,6 +131,7 @@ public class ThemeController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/theme/{id}", method = RequestMethod.POST)
+    @Secured("TEACHER")
     public ModelAndView saveEditedTheme(@ModelAttribute Theme theme) {
         LOGGER.info("Saving edited theme.");
         dao.updateTheme(theme);
@@ -141,6 +145,7 @@ public class ThemeController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/theme/{id}/delete")
+    @Secured("TEACHER")
     public ModelAndView deleteTheme(@PathVariable int id) {
         Theme theme = dao.getTheme(id);
         if (theme == null) {

@@ -19,6 +19,12 @@ public interface MarkDAO {
     void addMark(Mark mark) throws Exception;
 
     /**
+     * Insert absent into database.
+     * @param mark adding absent
+     */
+    void addAbsent(Mark mark) throws Exception;
+
+    /**
      * Update mark data into database.
      * @param mark editing mark
      */
@@ -26,9 +32,15 @@ public interface MarkDAO {
 
     /**
      * Delete mark from database.
-     * @param id mark id
+     * @param mark deleted mark
      */
-    void deleteMark(int id);
+    void deleteMark(Mark mark);
+
+    /**
+     * Delete mark from database.
+     * @param mark deleted absent
+     */
+   void deleteAbsent(Mark mark);
 
     /**
      * Get marks for pupil with set id.

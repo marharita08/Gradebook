@@ -23,9 +23,11 @@
                             <a href="<%=root%>teacher/<%=currUser.getId()%>/classes">My classes</a>
                             <a href="<%=root%>teacher/<%=currUser.getId()%>/subject-details">My subjects</a>
                         </sec:authorize>
-                        <a href="teachers?page=1">All teachers</a>
-                        <a href="classes?page=1">All classes</a>
-                        <a href="subjects?page=1">All subjects</a>
+                        <sec:authorize access="hasAnyAuthority('ADMIN', 'TEACHER', 'PUPIL')">
+                            <a href="teachers?page=1">All teachers</a>
+                            <a href="classes?page=1">All classes</a>
+                            <a href="subjects?page=1">All subjects</a>
+                        </sec:authorize>
                         <a href="semesters?page=1">All Semesters</a>
                         <a href="years?page=1">All School Years</a>
                         <sec:authorize access="hasAuthority('ADMIN')">

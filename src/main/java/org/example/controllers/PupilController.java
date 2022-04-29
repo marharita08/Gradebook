@@ -8,6 +8,7 @@ import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
 import org.example.entities.User;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,7 @@ public class PupilController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/pupils")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewAllPupils(@RequestParam("page") int page) {
         LOGGER.info("Getting list of pupils for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -49,7 +51,7 @@ public class PupilController {
             list = dao.getPupilsByPage(page, pupilPerPage);
         }
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("viewAllPupils"));
+        model.put("pagination", paginationController.makePagingLinks("pupils"));
         model.put("pageNum", page);
         model.put("header", "Pupil List");
         LOGGER.info("Printing pupil list.");
@@ -62,6 +64,7 @@ public class PupilController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/pupil/{id}/delete")
+    @Secured("ADMIN")
     public ModelAndView deletePupil(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting pupil " + id + ".");
         Pupil pupil = dao.getPupil(id);
@@ -80,6 +83,7 @@ public class PupilController {
      * @return List<Pupil>
      */
     @RequestMapping(value = "class/{id}/pupils")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewPupilsByPupilClass(@PathVariable int id) {
         LOGGER.info("Getting list of pupils by " + id + " class.");
         PupilClass pupilClass = classDAO.getPupilClass(id);
@@ -111,6 +115,7 @@ public class PupilController {
      * @return List<Pupil>
      */
     @RequestMapping(value = "pupil/{id}/pupils")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewPupilsByPupil(@PathVariable int id) {
         LOGGER.info("Getting list of pupils by " + id + " pupil.");
         Pupil pupil = dao.getPupil(id);
@@ -118,11 +123,12 @@ public class PupilController {
             LOGGER.error("Pupil " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        return new ModelAndView("redirect:../class/" + pupil.getPupilClass().getId() + "/pupils");
+        return new ModelAndView("redirect:../../class/" + pupil.getPupilClass().getId() + "/pupils");
     }
 
     @RequestMapping(value = "pupils/search")
     @ResponseBody
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public List<Pupil> searchPupils(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching pupils by " + param + ".");

@@ -19,10 +19,10 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
     private static final String DELETE_SCHOOL_YEAR = "Delete from SCHOOL_YEAR where SCHOOL_YEAR_id = ?";
     private static final String GET_COUNT_OF_SCHOOL_YEARS = "select count(SCHOOL_YEAR_ID) as AMOUNT from SCHOOL_YEAR ";
     private static final String GET_SCHOOL_YEARS_BY_PAGE = " SELECT * FROM SCHOOL_YEAR ORDER BY SCHOOL_YEAR_ID limit ? offset ?";
-    private static final String SEARCH_SCHOOL_YEARS_BY_ID = " SELECT * FROM SCHOOL_YEAR where SCHOOL_YEAR_id like ? order by SCHOOL_YEAR_id";
+    private static final String SEARCH_SCHOOL_YEARS_BY_ID = " SELECT * FROM SCHOOL_YEAR where to_char(SCHOOL_YEAR_id, '9999') like ? order by SCHOOL_YEAR_id";
     private static final String SEARCH_SCHOOL_YEARS_BY_NAME = " SELECT * FROM SCHOOL_YEAR where upper(name) like ? order by SCHOOL_YEAR_id";
-    private static final String SEARCH_SCHOOL_YEARS_BY_START_DATE = "SELECT * FROM SCHOOL_YEAR where START_DATE like ? order by START_DATE";
-    private static final String SEARCH_SCHOOL_YEARS_BY_END_DATE = "SELECT * FROM SCHOOL_YEAR where END_DATE like ? order by END_DATE";
+    private static final String SEARCH_SCHOOL_YEARS_BY_START_DATE = "SELECT * FROM SCHOOL_YEAR where to_char(START_DATE, 'dd.mm.yyyy') like ? order by START_DATE";
+    private static final String SEARCH_SCHOOL_YEARS_BY_END_DATE = "SELECT * FROM SCHOOL_YEAR where to_char(END_DATE, 'dd.mm.yyyy') like ? order by END_DATE";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(PostgresSchoolYearDAO.class.getName());
 

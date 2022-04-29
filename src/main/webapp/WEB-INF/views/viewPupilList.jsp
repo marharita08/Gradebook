@@ -1,5 +1,6 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.Pupil" %>
+<%@ page import="com.google.gson.Gson" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
@@ -18,10 +19,11 @@
                 <%
                     int pageNum = (int)request.getAttribute("pageNum");
                     String pagination = (String) request.getAttribute("pagination");
-                    boolean isAdmin = false;
-                    if (currUser.hasRole("ADMIN")) {
-                        isAdmin = true;
-                    }
+                    boolean isAdmin = currUser.hasRole("ADMIN");
+                    boolean isTeacher = currUser.hasRole("TEACHER");
+                    List<Pupil> list = (List<Pupil>)request.getAttribute("list");
+                    int colspan = isAdmin ? 6 : 2;
+                    String entity = "'pupils'";
                 %>
                 <ul class="pagination"><%=pagination%></ul>
                 <table id="myTable">
@@ -32,39 +34,39 @@
                         </sec:authorize>
                         <th>Name</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
-                            <th>EDIT</th>
-                            <th>DELETE</th>
+                            <th></th>
+                            <th></th>
                         </sec:authorize>
                         <th></th>
                     </tr>
                     <%
                         if (pageNum == 1) {
+                            int i = 0;
                     %>
                             <tr>
-                                <%
-                                    String searchFunc;
-                                    int i = 0;
-                                    if(pagination.equals("")) {
-                                        searchFunc = "filter(id," + i++ + ")";
-                                    } else {
-                                        searchFunc = "search(id, " + isAdmin + ")";
-                                    }
-                                %>
                                 <sec:authorize access="hasAuthority('ADMIN')">
-                                    <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="search-slim"></th>
-                                    <%
-                                        if(pagination.equals("")) {
-                                            searchFunc = "filter(id," + i++ + ")";
-                                        }
-                                    %>
-                                    <th><input type="text" id="class" onkeyup="<%=searchFunc%>" class="search-slim"></th>
-                                    <%
-                                        if(pagination.equals("")) {
-                                            searchFunc = "filter(id," + i + ")";
-                                        }
-                                    %>
+                                    <th>
+                                        <input type="text"
+                                               id="id"
+                                               onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                               class="search-slim"
+                                               placeholder="Search...">
+                                    </th>
+                                    <th>
+                                        <input type="text"
+                                               id="class"
+                                               onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                               class="search-slim"
+                                               placeholder="Search...">
+                                    </th>
                                 </sec:authorize>
-                                <th><input type="text" id="name" onkeyup="<%=searchFunc%>" class="search"></th>
+                                <th>
+                                    <input type="text"
+                                           id="name"
+                                           onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
+                                           class="search"
+                                           placeholder="Search...">
+                                </th>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th></th>
                                     <th></th>
@@ -75,104 +77,83 @@
                         }
                     %>
                     <tbody id="placeToShow">
-                        <%
-                            for (Pupil pupil:(List<Pupil>)request.getAttribute("list")) {
-                        %>
-                                <tr>
-                                    <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td><%=pupil.getId()%></td>
-                                        <%
-                                            if(pupil.getPupilClass() != null) {
-                                        %>
-                                                <td><%=pupil.getPupilClass().getName()%></td>
-                                        <%
-                                            } else {
-                                        %>
-                                                <td>-</td>
-                                        <%
-                                            }
-                                        %>
-                                    </sec:authorize>
-                                    <td><%=pupil.getName()%></td>
-                                    <sec:authorize access="hasAuthority('ADMIN')">
-                                        <td><a href="<%=root%>user/<%=pupil.getId()%>">Edit</a></td>
-                                        <td>
-                                            <a href="<%=root%>pupil/<%=pupil.getId()%>/delete?page=<%=pageNum%>">
-                                                Delete
-                                            </a>
-                                        </td>
-                                    </sec:authorize>
-                                    <td>
-                                        <%
-                                            if((currUser.hasRole("ADMIN") || currUser.hasRole("TEACHER")
-                                                    || currUser.getId() == pupil.getId())) {
-                                        %>
-                                                <a href="<%=root%>pupil/<%=pupil.getId()%>/marks">view marks</a>
-                                        <%
-                                            }
-                                        %>
-                                    </td>
-                                </tr>
-                        <%
-                            }
-                        %>
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=root%>index.jsp"'>Menu</button>
-                <button onclick='history.back()'>Back</button>
+                <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
+                    <div class="inline"><i class='material-icons'>list</i></div>
+                    <div class="inline">Menu</div>
+                </button>
+                <button onclick='history.back()' class="bg-primary">
+                    <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                    <div class="inline">Back</div>
+                </button>
                 <sec:authorize access="hasAuthority('ADMIN')">
-                    <button onclick='location.href="<%=root%>user"'>Add</button>
+                    <button onclick='location.href="<%=root%>user"' class="bg-primary">
+                        <div class="inline"><i class='material-icons'>person_add</i></div>
+                        <div class="inline">Add</div>
+                    </button>
                 </sec:authorize>
             </div>
         </div>
         <%@include file="footer.jsp"%>
     </body>
     <script>
-        var request = new XMLHttpRequest();
-        function search(param, isAdmin) {
-            var val = document.getElementById(param).value;
-            var url = "pupils/search?val=" + val + "&param=" + param;
-            try {
-                request.onreadystatechange = function () {
-                    if (request.readyState === 4) {
-                        var obj = JSON.parse(request.responseText);
-                        var result = "";
-                        for (let i in obj) {
-                            var id = obj[i].id;
-                            result += "<tr>";
-                            if (isAdmin === true) {
-                                result += "<td>" + id + "</td>";
-                                result += "<td>";
-                                if (obj[i].pupilClass != null) {
-                                    result += obj[i].pupilClass.name;
-                                } else {
-                                    result += "-";
-                                }
-                                result += "</td>";
-                            }
-                            result += "<td>" + obj[i].name + "</td>";
-                            if (isAdmin === true) {
-                                result += "<td>";
-                                result += "<a href=\"user/" + id + "\">Edit</a>";
-                                result += "</td><td>";
-                                result += "<a href=\"pupil/" + id + "delete?page=1\">Delete</a></td>";
-                                result += "</td>";
-                            }
-                            result += "<td>";
-                            result += "<a href=\"pupil/" + id + "/marks\">view marks</a>";
-                            result += "</td>";
-                            result += "</tr>";
+        function showTable(obj) {
+            var html = [];
+            if (!obj.length) {
+                html.push(
+                    "<tr class='card'>",
+                    "<td colspan='<%=colspan%>'>List of pupils is empty</td>",
+                    "</tr>"
+                );
+            } else {
+                for (let i in obj) {
+                    var id = obj[i].id;
+                    html.push("<tr class='card'>");
+                    if (<%=isAdmin%>) {
+                        html.push(
+                            "<td>", id, "</td>",
+                            "<td>",
+                            "<div class='inline'>", "<i class='material-icons'>group</i>", "</div>",
+                            "<div class='inline'>",
+                        );
+                        if (obj[i].pupilClass != null) {
+                            html.push(obj[i].pupilClass.name);
+                        } else {
+                            html.push("-");
                         }
-                        document.getElementById("placeToShow").innerHTML = result;
+                        html.push("</div></td>");
                     }
+                    html.push(
+                        "<td>",
+                        "<div class='inline'>", "<i class='material-icons'>person</i>", "</div>",
+                        "<div class='inline'>", obj[i].name, "</div>",
+                        "</td>"
+                    );
+                    if (<%=isAdmin%>) {
+                        html.push("<td>",
+                            "<a href='<%=root%>user/", id, "'><i class='material-icons'>edit</i></a>",
+                            "</td><td>",
+                            "<a href='<%=root%>pupil/", id, "delete?page=1'><i class='material-icons'>delete</i></a></td>",
+                            "</td>"
+                        );
+                    }
+                    html.push("<td>");
+                    if (obj[i].id === <%=currUser.getId()%> || <%=isAdmin%> || <%=isTeacher%>) {
+                        html.push(
+                            "<a href='<%=root%>pupil/", id, "/marks'>view marks</a>",
+                        );
+                    }
+                    html.push("</td></tr>");
                 }
-                request.open("GET", url, true);
-                request.send();
-            } catch (e) {
-                alert("Unable to connect to server");
             }
+            document.getElementById("placeToShow").innerHTML = html.join("");
         }
+        <%@include file="../js/search.js"%>
         <%@include file="../js/filter.js"%>
+        window.onload = function load() {
+            showTable(<%=new Gson().toJson(list)%>);
+        }
     </script>
 </html>

@@ -6,9 +6,9 @@ public class Mark {
     private int id;
     private Pupil pupil;
     private Lesson lesson;
-    private int mark;
+    private String mark;
 
-    public Mark(int id, Pupil pupil, Lesson lesson, int mark) {
+    public Mark(int id, Pupil pupil, Lesson lesson, String mark) {
         this.id = id;
         this.pupil = pupil;
         this.lesson = lesson;
@@ -46,11 +46,11 @@ public class Mark {
         this.lesson = lesson;
     }
 
-    public int getMark() {
+    public String getMark() {
         return mark;
     }
 
-    public void setMark(int mark) {
+    public void setMark(String mark) {
         this.mark = mark;
     }
 

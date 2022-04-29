@@ -20,15 +20,15 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
     private static final String DELETE_SUBJECT_DETAILS = "Delete from SUBJECT_DETAILS where SUBJECT_DETAILS_ID = ?";
     private static final String GET_SUBJECT_DETAILS_BY_SUBJECT = "SELECT * FROM SUBJECT_DETAILS " +
             " join SEMESTER on SEMESTER.SEMESTER_ID=SUBJECT_DETAILS.SEMESTER_ID " +
-            " and SYSDATE between START_DATE and END_DATE " +
+            " and CURRENT_DATE between START_DATE and END_DATE " +
             " where SUBJECT_ID = ? order by  SUBJECT_DETAILS_ID";
     private static final String GET_SUBJECT_DETAILS_BY_TEACHER = "SELECT * FROM SUBJECT_DETAILS " +
             " join SEMESTER on SEMESTER.SEMESTER_ID=SUBJECT_DETAILS.SEMESTER_ID " +
-            " and SYSDATE between START_DATE and END_DATE " +
+            " and CURRENT_DATE between START_DATE and END_DATE " +
             "where TEACHER_ID = ? order by  SUBJECT_DETAILS_ID";
     private static final String GET_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM SUBJECT_DETAILS " +
             " join SEMESTER on SEMESTER.SEMESTER_ID=SUBJECT_DETAILS.SEMESTER_ID " +
-            " and SYSDATE between START_DATE and END_DATE " +
+            " and CURRENT_DATE between START_DATE and END_DATE " +
             "where CLASS_ID = ? order by  SUBJECT_DETAILS_ID";
     private static final String GET_SUBJECT_DETAILS_BY_SEMESTER_AND_TEACHER = "SELECT * from SUBJECT_DETAILS " +
             " where semester_id = ? and teacher_id = ?";
@@ -44,8 +44,10 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
     private static final String SEARCH_SUBJECT_DETAILS_BY_CLASS = "SELECT * FROM SUBJECT_DETAILS " +
             "join CLASS using (CLASS_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
     private static final String SEARCH_SUBJECT_DETAILS_BY_SEMESTER = "SELECT * FROM SUBJECT_DETAILS " +
-            "join SEMESTER using (SEMESTER_ID) where upper(NAME) like ? order by  SUBJECT_DETAILS_ID";
-    private static final String SEARCH_SUBJECT_DETAILS_BY_ID = " SELECT * FROM SUBJECT_DETAILS where SUBJECT_DETAILS_ID like ? order by  SUBJECT_DETAILS_ID";
+            "join SEMESTER s using (SEMESTER_ID) " +
+            "join school_year y using (school_year_id) " +
+            "where upper(y.NAME||' '||s.Name) like ? order by  SUBJECT_DETAILS_ID";
+    private static final String SEARCH_SUBJECT_DETAILS_BY_ID = " SELECT * FROM SUBJECT_DETAILS where to_char(SUBJECT_DETAILS_ID, '99999') like ? order by  SUBJECT_DETAILS_ID";
     private final SubjectDAO subjectDAO;
     private final PupilClassDAO pupilClassDAO;
     private final TeacherDAO teacherDAO;

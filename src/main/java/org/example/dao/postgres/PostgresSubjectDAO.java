@@ -23,7 +23,7 @@ public class PostgresSubjectDAO implements SubjectDAO {
             "join SUBJECT_DETAILS using(subject_id) where TEACHER_ID = ? order by SUBJECT_ID";
     private final static String GET_COUNT_OF_SUBJECTS = "select count(SUBJECT_ID) as AMOUNT from SUBJECT ";
     private final static String GET_SUBJECTS_BY_PAGE = "SELECT * FROM SUBJECT ORDER BY SUBJECT_ID limit ? offset ?";
-    private final static String SEARCH_SUBJECT_BY_ID = " SELECT * FROM SUBJECT where subject_id like ? order by SUBJECT_ID";
+    private final static String SEARCH_SUBJECT_BY_ID = " SELECT * FROM SUBJECT where to_char(subject_id, '99999') like ? order by SUBJECT_ID";
     private final static String SEARCH_SUBJECT_BY_NAME = " SELECT * FROM SUBJECT where upper(name) like ? order by SUBJECT_ID";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(PostgresSubjectDAO.class.getName());
@@ -246,6 +246,7 @@ public class PostgresSubjectDAO implements SubjectDAO {
      */
     @Override
     public List<Subject> searchSubjects(String val, String param) throws Exception {
+        System.out.println(val + " " + param);
         List<Subject> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");

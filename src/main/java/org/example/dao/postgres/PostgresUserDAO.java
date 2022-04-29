@@ -30,7 +30,7 @@ public class PostgresUserDAO implements UserDAO {
     private static final String ADD_ROLE_TO_USER = "insert into USER_ROLE values (?, ?)";
     private static final String GET_COUNT_OF_USERS = "select count(USER_ID) as AMOUNT from GRADEBOOK_USER ";
     private static final String GET_USERS_BY_PAGE = " SELECT * FROM GRADEBOOK_USER ORDER BY USER_ID limit ? offset ? ";
-    private static final String SEARCH_USERS_BY_ID = " SELECT * FROM GRADEBOOK_USER where user_id like ? ORDER BY USER_ID";
+    private static final String SEARCH_USERS_BY_ID = " SELECT * FROM GRADEBOOK_USER where to_char(user_id, '99999') like ? ORDER BY USER_ID";
     private static final String SEARCH_USERS_BY_NAME = " SELECT * FROM GRADEBOOK_USER where upper(USERNAME) like ? ORDER BY USER_ID";
     private static final String SEARCH_USERS_BY_ROLES = " select distinct u.* from GRADEBOOK_USER u join USER_ROLE ur on u.user_id=ur.user_id " +
             "join ROLE r on r.role_id=ur.role_id where name like ? ORDER BY u.USER_ID";

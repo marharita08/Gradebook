@@ -24,7 +24,7 @@ public class PostgresTeacherDAO implements TeacherDAO {
             "from TEACHER join SUBJECT_DETAILS using(teacher_id) where SUBJECT_ID = ? order by TEACHER_ID";
     private static final String GET_COUNT_OF_TEACHERS = "select count(TEACHER_ID) as AMOUNT from TEACHER ";
     private static final String GET_TEACHERS_BY_PAGE = "SELECT * FROM TEACHER ORDER BY TEACHER_ID limit ? offset ?";
-    private static final String SEARCH_TEACHERS_BY_ID = " SELECT * FROM TEACHER where teacher_id like ? order by teacher_id";
+    private static final String SEARCH_TEACHERS_BY_ID = " SELECT * FROM TEACHER where to_char(teacher_id, '99999') like ? order by teacher_id";
     private static final String SEARCH_TEACHERS_BY_NAME = " SELECT * FROM TEACHER where upper(name) like ? order by teacher_id";
     private static final String SEARCH_TEACHERS_BY_POSITION = " SELECT * FROM TEACHER where upper(position) like ? order by teacher_id";
     private final ConnectionPool connectionPool;
@@ -233,8 +233,8 @@ public class PostgresTeacherDAO implements TeacherDAO {
         LOGGER.info("Reading teachers for " + page + " page.");
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(GET_TEACHERS_BY_PAGE)) {
-            preparedStatement.setInt(1, (page - 1)*range + 1);
-            preparedStatement.setInt(2, page*range);
+            preparedStatement.setInt(1, range);
+            preparedStatement.setInt(2, (page - 1) * range);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
                     list.add(parseTeacher(resultSet));

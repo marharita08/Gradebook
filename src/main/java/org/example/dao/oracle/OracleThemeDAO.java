@@ -21,6 +21,7 @@ public class OracleThemeDAO implements ThemeDAO {
     private static final String DELETE_LESSONS_FOR_DELETING_THEME = "Delete from  LESSON where THEME_id = ?";
     private static final String DELETE_THEME = "Delete from THEME where THEME_id = ?";
     private static final String GET_THEMES_BY_SUBJECT_DETAILS = "select * from THEME where SUBJECT_DETAILS_ID = ? order by THEME_ID";
+    private static final String GET_COUNT_OF_THEMES_BY_SUBJECT_DETAILS = "select count(theme_id) as AMOUNT from theme where subject_details_id=?";
     private final ConnectionPool connectionPool;
     private final SubjectDetailsDAO subjectDetailsDAO;
     private static final Logger LOGGER = Logger.getLogger(OracleTeacherDAO.class.getName());
@@ -155,5 +156,28 @@ public class OracleThemeDAO implements ThemeDAO {
             LOGGER.error(throwables.getMessage(), throwables);
         }
         return list;
+    }
+
+    /**
+     * Count themes from database by subject details.
+     * @param id subject details id
+     * @return int count
+     */
+    @Override
+    public int getCountOfThemesBySubjectDetails(int id) {
+        LOGGER.info("Counting themes for " + id + " subject details.");
+        int count = 0;
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_COUNT_OF_THEMES_BY_SUBJECT_DETAILS)) {
+            preparedStatement.setInt(1, id);
+            try (ResultSet resultSet = preparedStatement.executeQuery()){
+                resultSet.next();
+                count = resultSet.getInt("AMOUNT");
+                LOGGER.info("Counting complete.");
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+        return count;
     }
 }

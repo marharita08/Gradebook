@@ -21,11 +21,9 @@ public class ConnectionPool {
     public Connection getConnection() {
         Connection conn = null;
         try {
-            LOGGER.info("Getting connection with database.");
             InitialContext initContext = new InitialContext();
             DataSource ds = (DataSource) initContext.lookup("Gradebook/jdbcDS");
             conn = ds.getConnection();
-            LOGGER.info("Connection established.");
         } catch (NamingException | SQLException e) {
             LOGGER.error(e.getMessage(), e);
         }

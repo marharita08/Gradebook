@@ -37,4 +37,11 @@ public interface ThemeDAO {
      * @return List<Theme>
      */
     List<Theme> getThemesBySubjectDetails(int id);
+
+    /**
+     * Count themes from database by subject details.
+     * @param id subject details id
+     * @return int count
+     */
+    int getCountOfThemesBySubjectDetails(int id);
 }

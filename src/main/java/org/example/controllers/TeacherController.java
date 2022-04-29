@@ -5,10 +5,12 @@ import org.example.dao.interfaces.TeacherDAO;
 import org.example.dao.interfaces.UserDAO;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,7 @@ public class TeacherController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/teachers")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewAllTeachers(@RequestParam("page") int page) {
         LOGGER.info("Getting list of teachers for " + page + " page.");
         LOGGER.info("Form a model.");
@@ -58,6 +61,7 @@ public class TeacherController {
      * @return ModelAndView
      */
     @RequestMapping(value = "/teacher/{id}/delete")
+    @Secured("ADMIN")
     public ModelAndView deleteTeacher(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting teacher " + id + ".");
         Teacher teacher = dao.getTeacher(id);
@@ -71,6 +75,7 @@ public class TeacherController {
     }
 
     @RequestMapping(value = "/teachers/search")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
     public List<Teacher> searchTeachers(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {

@@ -15,33 +15,67 @@
         <%@include file="header.jsp"%>
         <div align="center">
             <div align="center" class="box">
-                <h2 align="center"><%=request.getAttribute("title")%></h2>
-                <form:form>
+                <br/>
+                <div class="card" style="width: 50%">
                     <br/>
-                    Name:
-                    <form:input path="name" required="true"/><br/><br/>
-                    School year:
-                    <form:select path="schoolYear.id">
-                        <%
-                            for (SchoolYear schoolYear:(List<SchoolYear>)request.getAttribute("list")) {
-                        %>
-                                <option value="<%=schoolYear.getId()%>"
-                                        <%=(int)request.getAttribute("selectedSchoolYear") == schoolYear.getId() ? "selected='selected'":""%>>
-                                    <%=schoolYear.getName()%>
-                                </option>
-                        <%
-                            }
-                        %>
-                    </form:select><br/><br/>
-                    Start date:
-                    <form:input type="date" path="startDate" required="true"/><br/><br/>
-                    End date:
-                    <form:input type="date" path="endDate" required="true"/><br/><br/>
-                    <form:input path="id" type="hidden"/>
-                    <button onclick="history.back()" type="button">Cancel</button>
-                    <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>">Save</button>
-                    <br/><br/>
-                </form:form>
+                    <h2 align="center"><%=request.getAttribute("title")%></h2>
+                    <form:form>
+                        <br/>
+                        <div class="row">
+                            <div class="col-25">
+                                <label>Name</label>
+                            </div>
+                            <div class="col-75">
+                                <form:input path="name" required="true"/><br/><br/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-25">
+                                <label>School year</label>
+                            </div>
+                            <div class="col-75">
+                                <form:select path="schoolYear.id">
+                                    <%
+                                        for (SchoolYear schoolYear:(List<SchoolYear>)request.getAttribute("list")) {
+                                    %>
+                                    <option value="<%=schoolYear.getId()%>"
+                                            <%=(int)request.getAttribute("selectedSchoolYear") == schoolYear.getId() ? "selected='selected'":""%>>
+                                        <%=schoolYear.getName()%>
+                                    </option>
+                                    <%
+                                        }
+                                    %>
+                                </form:select><br/><br/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-25">
+                                <label>Start date</label>
+                            </div>
+                            <div class="col-75">
+                                <form:input type="date" path="startDate" required="true"/><br/><br/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-25">
+                                <label>End date</label>
+                            </div>
+                            <div class="col-75">
+                                <form:input type="date" path="endDate" required="true"/><br/><br/>
+                            </div>
+                        </div>
+                        <form:input path="id" type="hidden"/>
+                        <button onclick="history.back()" type="button" class="bg-primary">
+                            <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                            <div class="inline">Cancel</div>
+                        </button>
+                        <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>" class="bg-primary">
+                            <div class="inline"><i class='material-icons'>save</i></div>
+                            <div class="inline">Save</div>
+                        </button>
+                        <br/><br/>
+                    </form:form>
+                </div>
             </div>
         </div>
         <%@include file="footer.jsp"%>

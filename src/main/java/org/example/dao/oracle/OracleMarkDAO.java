@@ -15,8 +15,10 @@ import java.util.List;
 public class OracleMarkDAO implements MarkDAO {
     private static final String GET_MARK = "SELECT * FROM MARK where MARK_ID = ?";
     private static final String INSERT_MARK = "Insert into MARK values (MARK_SEQ.nextval, ?, ?, ?)";
+    private static final String INSERT_ABSENT = "Insert into ABSENT values (MARK_SEQ.nextval, ?, ?) ";
     private static final String UPDATE_MARK = "UPDATE MARK set PUPIL_ID = ?, LESSON_ID = ?, MARK = ? where MARK_ID = ?";
     private static final String DELETE_MARK = "Delete from MARK where MARK_ID = ?";
+    private static final String DELETE_ABSENT = "Delete from ABSENT where ABSENT_ID = ? ";
     private static final String GET_MARKS_BY_PUPIL = "SELECT MARK.* FROM MARK " +
             "join LESSON L on MARK.LESSON_ID = L.LESSON_ID " +
             "join THEME T on T.THEME_ID = L.THEME_ID " +
@@ -54,6 +56,7 @@ public class OracleMarkDAO implements MarkDAO {
             "select PUPIL_ID, pupil_NAME, round(avg(Thematic)) mark, null mark_id, null lesson_id from tab " +
             "group by PUPIL_ID, pupil_NAME " +
             "order by pupil_name";
+
     private final LessonDAO lessonDAO;
     private final PupilDAO pupilDAO;
     private final ConnectionPool connectionPool;
@@ -73,7 +76,7 @@ public class OracleMarkDAO implements MarkDAO {
             int id = resultSet.getInt("mark_ID");
             int lessonID = resultSet.getInt("lesson_id");
             int pupilID = resultSet.getInt("pupil_id");
-            int markInt = resultSet.getInt("mark");
+            String markInt = resultSet.getString("mark");
             if (lessonID == 0) {
                 mark = new Mark(id, pupilDAO.getPupil(pupilID), null, markInt);
             } else {
@@ -120,7 +123,7 @@ public class OracleMarkDAO implements MarkDAO {
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_MARK)) {
             preparedStatement.setInt(1, mark.getPupil().getId());
             preparedStatement.setInt(2, mark.getLesson().getId());
-            preparedStatement.setInt(3, mark.getMark());
+            preparedStatement.setString(3, mark.getMark());
             preparedStatement.executeUpdate();
             LOGGER.info("Inserting complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
@@ -129,6 +132,27 @@ public class OracleMarkDAO implements MarkDAO {
             LOGGER.error(throwables.getMessage(), throwables);
         }
     }
+
+    /**
+     * Insert absent into database.
+     * @param mark adding absent
+     */
+    @Override
+    public void addAbsent(Mark mark) throws Exception {
+        LOGGER.info("Inserting mark into database.");
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_ABSENT)) {
+            preparedStatement.setInt(1, mark.getLesson().getId());
+            preparedStatement.setInt(2, mark.getPupil().getId());
+            preparedStatement.executeUpdate();
+            LOGGER.info("Inserting complete.");
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throwException(mark);
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+    }
+
 
     /**
      * Update mark data into database.
@@ -141,7 +165,7 @@ public class OracleMarkDAO implements MarkDAO {
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_MARK)) {
             preparedStatement.setInt(1, mark.getPupil().getId());
             preparedStatement.setInt(2, mark.getLesson().getId());
-            preparedStatement.setInt(3, mark.getMark());
+            preparedStatement.setString(3, mark.getMark());
             preparedStatement.setInt(4, mark.getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Updating complete.");
@@ -165,14 +189,31 @@ public class OracleMarkDAO implements MarkDAO {
 
     /**
      * Delete mark from database.
-     * @param id mark id
+     * @param mark deleted mark
      */
     @Override
-    public void deleteMark(int id) {
-        LOGGER.info("Deleting " + id + " mark.");
+    public void deleteMark(Mark mark) {
+        LOGGER.info("Deleting " + mark.getId() + " mark.");
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_MARK)) {
-            preparedStatement.setInt(1, id);
+            preparedStatement.setInt(1, mark.getId());
+            preparedStatement.executeUpdate();
+            LOGGER.info("Deleting complete.");
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+    }
+
+    /**
+     * Delete mark from database.
+     * @param mark deleted absent
+     */
+    @Override
+    public void deleteAbsent(Mark mark) {
+        LOGGER.info("Deleting " + mark.getId() + " absent.");
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ABSENT)) {
+            preparedStatement.setInt(1, mark.getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Deleting complete.");
         } catch (SQLException throwables) {

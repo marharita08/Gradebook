@@ -24,9 +24,9 @@ public class PostgresPupilClassDAO implements PupilClassDAO {
             "join SUBJECT_DETAILS on CLASS.CLASS_ID=SUBJECT_DETAILS.CLASS_ID where TEACHER_ID = ? order by GRADE, NAME";
     private static final String GET_COUNT_OF_CLASSES = "select count(CLASS_ID) as AMOUNT from CLASS ";
     private static final String GET_CLASSES_BY_PAGE = "SELECT * FROM CLASS order by GRADE, NAME limit ? offset ?";
-    private static final String SEARCH_CLASSES_BY_ID = "SELECT * FROM CLASS where CLASS_ID like ? order by GRADE, NAME";
+    private static final String SEARCH_CLASSES_BY_ID = "SELECT * FROM CLASS where to_char(CLASS_ID, '99999') like ? order by GRADE, NAME";
     private static final String SEARCH_CLASSES_BY_NAME = "SELECT * FROM CLASS where upper(NAME) like ? order by GRADE, NAME";
-    private static final String SEARCH_CLASSES_BY_GRADE = "SELECT * FROM CLASS where upper(GRADE) like ? order by GRADE, NAME";
+    private static final String SEARCH_CLASSES_BY_GRADE = "SELECT * FROM CLASS where to_char(GRADE, '99') like ? order by GRADE, NAME";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(PostgresPupilClassDAO.class.getName());
 

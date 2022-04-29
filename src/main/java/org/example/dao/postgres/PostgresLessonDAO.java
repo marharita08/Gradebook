@@ -5,8 +5,6 @@ import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.LessonDAO;
 import org.example.dao.interfaces.ThemeDAO;
 import org.example.entities.Lesson;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -19,6 +17,8 @@ public class PostgresLessonDAO implements LessonDAO {
     private static final String DELETE_MARKS_FOR_LESSON = "Delete from MARK where LESSON_ID = ?";
     private static final String DELETE_LESSON = "Delete from LESSON where LESSON_ID = ?";
     private static final String GET_LESSONS_BY_THEME = "select * from LESSON where THEME_ID = ? order by LESSON_DATE";
+    private static final String GET_COUNT_OF_LESSONS_BY_SUBJECT_DETAILS = "select count(lesson_id) as AMOUNT from lesson " +
+            "join theme using(theme_id) where subject_details_id=?";
     private final ThemeDAO themeDAO;
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(PostgresLessonDAO.class.getName());
@@ -109,7 +109,6 @@ public class PostgresLessonDAO implements LessonDAO {
      * Delete lesson from database.
      * @param id lesson id
      */
-    @Transactional
     @Override
     public void deleteLesson(int id) {
         try (Connection connection = connectionPool.getConnection();
@@ -145,5 +144,28 @@ public class PostgresLessonDAO implements LessonDAO {
             LOGGER.error(throwables.getMessage(), throwables);
         }
         return list;
+    }
+
+    /**
+     * Count lessons from database by subject details.
+     * @param id subject details id
+     * @return int amount of lessons
+     */
+    @Override
+    public int getCountOfLessonsBySubjectDetails(int id) {
+        LOGGER.info("Counting themes for " + id + " subject details.");
+        int count = 0;
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(GET_COUNT_OF_LESSONS_BY_SUBJECT_DETAILS)) {
+            preparedStatement.setInt(1, id);
+            try (ResultSet resultSet = preparedStatement.executeQuery()){
+                resultSet.next();
+                count = resultSet.getInt("AMOUNT");
+                LOGGER.info("Counting complete.");
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
+        }
+        return count;
     }
 }

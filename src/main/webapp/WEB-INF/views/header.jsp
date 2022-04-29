@@ -2,33 +2,91 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="org.springframework.security.core.context.SecurityContextHolder" %>
 <%@ page import="org.example.entities.User" %>
+<%@ page import="org.apache.log4j.Logger" %>
 <header>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <%
-        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currUser = null;
+        try {
+            currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        } catch (Exception e) {
+            Logger.getLogger("Header").error(e.getMessage(), e);
+        }
         String root = "/Gradebook/";
     %>
     <nav class="navbar-fixed-top  bg-primary">
         <ul>
-            <li><a href="<%=root%>" class="fa fa-home">Home</a></li>
+            <li>
+                <a href="<%=root%>">
+                    <div class="inline"><i class='material-icons'>home</i></div>
+                    <div class="inline">Home</div>
+                </a>
+            </li>
             <sec:authorize access="hasAuthority('PUPIL')">
-                <li><a href="<%=root%>pupil/<%=currUser.getId()%>/pupils" class="fa fa-users">My class</a></li>
-                <li><a href="<%=root%>pupil/<%=currUser.getId()%>/subject-details" class="fa fa-leanpub">My subjects</a></li>
-                <li><a href="<%=root%>pupil/<%=currUser.getId()%>/marks" class="fa fa-edit">My marks</a></li>
+                <li>
+                    <a href="<%=root%>pupil/<%=currUser.getId()%>/pupils">
+                        <div class="inline"><i class='material-icons'>group</i></div>
+                        <div class="inline">My class</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%=root%>pupil/<%=currUser.getId()%>/subject-details">
+                        <div class="inline"><i class='material-icons'>import_contacts</i></div>
+                        <div class="inline">My subjects</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%=root%>pupil/<%=currUser.getId()%>/marks">
+                        <div class="inline"><i class='material-icons'>edit</i></div>
+                        <div class="inline">My marks</div>
+                    </a>
+                </li>
             </sec:authorize>
             <sec:authorize access="hasAuthority('TEACHER')">
-                <li><a href="<%=root%>teacher/<%=currUser.getId()%>/classes" class="fa fa-users">My classes</a></li>
-                <li><a href="<%=root%>teacher/<%=currUser.getId()%>/subject-details" class="fa fa-leanpub">My subjects</a></li>
+                <li>
+                    <a href="<%=root%>teacher/<%=currUser.getId()%>/classes" >
+                        <div class="inline"><i class='material-icons'>group</i></div>
+                        <div class="inline">My classes</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%=root%>teacher/<%=currUser.getId()%>/subject-details">
+                        <div class="inline"><i class='material-icons'>import_contacts</i></div>
+                        <div class="inline">My subjects</div>
+                    </a>
+                </li>
             </sec:authorize>
             <sec:authorize access="hasAuthority('ADMIN')">
-                <li><a href="<%=root%>users?page=1" class="fa fa-users">All users</a></li>
-                <li><a href="<%=root%>teachers?page=1" class="fa fa-graduation-cap">All Teachers</a></li>
-                <li><a href="<%=root%>subjects?page=1" class="fa fa-leanpub">All Subjects</a></li>
+                <li>
+                    <a href="<%=root%>users?page=1">
+                        <div class="inline"><i class='material-icons'>groups</i></div>
+                        <div class="inline">All users</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%=root%>teachers?page=1">
+                        <div class="inline"><i class='material-icons'>school</i></div>
+                        <div class="inline">All teachers</div>
+                    </a>
+                </li>
+                <li>
+                    <a href="<%=root%>subjects?page=1">
+                        <div class="inline"><i class='material-icons'>import_contacts</i></div>
+                        <div class="inline">All subjects</div>
+                    </a>
+                </li>
             </sec:authorize>
             <sec:authorize access="isAuthenticated()">
                 <li class="logout">
-                    <a href="<%=root%>user/<%=currUser.getId()%>" class="fa fa-user username"><%=" " + currUser.getUsername() + " "%></a>
-                    <a href="<%=root%>logout" class="fa fa-sign-out">Logout</a></li>
+                    <a href="<%=root%>user/<%=currUser.getId()%>" class="username">
+                        <div class="inline"><i class='material-icons'>account_circle</i></div>
+                        <div class="inline"><%=" " + currUser.getUsername() + " "%></div>
+                    </a>
+                    <a href="<%=root%>logout">
+                        <div class="inline"><i class='material-icons'>logout</i></div>
+                        <div class="inline">Logout</div>
+                    </a>
+                </li>
             </sec:authorize>
         </ul>
     </nav>
