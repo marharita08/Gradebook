@@ -92,9 +92,13 @@
             </sec:authorize>
             <sec:authorize access="!isAuthenticated()">
                 <li class="logout">
-                    <a href="<%=root%>login">
+                    <a href="<%=root%>login.jsp">
                         <div class="inline"><i class='material-icons'>login</i></div>
                         <div class="inline">Login</div>
+                    </a>
+                    <a href="<%=root%>registration">
+                        <div class="inline"><i class='material-icons'>app_registration</i></div>
+                        <div class="inline">Signup</div>
                     </a>
                 </li>
             </sec:authorize>

@@ -67,6 +67,7 @@ label {
 }
 .dates{
     writing-mode: vertical-rl;
+    transform: rotate(180deg);
 }
 header li{
     display: inline;
@@ -110,7 +111,6 @@ header ul{
     padding-bottom: 14px;
 }
 footer{
-    position: fixed;
     left: 0; bottom: 0;
     padding: 10px;
     width: 100%;
@@ -132,6 +132,7 @@ footer{
 .box {
     background-color: #F0F8FF;
     width: 80%;
+    min-height: 87.6%;
     padding: 10px;
 }
 .push {

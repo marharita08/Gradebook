@@ -188,7 +188,8 @@
                             "<td>",
                             "<a href='<%=root%>subject-detail/", id, "'><i class='material-icons'>edit</i></a>",
                             "</td><td>",
-                            "<a href='<%=root%>subject-detail/", id, "delete?page=1'><i class='material-icons'>delete</i></a>",
+                            "<a href='<%=root%>subject-detail/", id,
+                            "delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a>",
                             "</td>"
                         );
                     }

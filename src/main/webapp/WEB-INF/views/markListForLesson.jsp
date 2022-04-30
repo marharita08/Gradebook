@@ -1,5 +1,7 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ page import="org.example.entities.*" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.text.DateFormat" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
     <head>
@@ -16,6 +18,8 @@
                 <h2><%=request.getAttribute("header")%></h2>
                 <%
                     Lesson lesson = (Lesson) request.getAttribute("lesson");
+                    DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+                    String strDate = dateFormat.format(lesson.getDate());
                     Theme theme = lesson.getTheme();
                     SubjectDetails subjectDetails = theme.getSubjectDetails();
                     Teacher teacher = subjectDetails.getTeacher();
@@ -45,7 +49,7 @@
                     </tr>
                     <tr>
                         <td>Date:</td>
-                        <td><%=lesson.getDate()%></td>
+                        <td><%=strDate%></td>
                     </tr>
                     <tr>
                         <td>Topic:</td>

@@ -116,7 +116,8 @@
                             "<td>",
                             "<a href='<%=root%>subject/", id, "'><i class='material-icons'>edit</i></a>",
                             "</td><td>",
-                            "<a href='<%=root%>subject/", id, "delete?page=1'><i class='material-icons'>delete</i></a>",
+                            "<a href='<%=root%>subject/", id,
+                            "delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a>",
                             "</td>"
                         );
                     }

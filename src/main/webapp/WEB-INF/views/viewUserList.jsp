@@ -110,7 +110,9 @@
                     "</td><td>"
                 );
                 if (id !== 0) {
-                    html.push("<a href='<%=root%>user/", id, "/delete?page=1'><i class='material-icons'>delete</i></a>");
+                    html.push(
+                        "<a href='<%=root%>user/", id,
+                        "/delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a>");
                 }
                 html.push(
                     "</td>",

@@ -5,6 +5,7 @@
 <html>
     <head>
         <title>Log in</title>
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <style><%@include file="/WEB-INF/css/style.css"%></style>

@@ -135,7 +135,8 @@
                         html.push("<td>",
                             "<a href='<%=root%>user/", id, "'><i class='material-icons'>edit</i></a>",
                             "</td><td>",
-                            "<a href='<%=root%>pupil/", id, "delete?page=1'><i class='material-icons'>delete</i></a></td>",
+                            "<a href='<%=root%>pupil/", id,
+                            "delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a></td>",
                             "</td>"
                         );
                     }

@@ -166,7 +166,8 @@
                             "<td>",
                             "<a href='<%=root%>semester/", id, "'><i class='material-icons'>edit</i></a>",
                             "</td><td>",
-                            "<a href='<%=root%>semester/", id, "/delete?page=1'><i class='material-icons'>delete</i></a>",
+                            "<a href='<%=root%>semester/", id,
+                            "/delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a>",
                             "</td>");
                     }
                     if (<%=isTeacher%>) {

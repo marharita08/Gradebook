@@ -12,6 +12,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -270,5 +272,25 @@ public class UserController {
             model.put("list", pupilClassDAO.getAllPupilClasses());
         }
         return new ModelAndView("userPage", model);
+    }
+
+    @RequestMapping(value = "/registration")
+    public ModelAndView getSignUpPage() {
+        Map<String, Object> model = new HashMap<>();
+        model.put("command", new User());
+        return new ModelAndView("signUp", model);
+    }
+
+    @RequestMapping(value = "/registration", method = RequestMethod.POST)
+    public ModelAndView register(@ModelAttribute User user, HttpServletRequest request) throws Exception {
+        String password = user.getPassword();
+        user.setPassword(passwordEncoder.encode(password));
+        dao.addUser(user);
+        try {
+            request.login(user.getUsername(), password);
+        } catch (ServletException e) {
+            LOGGER.error("Error while login ", e);
+        }
+        return new ModelAndView("redirect:/");
     }
 }

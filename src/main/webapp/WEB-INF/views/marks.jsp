@@ -1,6 +1,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.*" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.text.DateFormat" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
     <head>
@@ -59,8 +61,10 @@
                                     <%
                                         for (Map.Entry<Integer, List<Lesson>> entry:lessons.entrySet()) {
                                             for (Lesson lesson: entry.getValue()) {
+                                                DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+                                                String strDate = dateFormat.format(lesson.getDate());
                                     %>
-                                                <td class="borders"><p class="dates"><%=lesson.getDate()%></p></td>
+                                                <td class="borders"><p class="dates"><%=strDate%></p></td>
                                         <%
                                             }
                                         %>
