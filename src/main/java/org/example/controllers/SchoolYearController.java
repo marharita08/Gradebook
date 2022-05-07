@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ import java.util.Map;
 public class SchoolYearController {
     private final SchoolYearDAO dao;
     private static final int schoolYearsPerPage = 25;
+    private static final String SCHOOL_YEAR_LINK = "/years?page=1";
     private static final Logger LOGGER = Logger.getLogger(SchoolYearController.class.getName());
 
     public SchoolYearController(SchoolYearDAO dao) {
@@ -42,6 +44,7 @@ public class SchoolYearController {
             list = dao.getSchoolYearsByPage(page, schoolYearsPerPage);
         }
         model.put("list", list);
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("pagination", paginationController.makePagingLinks("years"));
         model.put("header", "School years list");
         model.put("pageNum", page);
@@ -59,6 +62,9 @@ public class SchoolYearController {
         LOGGER.info("Add new school year.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Add school year", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new SchoolYear());
         model.put("title", "Add school year");
         model.put("formAction", "year");
@@ -96,10 +102,12 @@ public class SchoolYearController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Edit school year", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", schoolYear);
         model.put("title", "Edit school year");
         model.put("formAction", "../saveEditedSchoolYear");
-        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing school year data.");
         return new ModelAndView("schoolYearForm", model);
     }
@@ -150,5 +158,11 @@ public class SchoolYearController {
             list = dao.getSchoolYearsByPage(1, schoolYearsPerPage);
         }
         return list;
+    }
+
+    private Map<String, String> getBasicCrumbsMap() {
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("School years", SCHOOL_YEAR_LINK);
+        return crumbsMap;
     }
 }

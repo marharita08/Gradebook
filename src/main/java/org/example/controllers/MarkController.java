@@ -58,9 +58,14 @@ public class MarkController {
         if (user.hasRole("PUPIL") && user.getId() != pupil.getId()) {
             return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Classes", "/classes?page=1");
+        crumbsMap.put("Pupils", "/class/" + pupil.getPupilClass().getId() + "/pupils");
+        crumbsMap.put("Marks", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", dao.getMarksByPupil(id));
         model.put("header", "Marks for " + pupil.getName());
-        model.put("subjectList", subjectDAO.getSubjectsByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
+        model.put("subjectList", subjectDAO.getSubjectsByPupilClass(pupil.getPupilClass().getId()));
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForPupil", model);
     }
@@ -88,6 +93,18 @@ public class MarkController {
                         lesson.getTheme().getSubjectDetails().getPupilClass().getId()){
             return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        if (user.hasRole("ADMIN")) {
+            crumbsMap.put("Subject details", "/subject-details?page=1");
+        } else if (user.hasRole("TEACHER")) {
+            crumbsMap.put("Subject details", "teacher/" + user.getId() + "/subject-details");
+        } else if (user.hasRole("PUPIL")) {
+            crumbsMap.put("Subject details", "pupil/" + user.getId() + "/subject-details");
+        }
+        crumbsMap.put("Themes", "/subject-details/" + lesson.getTheme().getSubjectDetails().getId() + "/themes");
+        crumbsMap.put("Lessons", "/theme/" + lesson.getTheme().getId() + "/lessons");
+        crumbsMap.put("Marks", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", new MarkList(dao.getMarksByLesson(id)));
         model.put("header", "Marks for lesson");
         model.put("lesson", lesson);
@@ -138,6 +155,16 @@ public class MarkController {
         Map<String, Mark> semesterMarks = markService.getSemesterMarks(subjectDetails);
         int count = markService.getCountOfMarks(subjectDetails.getId());
         PaginationController paginationController = new PaginationController(count, marksPerPage, page);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        if (user.hasRole("ADMIN")) {
+            crumbsMap.put("Subject details", "/subject-details?page=1");
+        } else if (user.hasRole("TEACHER")) {
+            crumbsMap.put("Subject details", "/teacher/" + user.getId() + "/subject-details");
+        } else if (user.hasRole("PUPIL")) {
+            crumbsMap.put("Subject details", "/pupil/" + user.getId() + "/subject-details");
+        }
+        crumbsMap.put("Marks", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("pagination", paginationController.makePagingLinks("marks"));
         model.put("page", page);
         model.put("marks", marks);

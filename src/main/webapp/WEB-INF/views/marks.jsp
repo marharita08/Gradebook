@@ -16,6 +16,8 @@
         <%@include file="header.jsp"%>
         <div align="center">
             <div align="center" class="box">
+                <br/>
+                <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
                 <h2><%=request.getAttribute("header")%></h2>
                 <%
                     SubjectDetails subjectDetails = (SubjectDetails) request.getAttribute("subjectDetails");

@@ -3,6 +3,9 @@ package org.example;
 import org.apache.log4j.PropertyConfigurator;
 import org.example.dao.ConnectionPool;
 import org.example.dao.GenerateTables;
+import org.example.entities.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -25,7 +28,20 @@ public class MyServletContextListener implements ServletContextListener {
         PropertyConfigurator.configure(properties);
         GenerateTables generateTables = new GenerateTables(new ConnectionPool());
         generateTables.generate();
-
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        User user = new User();
+        Properties userProp = new Properties();
+        try {
+            userProp.load(
+                    Thread.currentThread()
+                            .getContextClassLoader()
+                            .getResourceAsStream("defaultAdmin.properties"));
+            user.setPassword(passwordEncoder.encode(userProp.getProperty("password")));
+            user.setUsername(userProp.getProperty("username"));
+            generateTables.initDefaultUser(user);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

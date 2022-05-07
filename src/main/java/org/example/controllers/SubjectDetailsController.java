@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ public class SubjectDetailsController {
     private final PupilDAO pupilDAO;
     private static final int subjectDetailsPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(SubjectDetailsController.class.getName());
+    private static final String SUBJECT_DETAILS_LINK = "/subject-details?page=1";
 
     public SubjectDetailsController(SubjectDetailsDAO dao,
                                     PupilClassDAO classDAO,
@@ -55,6 +57,7 @@ public class SubjectDetailsController {
         } else {
             list = dao.getSubjectDetailsByPage(page, subjectDetailsPerPage);
         }
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("list", list);
         model.put("pagination", paginationController.makePagingLinks("viewAllSubjectDetails"));
         model.put("header", "Subject Details List");
@@ -85,6 +88,9 @@ public class SubjectDetailsController {
         LOGGER.info("Add new subject details.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Add subject details", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new SubjectDetails());
         model.put("selectedClass", 0);
         model.put("selectedTeacher", 0);
@@ -92,8 +98,8 @@ public class SubjectDetailsController {
         model.put("selectedSemester", 0);
         model.put("classList", pupilClasses);
         model.put("teacherList", teacherDAO.getAllTeachers());
-        model.put("subjectList", subjectDAO.getAllSubjects());
-        model.put("semesterList", semesterDAO.getAllSemesters());
+        model.put("subjectList", subjects);
+        model.put("semesterList", semesters);
         model.put("title", "Add Subject Details");
         model.put("formAction", "subject-detail");
         LOGGER.info("Printing form for input subject details data.");
@@ -111,7 +117,7 @@ public class SubjectDetailsController {
         LOGGER.info("Saving added subject details.");
         dao.addSubjectDetails(subjectDetails);
         LOGGER.info("Redirect to subject details list.");
-        return new ModelAndView("redirect:/subject-details?page=1");
+        return new ModelAndView("redirect:" + SUBJECT_DETAILS_LINK);
     }
 
     /**
@@ -130,6 +136,9 @@ public class SubjectDetailsController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Edit subject details", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", subjectDetails);
         model.put("selectedClass", subjectDetails.getPupilClass().getId());
         model.put("selectedTeacher", subjectDetails.getTeacher().getId());
@@ -156,7 +165,7 @@ public class SubjectDetailsController {
         LOGGER.info("Saving edited subject details.");
         dao.updateSubjectDetails(subjectDetails);
         LOGGER.info("Redirect to subject details list.");
-        return new ModelAndView("redirect:/subject-details?page=1");
+        return new ModelAndView("redirect:" + SUBJECT_DETAILS_LINK);
     }
 
     /**
@@ -199,6 +208,10 @@ public class SubjectDetailsController {
             Pupil pupil = pupilDAO.getPupil(user.getId());
             model.put("pupilClass", pupil.getPupilClass());
         }
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Teachers", "/teachers?page=1");
+        crumbsMap.put("Subject details", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", list);
         model.put("header", "Subjects of " + teacher.getName());
         model.put("pagination", "");
@@ -228,6 +241,10 @@ public class SubjectDetailsController {
             Pupil pupil = pupilDAO.getPupil(user.getId());
             model.put("pupilClass", pupil.getPupilClass());
         }
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Pupils", "/pupils?page=1");
+        crumbsMap.put("Subject details", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", list);
         model.put("header", "Subjects of " + pupilClass.getName());
         model.put("pagination", "");
@@ -257,6 +274,10 @@ public class SubjectDetailsController {
             Pupil pupil = pupilDAO.getPupil(user.getId());
             model.put("pupilClass", pupil.getPupilClass());
         }
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Subject", "/subjects?page=1");
+        crumbsMap.put("Subject details", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", list);
         model.put("header", "Subject " + subject.getName());
         model.put("pagination", "");
@@ -287,6 +308,10 @@ public class SubjectDetailsController {
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndTeacher(semesterID, teacherID);
         model.put("list", list);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Semesters", "/semesters?page=1");
+        crumbsMap.put("Subject details", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("header", "Subjects of " + teacher.getName() + " for " + semester.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
@@ -316,6 +341,10 @@ public class SubjectDetailsController {
         Map<String, Object> model = new HashMap<>();
         List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndPupil(semesterID, pupilID);
         model.put("list", list);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Semesters", "/semesters?page=1");
+        crumbsMap.put("Subject details", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("header", "Subjects of " + pupil.getPupilClass().getName() + " for " + semester.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
@@ -352,5 +381,11 @@ public class SubjectDetailsController {
             list = dao.getSubjectDetailsByPage(1, subjectDetailsPerPage);
         }
         return list;
+    }
+
+    private Map<String, String> getBasicCrumbsMap() {
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Subject details", SUBJECT_DETAILS_LINK);
+        return crumbsMap;
     }
 }

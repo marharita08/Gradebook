@@ -28,7 +28,8 @@ public class PostgresMarkDAO implements MarkDAO {
             "join THEME T on T.THEME_ID = L.THEME_ID " +
             "join SUBJECT_DETAILS SD on T.SUBJECT_DETAILS_ID = SD.SUBJECT_DETAILS_ID " +
             "join SEMESTER S on SD.SEMESTER_ID = S.SEMESTER_ID and CURRENT_DATE between START_DATE and END_DATE " +
-            " where PUPIL_ID = ?";
+            " where PUPIL_ID = ? " +
+            "order by lesson_date";
     private static final String GET_MARKS_BY_LESSON = "select p.PUPIL_ID, COALESCE(MARK_ID, ABSENT_ID) as MARK_ID, M.LESSON_ID, " +
             "CASE WHEN absent_id is not null THEN 'a' ELSE to_char(mark, '99') END as mark " +
             "from PUPIL p " +

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +46,9 @@ public class LessonController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap(theme);
+        crumbsMap.put("Add lesson", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new Lesson(theme));
         model.put("title", "Add lesson");
         model.put("formAction", "../../lesson");
@@ -86,6 +90,9 @@ public class LessonController {
             return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap(theme);
+        crumbsMap.put("Edit lesson", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("title", "Edit lesson");
         model.put("command", lesson);
         model.put("formAction", "../lesson/" + lesson.getId());
@@ -128,7 +135,7 @@ public class LessonController {
         }
         dao.deleteLesson(id);
         LOGGER.info("Redirect to list of lessons for " + theme.getId() + " theme.");
-        return new ModelAndView("redirect:/viewLessonsByTheme/" + theme.getId());
+        return new ModelAndView("redirect:/theme/" + theme.getId() + "/lessons");
     }
 
     /**
@@ -148,9 +155,25 @@ public class LessonController {
         List<Lesson> list;
         Map<String, Object> model = new HashMap<>();
         list = dao.getLessonsByTheme(id);
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap(theme)));
         model.put("list", list);
         model.put("theme", theme);
         LOGGER.info("Printing lessons list.");
         return new ModelAndView("viewLessonList", model);
+    }
+
+    private Map<String, String> getBasicCrumbsMap(Theme theme) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        if (user.hasRole("ADMIN")) {
+            crumbsMap.put("Subject details", "/subject-details?page=1");
+        } else if (user.hasRole("TEACHER")) {
+            crumbsMap.put("Subject details", "/teacher/" + user.getId() + "/subject-details");
+        } else if (user.hasRole("PUPIL")) {
+            crumbsMap.put("Subject details", "/pupil/" + user.getId() + "/subject-details");
+        }
+        crumbsMap.put("Themes", "/subject-details/" + theme.getSubjectDetails().getId() + "/themes");
+        crumbsMap.put("Lessons", "/theme/" + theme.getId() + "/lessons");
+        return crumbsMap;
     }
 }

@@ -14,6 +14,8 @@
         <div align="center">
             <div align="center" class="box">
                 <br/>
+                <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
+                <br/>
                 <div class="card" style="width: 50%">
                     <br/>
                     <h2 align="center"><%=request.getAttribute("title")%></h2>

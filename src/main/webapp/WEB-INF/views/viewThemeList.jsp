@@ -16,6 +16,8 @@
         <%@include file="header.jsp"%>
         <div align="center">
             <div align="center" class="box">
+                <br/>
+                <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
                 <h2><%=request.getAttribute("header")%></h2>
                 <%
                     SubjectDetails subjectDetails = (SubjectDetails) request.getAttribute("subjectDetails");
@@ -151,13 +153,6 @@
                     <%
                         if(teacher != null && currUser.getId() == teacher.getId()) {
                     %>
-                            <button
-                                    onclick='location.href="<%=root%>teacher/<%=teacher.getId()%>/subject-details"'
-                                    class="bg-primary"
-                            >
-                                <div class='inline'><i class='material-icons'>import_contacts</i></div>
-                                <div class='inline'>To subjects</div>
-                            </button>
                             <button onclick='location.href="theme"' class="bg-primary">
                                 <div class="inline"><i class='material-icons'>note_add</i></div>
                                 <div class="inline">Add</div>

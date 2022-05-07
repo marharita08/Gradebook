@@ -23,7 +23,6 @@ public class PostgresUserDAO implements UserDAO {
     private static final String GET_USER = "SELECT * FROM GRADEBOOK_USER where USER_ID=?";
     private static final String INSERT_USER = "Insert into GRADEBOOK_USER (username, password) values (?, ?)";
     private static final String UPDATE_USER = "UPDATE GRADEBOOK_USER set username = ?, password = ? where user_id = ?";
-    private static final String DELETE_ROLES_OF_DELETING_USER = "Delete from USER_ROLE where user_id = ?";
     private static final String DELETE_USER = "Delete from GRADEBOOK_USER where user_id = ?";
     private static final String DELETE_ROLE_OF_USER = "Delete from USER_ROLE where user_id = ? and  role_id = ?";
     private static final String CHECK_ROLE_OF_USER = "select count(user_id) AMOUNT from USER_ROLE where user_id=? and role_id=?";
@@ -190,21 +189,14 @@ public class PostgresUserDAO implements UserDAO {
     @Override
     public void deleteUser(int id) {
         LOGGER.info("Deleting user " + id + ".");
-        User user = getUserByID(id);
-        if (user.hasRole("TEACHER")) {
-            teacherDAO.deleteTeacher(id);
-        } else if (user.hasRole("PUPIL")) {
-            pupilDAO.deletePupil(id);
-        } else {
-            try (Connection connection = connectionPool.getConnection();
-                 PreparedStatement preparedStatement = connection.prepareStatement(DELETE_USER)) {
-                LOGGER.info("Deleting user from database.");
-                preparedStatement.setInt(1, id);
-                preparedStatement.executeUpdate();
-                LOGGER.info("Deleting complete");
-            } catch (SQLException throwables) {
-                LOGGER.error(throwables.getMessage(), throwables);
-            }
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_USER)) {
+            LOGGER.info("Deleting user from database.");
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+            LOGGER.info("Deleting complete");
+        } catch (SQLException throwables) {
+            LOGGER.error(throwables.getMessage(), throwables);
         }
     }
 

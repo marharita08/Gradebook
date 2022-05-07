@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +52,9 @@ public class PupilController {
             list = dao.getPupilsByPage(page, pupilPerPage);
         }
         model.put("list", list);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Pupils", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("pagination", paginationController.makePagingLinks("pupils"));
         model.put("pageNum", page);
         model.put("header", "Pupil List");
@@ -100,11 +104,14 @@ public class PupilController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Classes", "/classes?page=1");
+        crumbsMap.put("Pupils", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("header", "Pupils of " + pupilClass.getName() + " form");
         model.put("list", dao.getPupilsByPupilClass(id));
         model.put("pagination", "");
         model.put("pageNum", 1);
-        model.put("toRoot", "../../");
         LOGGER.info("Printing pupil list.");
         return new ModelAndView("viewPupilList", model);
     }

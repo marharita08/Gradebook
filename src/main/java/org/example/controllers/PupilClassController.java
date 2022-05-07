@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ public class PupilClassController {
     private final SubjectDAO subjectDAO;
     private final TeacherDAO teacherDAO;
     private static final int pupilClassPerPage = 25;
+    private static final String CLASSES_LINK = "/classes?page=1";
     private static final Logger LOGGER = Logger.getLogger(PupilClassController.class.getName());
 
     public PupilClassController(PupilClassDAO dao,
@@ -49,6 +51,7 @@ public class PupilClassController {
             list = dao.getPupilClassesByPage(page, pupilClassPerPage);
         }
         model.put("list", list);
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("pagination", paginationController.makePagingLinks("classes"));
         model.put("header", "All classes");
         model.put("pageNum", page);
@@ -72,6 +75,10 @@ public class PupilClassController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Teachers", "/teachers?page=1");
+        crumbsMap.put("Classes", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", dao.getPupilClassesByTeacher(id));
         model.put("header", "Classes taught by " + teacher.getName());
         model.put("pagination", "");
@@ -90,6 +97,9 @@ public class PupilClassController {
         LOGGER.info("Add new class.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Add class", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new PupilClass());
         model.put("selectedGrade", 1);
         model.put("title", "Add class");
@@ -128,6 +138,9 @@ public class PupilClassController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Edit class", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", pupilClass);
         model.put("selectedGrade", pupilClass.getGrade());
         model.put("title", "Edit class");
@@ -182,5 +195,11 @@ public class PupilClassController {
             list = dao.getPupilClassesByPage(1, pupilClassPerPage);
         }
         return list;
+    }
+
+    private Map<String, String> getBasicCrumbsMap() {
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Classes", CLASSES_LINK);
+        return crumbsMap;
     }
 }

@@ -15,6 +15,8 @@
         <%@include file="header.jsp"%>
         <div align="center">
             <div align="center" class="box">
+                <br/>
+                <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
                 <h2 align="center"><%=request.getAttribute("header")%> </h2>
                 <%
                     int pageNum = (int)request.getAttribute("pageNum");

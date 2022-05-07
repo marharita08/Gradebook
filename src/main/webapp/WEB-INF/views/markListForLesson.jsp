@@ -15,6 +15,8 @@
         <%@include file="header.jsp"%>
         <div align="center">
             <div align="center" class="box">
+                <br/>
+                <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
                 <h2><%=request.getAttribute("header")%></h2>
                 <%
                     Lesson lesson = (Lesson) request.getAttribute("lesson");
@@ -126,10 +128,6 @@
                 <button onclick=history.back() class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
                     <div class="inline">Back</div>
-                </button>
-                <button onclick='location.href="../../theme/<%=theme.getId()%>/lessons"' class="bg-primary">
-                    <div class="inline"><i class='material-icons'>event_note</i></div>
-                    <div class="inline">To lessons</div>
                 </button>
             </div>
         </div>

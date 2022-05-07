@@ -10,8 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +47,9 @@ public class TeacherController {
         } else {
             list = dao.getTeachersByPage(page, teachersPerPage);
         }
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Teachers", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", list);
         model.put("pagination", paginationController.makePagingLinks("teachers"));
         model.put("header", "Teacher list");

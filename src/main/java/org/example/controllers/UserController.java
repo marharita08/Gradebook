@@ -15,6 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ public class UserController {
     private static final int userPerPage = 25;
     private final PasswordEncoder passwordEncoder;
     private static final Logger LOGGER = Logger.getLogger(UserController.class.getName());
+    private static final String USERS_LINK = "/users?page=1";
 
     public UserController(UserDAO dao, RoleDAO roleDAO, TeacherDAO teacherDAO,
                           PupilDAO pupilDAO, PupilClassDAO pupilClassDAO, PasswordEncoder passwordEncoder) {
@@ -73,6 +75,7 @@ public class UserController {
         } else {
             list = dao.getUsersByPage(page, userPerPage);
         }
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("roles", roleDAO.getAllRoles());
         model.put("list", list);
         model.put("pagination", paginationController);
@@ -93,6 +96,9 @@ public class UserController {
         User user = new User();
         Pupil pupil = new Pupil();
         Teacher teacher = new Teacher();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Add user", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("teacher", teacher);
         model.put("pupil", pupil);
         model.put("user", user);
@@ -134,7 +140,7 @@ public class UserController {
             teacherDAO.addTeacher(teacher);
         }
         LOGGER.info("Redirect to user list.");
-        return new ModelAndView("redirect:/users?page=1");
+        return new ModelAndView("redirect:" + USERS_LINK);
     }
 
     /**
@@ -188,7 +194,7 @@ public class UserController {
                 teacherDAO.updateTeacher(teacher);
             }
             LOGGER.info("Redirect to user list.");
-            return new ModelAndView("redirect:../users?page=1");
+            return new ModelAndView("redirect:.." + USERS_LINK);
         } else {
             LOGGER.info("Redirect to user page.");
             return new ModelAndView("redirect:/user/" + user.getId());
@@ -263,6 +269,9 @@ public class UserController {
         if (pupil == null) {
             pupil = new Pupil();
         }
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("User page", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("teacher", teacher);
         model.put("pupil", pupil);
         model.put("user", user);
@@ -292,5 +301,11 @@ public class UserController {
             LOGGER.error("Error while login ", e);
         }
         return new ModelAndView("redirect:/");
+    }
+
+    private Map<String, String> getBasicCrumbsMap() {
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Users", USERS_LINK);
+        return crumbsMap;
     }
 }

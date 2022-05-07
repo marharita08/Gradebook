@@ -1,12 +1,12 @@
 from java.io import FileInputStream
  
-propInputStream = FileInputStream("datasource.properties")
+propInputStream = FileInputStream("src/main/resources/datasource.properties")
 configProps = Properties()
 configProps.load(propInputStream)
  
 domainName=configProps.get("domain.name")
 adminURL=configProps.get("admin.url")
-adminUserName=configProps.get("admin.userName")
+adminUserName=configProps.get("admin.username")
 adminPassword=configProps.get("admin.password")
  
 dsName=configProps.get("datasource.name")
@@ -29,7 +29,7 @@ cd('/JDBCSystemResources/' + dsName + '/JDBCResource/' + dsName)
 cmo.setName(dsName)
  
 cd('/JDBCSystemResources/' + dsName + '/JDBCResource/' + dsName + '/JDBCDataSourceParams/' + dsName )
-set('JNDINames',jarray.array([String('jdbc/' + dsName )], String))
+set('JNDINames',jarray.array([String(dsJNDIName)], String))
  
 cd('/JDBCSystemResources/' + dsName + '/JDBCResource/' + dsName + '/JDBCDriverParams/' + dsName )
 cmo.setUrl(dsURL)

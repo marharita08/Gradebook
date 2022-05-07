@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ public class SemesterController {
     private final SemesterDAO dao;
     private final SchoolYearDAO schoolYearDAO;
     private static final int semestersPerPage = 25;
+    private static final String SEMESTERS_LINK = "/semesters?page=1";
     private static final Logger LOGGER = Logger.getLogger(SemesterController.class.getName());
 
     public SemesterController(SemesterDAO dao, SchoolYearDAO schoolYearDAO) {
@@ -46,6 +48,7 @@ public class SemesterController {
             list = dao.getSemestersByPage(page, semestersPerPage);
         }
         model.put("list", list);
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("pagination", paginationController.makePagingLinks("semesters"));
         model.put("header", "Semesters list");
         model.put("pageNum", page);
@@ -67,6 +70,9 @@ public class SemesterController {
         LOGGER.info("Add new semester.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Add semester", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new Semester());
         model.put("list", schoolYears);
         model.put("selectedSchoolYear", 0);
@@ -87,7 +93,7 @@ public class SemesterController {
         LOGGER.info("Saving added semester.");
         dao.addSemester(semester);
         LOGGER.info("Redirect to semester list.");
-        return new ModelAndView("redirect:/semesters?page=1");
+        return new ModelAndView("redirect:" + SEMESTERS_LINK);
     }
 
     /**
@@ -106,12 +112,14 @@ public class SemesterController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Edit semester", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", semester);
         model.put("list", schoolYearDAO.getAllSchoolYears());
         model.put("selectedSchoolYear", semester.getSchoolYear().getId());
         model.put("title", "Edit semester");
         model.put("formAction", "../semester/" + semester.getId());
-        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing semester data.");
         return new ModelAndView("semesterForm", model);
     }
@@ -127,7 +135,7 @@ public class SemesterController {
         LOGGER.info("Saving edited semester.");
         dao.updateSemester(semester);
         LOGGER.info("Redirect to school semester.");
-        return new ModelAndView("redirect:/semesters?page=1");
+        return new ModelAndView("redirect:" + SEMESTERS_LINK);
     }
 
     /**
@@ -162,5 +170,11 @@ public class SemesterController {
             list = dao.getSemestersByPage(1, semestersPerPage);
         }
         return list;
+    }
+
+    private Map<String, String> getBasicCrumbsMap() {
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Semesters", SEMESTERS_LINK);
+        return crumbsMap;
     }
 }

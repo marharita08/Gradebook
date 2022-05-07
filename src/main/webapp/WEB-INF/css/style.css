@@ -132,7 +132,7 @@ footer{
 .box {
     background-color: #F0F8FF;
     width: 80%;
-    min-height: 87.6%;
+    min-height: 95%;
     padding: 10px;
 }
 .push {
@@ -185,9 +185,6 @@ footer{
 .school-div {
     padding: 10px;
 }
-a {
-    color: black;
-}
 td a {
     color: #23527c;
     font-weight: bold;
@@ -219,6 +216,9 @@ td, tr {
     .search, .search-middle {
         width: 200px;
     }
+    .box {
+        min-height: 87.6%;
+    }
 }
 .user-img {
     width: 250px;
@@ -245,4 +245,26 @@ h2 {
 }
 .success {
     color: green;
+}
+ul.breadcrumb {
+    padding: 10px 16px;
+    list-style: none;
+    background-color: #eee;
+}
+ul.breadcrumb li {
+    display: inline;
+    font-size: 18px;
+}
+ul.breadcrumb li+li:before {
+    padding: 8px;
+    color: black;
+    content: "/\00a0";
+}
+ul.breadcrumb li a {
+    color: #0275d8;
+    text-decoration: none;
+}
+ul.breadcrumb li a:hover {
+    color: #01447e;
+    text-decoration: underline;
 }

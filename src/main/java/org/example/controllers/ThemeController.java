@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,7 @@ public class ThemeController {
         List<Theme> list;
         Map<String, Object> model = new HashMap<>();
         list = dao.getThemesBySubjectDetails(id);
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap(id)));
         model.put("list", list);
         model.put("header", "Themes for "
                 + subjectDetails.getSubject().getName()
@@ -75,6 +77,9 @@ public class ThemeController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap(id);
+        crumbsMap.put("Add theme", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new Theme(subjectDetails));
         model.put("title", "Add theme");
         model.put("formAction", "theme");
@@ -117,10 +122,12 @@ public class ThemeController {
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap(id);
+        crumbsMap.put("Edit theme", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", theme);
         model.put("title", "Edit theme");
         model.put("formAction", "../theme/" + theme.getId());
-        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing theme data.");
         return new ModelAndView("themeForm", model);
     }
@@ -160,5 +167,19 @@ public class ThemeController {
         dao.deleteTheme(id);
         LOGGER.info("Redirect to theme list.");
         return new ModelAndView("redirect:/subject-details/" + theme.getSubjectDetails().getId() + "/themes");
+    }
+
+    private Map<String, String> getBasicCrumbsMap(int subjectDetailsID) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        if (user.hasRole("ADMIN")) {
+            crumbsMap.put("Subject details", "/subject-details?page=1");
+        } else if (user.hasRole("TEACHER")) {
+            crumbsMap.put("Subject details", "/teacher/" + user.getId() + "/subject-details");
+        } else if (user.hasRole("PUPIL")) {
+            crumbsMap.put("Subject details", "/pupil/" + user.getId() + "/subject-details");
+        }
+        crumbsMap.put("Themes", "/subject-details/" + subjectDetailsID + "/themes");
+        return crumbsMap;
     }
 }

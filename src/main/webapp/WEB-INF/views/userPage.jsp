@@ -29,6 +29,8 @@
         %>
         <div align="center">
             <div class="box" align="left">
+                <br/>
+                <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
                 <h2>User page</h2>
                 <div class="box-index">
                     <div class="user-div">
