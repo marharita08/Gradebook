@@ -21,26 +21,26 @@
             <li>
                 <a href="<%=root%>">
                     <div class="inline"><i class='material-icons'>home</i></div>
-                    <div class="inline">Home</div>
+                    <div class="inline">Головна</div>
                 </a>
             </li>
             <sec:authorize access="hasAuthority('PUPIL')">
                 <li>
                     <a href="<%=root%>pupil/<%=currUser.getId()%>/pupils">
                         <div class="inline"><i class='material-icons'>group</i></div>
-                        <div class="inline">My class</div>
+                        <div class="inline">Мій клас</div>
                     </a>
                 </li>
                 <li>
                     <a href="<%=root%>pupil/<%=currUser.getId()%>/subject-details">
                         <div class="inline"><i class='material-icons'>import_contacts</i></div>
-                        <div class="inline">My subjects</div>
+                        <div class="inline">Мої предмети</div>
                     </a>
                 </li>
                 <li>
                     <a href="<%=root%>pupil/<%=currUser.getId()%>/marks">
                         <div class="inline"><i class='material-icons'>edit</i></div>
-                        <div class="inline">My marks</div>
+                        <div class="inline">Мої оцінки</div>
                     </a>
                 </li>
             </sec:authorize>
@@ -48,13 +48,13 @@
                 <li>
                     <a href="<%=root%>teacher/<%=currUser.getId()%>/classes" >
                         <div class="inline"><i class='material-icons'>group</i></div>
-                        <div class="inline">My classes</div>
+                        <div class="inline">Мої класи</div>
                     </a>
                 </li>
                 <li>
                     <a href="<%=root%>teacher/<%=currUser.getId()%>/subject-details">
                         <div class="inline"><i class='material-icons'>import_contacts</i></div>
-                        <div class="inline">My subjects</div>
+                        <div class="inline">Мої предмети</div>
                     </a>
                 </li>
             </sec:authorize>
@@ -62,19 +62,13 @@
                 <li>
                     <a href="<%=root%>users?page=1">
                         <div class="inline"><i class='material-icons'>groups</i></div>
-                        <div class="inline">All users</div>
+                        <div class="inline">Всі користувачі</div>
                     </a>
                 </li>
                 <li>
-                    <a href="<%=root%>teachers?page=1">
-                        <div class="inline"><i class='material-icons'>school</i></div>
-                        <div class="inline">All teachers</div>
-                    </a>
-                </li>
-                <li>
-                    <a href="<%=root%>subjects?page=1">
+                    <a href="<%=root%>subject-details?page=1">
                         <div class="inline"><i class='material-icons'>import_contacts</i></div>
-                        <div class="inline">All subjects</div>
+                        <div class="inline">Всі деталі предметів</div>
                     </a>
                 </li>
             </sec:authorize>
@@ -86,7 +80,7 @@
                     </a>
                     <a href="<%=root%>logout">
                         <div class="inline"><i class='material-icons'>logout</i></div>
-                        <div class="inline">Logout</div>
+                        <div class="inline">Вихід</div>
                     </a>
                 </li>
             </sec:authorize>
@@ -94,11 +88,11 @@
                 <li class="logout">
                     <a href="<%=root%>login.jsp">
                         <div class="inline"><i class='material-icons'>login</i></div>
-                        <div class="inline">Login</div>
+                        <div class="inline">Вхід</div>
                     </a>
                     <a href="<%=root%>registration">
                         <div class="inline"><i class='material-icons'>app_registration</i></div>
-                        <div class="inline">Signup</div>
+                        <div class="inline">Реєстрація</div>
                     </a>
                 </li>
             </sec:authorize>

@@ -59,12 +59,12 @@ public class MarkController {
             return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Classes", "/classes?page=1");
-        crumbsMap.put("Pupils", "/class/" + pupil.getPupilClass().getId() + "/pupils");
-        crumbsMap.put("Marks", "");
+        crumbsMap.put("Класи", "/classes?page=1");
+        crumbsMap.put("Учні", "/class/" + pupil.getPupilClass().getId() + "/pupils");
+        crumbsMap.put("Оцінки", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", dao.getMarksByPupil(id));
-        model.put("header", "Marks for " + pupil.getName());
+        model.put("header", pupil.getName());
         model.put("subjectList", subjectDAO.getSubjectsByPupilClass(pupil.getPupilClass().getId()));
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForPupil", model);
@@ -95,18 +95,18 @@ public class MarkController {
         }
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         if (user.hasRole("ADMIN")) {
-            crumbsMap.put("Subject details", "/subject-details?page=1");
+            crumbsMap.put("Деталі предметів", "/subject-details?page=1");
         } else if (user.hasRole("TEACHER")) {
-            crumbsMap.put("Subject details", "teacher/" + user.getId() + "/subject-details");
+            crumbsMap.put("Деталі предметів", "/teacher/" + user.getId() + "/subject-details");
         } else if (user.hasRole("PUPIL")) {
-            crumbsMap.put("Subject details", "pupil/" + user.getId() + "/subject-details");
+            crumbsMap.put("Деталі предметів", "/pupil/" + user.getId() + "/subject-details");
         }
-        crumbsMap.put("Themes", "/subject-details/" + lesson.getTheme().getSubjectDetails().getId() + "/themes");
-        crumbsMap.put("Lessons", "/theme/" + lesson.getTheme().getId() + "/lessons");
-        crumbsMap.put("Marks", "");
+        crumbsMap.put("Теми", "/subject-details/" + lesson.getTheme().getSubjectDetails().getId() + "/themes");
+        crumbsMap.put("Уроки", "/theme/" + lesson.getTheme().getId() + "/lessons");
+        crumbsMap.put("Оцінки", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", new MarkList(dao.getMarksByLesson(id)));
-        model.put("header", "Marks for lesson");
+        model.put("header", "Оцінки за урок");
         model.put("lesson", lesson);
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForLesson", model);
@@ -149,7 +149,7 @@ public class MarkController {
                         subjectDetails.getPupilClass().getId()){
             return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
-        model.put("header", "Mark list");
+        model.put("header", "Список оцінок");
         Map<String, Map<Integer, List<Mark>>> marks = markService.getMarksForSubject(subjectDetails, page, marksPerPage);
         Map<Integer, List<Lesson>> lessons = markService.getLessonsForSubject(subjectDetails, page, marksPerPage);
         Map<String, Mark> semesterMarks = markService.getSemesterMarks(subjectDetails);
@@ -157,13 +157,13 @@ public class MarkController {
         PaginationController paginationController = new PaginationController(count, marksPerPage, page);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         if (user.hasRole("ADMIN")) {
-            crumbsMap.put("Subject details", "/subject-details?page=1");
+            crumbsMap.put("Деталі предметів", "/subject-details?page=1");
         } else if (user.hasRole("TEACHER")) {
-            crumbsMap.put("Subject details", "/teacher/" + user.getId() + "/subject-details");
+            crumbsMap.put("Деталі предметів", "/teacher/" + user.getId() + "/subject-details");
         } else if (user.hasRole("PUPIL")) {
-            crumbsMap.put("Subject details", "/pupil/" + user.getId() + "/subject-details");
+            crumbsMap.put("Деталі предметів", "/pupil/" + user.getId() + "/subject-details");
         }
-        crumbsMap.put("Marks", "");
+        crumbsMap.put("Оцінки", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("pagination", paginationController.makePagingLinks("marks"));
         model.put("page", page);

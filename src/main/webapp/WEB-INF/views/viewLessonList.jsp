@@ -6,7 +6,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
     <head>
-        <title>Lessons list</title>
+        <title>Список уроків</title>
         <link rel="icon" type="img/png" href="../images/icon.png">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -18,7 +18,7 @@
             <div align="center" class="box">
                 <br/>
                 <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
-                <h2>Lessons list</h2>
+                <h2>Список уроків</h2>
                 <%
                     Theme theme = (Theme) request.getAttribute("theme");
                     SubjectDetails subjectDetails = theme.getSubjectDetails();
@@ -28,22 +28,22 @@
                 %>
                 <table>
                     <tr>
-                        <td>Class:</td>
+                        <td>Клас:</td>
                         <td><%=subjectDetails.getPupilClass().getName()%></td>
                     </tr>
                     <tr>
-                        <td>Subject:</td>
+                        <td>Предмет:</td>
                         <td><%=subjectDetails.getSubject().getName()%></td>
                     </tr>
                     <tr>
-                        <td>Theme:</td>
+                        <td>Тема:</td>
                         <td><%=theme.getName()%></td>
                     </tr>
                     <%
                         if(teacher != null) {
                     %>
                         <tr>
-                            <td>Teacher:</td>
+                            <td>Вчитель:</td>
                             <td><%=teacher.getName()%></td>
                         </tr>
                     <%
@@ -56,8 +56,8 @@
                             <th>ID</th>
                             <%colspan++;%>
                         </sec:authorize>
-                        <th>Date</th>
-                        <th>Topic</th>
+                        <th>Дата</th>
+                        <th>Тема уроку</th>
                         <th></th>
                         <sec:authorize access="hasAuthority('TEACHER')">
                             <%
@@ -81,7 +81,7 @@
                                        id="id"
                                        onkeyup="filter(id, <%=i++%>)"
                                        class="search-slim"
-                                       placeholder="Search...">
+                                       placeholder="Пошук...">
                             </th>
                         </sec:authorize>
                         <th>
@@ -89,14 +89,14 @@
                                    id="date"
                                    onkeyup="filter(id, <%=i++%>)"
                                    class="search"
-                                   placeholder="Search...">
+                                   placeholder="Пошук...">
                         </th>
                         <th>
                             <input type="text"
                                    id="topic"
                                    onkeyup="filter(id, <%=i%>)"
                                    class="search"
-                                   placeholder="Search...">
+                                   placeholder="Пошук...">
                         </th>
                         <th></th>
                         <sec:authorize access="hasAuthority('TEACHER')">
@@ -115,7 +115,7 @@
                             if (list.isEmpty()) {
                         %>
                                 <tr class="card">
-                                    <td colspan="<%=colspan%>">List of lessons is empty</td>
+                                    <td colspan="<%=colspan%>">Список уроків пустий</td>
                                 </tr>
                         <%
                             }
@@ -135,7 +135,7 @@
                                         <div class="inline"><i class='material-icons'>event_note</i></div>
                                         <div class="inline"><%=lesson.getTopic()%></div>
                                     </td>
-                                    <td><a href="<%=root%>lesson/<%=lesson.getId()%>/marks">view marks</a></td>
+                                    <td><a href="<%=root%>lesson/<%=lesson.getId()%>/marks">оцінки</a></td>
                                     <sec:authorize access="hasAuthority('TEACHER')">
                                         <%
                                             if(teacher != null && currUser.getId() == teacher.getId()) {
@@ -163,11 +163,11 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick=history.back() class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
                 <sec:authorize access="hasAuthority('TEACHER')">
                     <%
@@ -175,7 +175,7 @@
                     %>
                             <button onclick='location.href="lesson"' class="bg-primary">
                                 <div class="inline"><i class='material-icons'>edit_calendar</i></div>
-                                <div class="inline">Add</div>
+                                <div class="inline">Додати</div>
                             </button>
                     <%
                         }

@@ -6,7 +6,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
     <head>
-        <title>View User List</title>
+        <title>Список користувачів</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -18,7 +18,7 @@
             <div align="center" class="box">
                 <br/>
                 <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
-                <h2 align="center">User List: </h2>
+                <h2 align="center">Список користувачів</h2>
                 <%
                     PaginationController paginationController = (PaginationController) request.getAttribute("pagination");
                     int pageNum = paginationController.getCurrentPageNumber();
@@ -28,8 +28,8 @@
                 <table id="myTable">
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
-                        <th>Roles</th>
+                        <th>Ім<span>&#39;</span>я користувача</th>
+                        <th>Ролі</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -42,21 +42,21 @@
                                            id="id"
                                            onkeyup="search(id, 'user')"
                                            class="search-slim"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <th>
                                     <input type="text"
                                            id="username"
                                            onkeyup="search(id, 'user')"
                                            class="search"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <th>
                                     <input type="text"
                                            id="roles"
                                            onkeyup="search(id, 'user')"
                                            class="search"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <th></th>
                                 <th></th>
@@ -70,15 +70,15 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick=history.back() class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
                 <button onclick='location.href="user"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>person_add</i></div>
-                    <div class="inline">Add</div>
+                    <div class="inline">Додати</div>
                 </button>
             </div>
         </div>

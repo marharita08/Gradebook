@@ -7,14 +7,15 @@
 <%@ page import="org.example.entities.PupilClass" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Set" %>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8"%>
 <html>
     <head>
-        <title>User page</title>
+        <title>Сторінка користувача</title>
         <link rel="icon" type="img/png" href="../images/icon.png">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <style><%@include file="../css/style.css"%></style>
+        <meta charset="utf-8">
     </head>
     <body>
         <%@include file="header.jsp"%>
@@ -31,13 +32,13 @@
             <div class="box" align="left">
                 <br/>
                 <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
-                <h2>User page</h2>
+                <h2>Сторінка користувача</h2>
                 <div class="box-index">
                     <div class="user-div">
                         <img alt="user image" src="<%=root%>images/user.png" class="user-img">
                     </div>
                     <div class="user-data card" style="width: 60%" align="center">
-                        <form action="<%=action%>" method="post">
+                        <form action="<%=action%>" method="post" accept-charset="UTF-8">
                             <br/>
                             <% if(action.contains(String.valueOf(id))) { %>
                                 <div class="row">
@@ -52,7 +53,7 @@
                             <p id="placeToShow" class="warning"></p>
                             <div class="row">
                                 <div class="col-25">
-                                    <label>Username</label>
+                                    <label>Ім<span>&#39;</span>я користувача</label>
                                 </div>
                                 <div class="col-75">
                                     <input required onkeyup="<%=func%>" name="username" id="username"
@@ -62,7 +63,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-25">
-                                    <label>Password</label>
+                                    <label>Пароль</label>
                                 </div>
                                 <div class="col-75">
                                     <input type="password" name="password" <%=user.getUsername() == null ? "required" : ""%>/>
@@ -71,10 +72,10 @@
                             </div>
                             <div class="row">
                                 <div class="col-25">
-                                    <label>Roles</label>
+                                    <label>Ролі</label>
                                 </div>
                                 <div class="col-75">
-                                    <sec:authorize access="hasAnyAuthority('PUPIL', 'TEACHER')">
+                                    <sec:authorize access="!hasAuthority('ADMIN')">
                                         <%
                                             StringBuilder userRoles = new StringBuilder();
                                             for (Role role: user.getRoles()) {
@@ -99,7 +100,7 @@
                                 <input type="hidden" value="<%=user.getId()%>" name="teacher.id"/>
                                 <div class="row">
                                     <div class="col-25">
-                                        <label>Full name</label>
+                                        <label>ПІБ</label>
                                     </div>
                                     <div class="col-75">
                                         <input id="teacher.name" name="teacher.name" value="<%=teacher.getName()==null?"":teacher.getName()%>"
@@ -109,7 +110,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-25">
-                                        <label>Position</label>
+                                        <label>Посада</label>
                                     </div>
                                     <div class="col-75">
                                         <input name="position" value="<%=teacher.getPosition()==null?"":teacher.getPosition()%>"
@@ -121,7 +122,7 @@
                                 <input type="hidden" value="<%=user.getId()%>" name="pupil.id"/>
                                 <div class="row">
                                     <div class="col-25">
-                                        <label>Full name</label>
+                                        <label>ПІБ</label>
                                     </div>
                                     <div class="col-75">
                                         <input id="pupil.name" value="<%=pupil.getName()==null?"":pupil.getName()%>" name="pupil.name"
@@ -133,7 +134,7 @@
                                     <sec:authorize access="hasAnyAuthority('PUPIL', 'TEACHER')">
                                         <div class="row">
                                             <div class="col-25">
-                                                <label>Class</label>
+                                                <label>Клас</label>
                                             </div>
                                             <div class="col-75">
                                                 <input value="<%=pupil.getPupilClass().getName()%>" readonly type="text"/>
@@ -144,7 +145,7 @@
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <div class="row">
                                         <div class="col-25">
-                                            <label>Class</label>
+                                            <label>Клас</label>
                                         </div>
                                         <div class="col-75">
                                             <select name="pupil.pupilClass.id">
@@ -171,11 +172,11 @@
                             </div>
                             <button onclick="history.back()" type="button" class="bg-primary">
                                 <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                                <div class="inline">Back</div>
+                                <div class="inline">Назад</div>
                             </button>
-                            <button type="submit" class="bg-primary">
+                            <button type="submit" class="bg-primary" id="save">
                                 <div class="inline"><i class='material-icons'>save</i></div>
-                                <div class="inline">Save</div>
+                                <div class="inline">Зберегти</div>
                             </button>
                             <br/><br/>
                         </form>

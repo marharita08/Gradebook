@@ -25,14 +25,14 @@
                         Theme theme = (Theme) request.getAttribute("command");
                         SubjectDetails subjectDetails = theme.getSubjectDetails();
                     %>
-                    <p>Subject:<%=subjectDetails.getSubject().getName()%></p>
-                    <p>Teacher:<%=subjectDetails.getTeacher().getName()%></p>
-                    <p>Class:<%=subjectDetails.getPupilClass().getName()%></p>
+                    <p>Предмет:<%=subjectDetails.getSubject().getName()%></p>
+                    <p>Вчитель:<%=subjectDetails.getTeacher().getName()%></p>
+                    <p>Клас:<%=subjectDetails.getPupilClass().getName()%></p>
                     <form:form>
                         <br/>
                         <div class="row">
                             <div class="col-25">
-                                <label>Name</label>
+                                <label>Назва</label>
                             </div>
                             <div class="col-75">
                                 <form:input path="name" required="true"/><br/><br/>
@@ -42,11 +42,11 @@
                         <form:input path="subjectDetails.id" type="hidden"/>
                         <button onclick="history.back()" type="button" class="bg-primary">
                             <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                            <div class="inline">Cancel</div>
+                            <div class="inline">Назад</div>
                         </button>
-                        <button formmethod="post" formaction="../../<%=request.getAttribute("formAction")%>" class="bg-primary">
+                        <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>" class="bg-primary">
                             <div class="inline"><i class='material-icons'>save</i></div>
-                            <div class="inline">Save</div>
+                            <div class="inline">Зберегти</div>
                         </button>
                         <br/><br/>
                     </form:form>

@@ -27,15 +27,15 @@
                         Theme theme = lesson.getTheme();
                         SubjectDetails subjectDetails = theme.getSubjectDetails();
                     %>
-                    <p>Subject:<%=subjectDetails.getSubject().getName()%></p>
-                    <p>Teacher:<%=subjectDetails.getTeacher().getName()%></p>
-                    <p>Class:<%=subjectDetails.getPupilClass().getName()%></p>
-                    <p>Theme:<%=theme.getName()%></p>
+                    <p>Предмет:<%=subjectDetails.getSubject().getName()%></p>
+                    <p>Вчитель:<%=subjectDetails.getTeacher().getName()%></p>
+                    <p>Клас:<%=subjectDetails.getPupilClass().getName()%></p>
+                    <p>Тема:<%=theme.getName()%></p>
                     <form:form>
                         <br/>
                         <div class="row">
                             <div class="col-25">
-                                <label>Date</label>
+                                <label>Дата</label>
                             </div>
                             <div class="col-75">
                                 <form:input type="date" path="date" required="true"/><br/><br/>
@@ -43,7 +43,7 @@
                         </div>
                         <div class="row">
                             <div class="col-25">
-                                <label>Topic</label>
+                                <label>Тема уроку</label>
                             </div>
                             <div class="col-75">
                                 <form:input path="topic" required="true"/><br/><br/>
@@ -53,11 +53,11 @@
                         <form:input path="theme.id" type="hidden"/>
                         <button onclick="history.back()" type="button" class="bg-primary">
                             <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                            <div class="inline">Cancel</div>
+                            <div class="inline">Назад</div>
                         </button>
                         <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>" class="bg-primary">
                             <div class="inline"><i class='material-icons'>save</i></div>
-                            <div class="inline">Save</div>
+                            <div class="inline">Зберегти</div>
                         </button>
                         <br/><br/>
                     </form:form>

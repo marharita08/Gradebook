@@ -53,11 +53,11 @@ public class PupilController {
         }
         model.put("list", list);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Pupils", "");
+        crumbsMap.put("Учні", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("pagination", paginationController.makePagingLinks("pupils"));
         model.put("pageNum", page);
-        model.put("header", "Pupil List");
+        model.put("header", "Список учнів");
         LOGGER.info("Printing pupil list.");
         return new ModelAndView("viewPupilList", model);
     }
@@ -105,10 +105,10 @@ public class PupilController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Classes", "/classes?page=1");
-        crumbsMap.put("Pupils", "");
+        crumbsMap.put("Класи", "/classes?page=1");
+        crumbsMap.put("Учні", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
-        model.put("header", "Pupils of " + pupilClass.getName() + " form");
+        model.put("header", "Учні " + pupilClass.getName() + " класу");
         model.put("list", dao.getPupilsByPupilClass(id));
         model.put("pagination", "");
         model.put("pageNum", 1);

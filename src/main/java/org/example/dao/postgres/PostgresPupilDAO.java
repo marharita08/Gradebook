@@ -19,7 +19,7 @@ public class PostgresPupilDAO implements PupilDAO {
     private static final String INSERT_PUPIL = "Insert into PUPIL (pupil_id, class_id, name) values (?, ?, ?)";
     private static final String UPDATE_PUPIL = "UPDATE PUPIL set CLASS_ID = ?, NAME = ? where PUPIL_ID = ?";
     private static final String DELETE_PUPIL = "Delete from PUPIL where PUPIL_ID = ?";
-    private static final String GET_PUPILS_BY_CLASS = "SELECT * FROM PUPIL where CLASS_ID = ? order by regexp_replace(NAME, '^.* ', '')";
+    private static final String GET_PUPILS_BY_CLASS = "SELECT * FROM PUPIL where CLASS_ID = ? order by NAME";
     private static final String GET_COUNT_OF_PUPILS = "select count(PUPIL_ID) as AMOUNT from PUPIL ";
     private static final String GET_PUPILS_BY_PAGE = "SELECT * FROM PUPIL ORDER BY PUPIL_ID limit ? offset ?";
     private static final String SEARCH_PUPIL_BY_ID = " SELECT * FROM PUPIL where to_char(PUPIL_ID, '99999') like ? order by PUPIL_ID";

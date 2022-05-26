@@ -28,45 +28,45 @@
                 %>
                 <table>
                     <tr>
-                        <td>Class:</td>
+                        <td>Клас:</td>
                         <td><%=subjectDetails.getPupilClass().getName()%></td>
                     </tr>
                     <tr>
-                        <td>Subject:</td>
+                        <td>Предмет:</td>
                         <td><%=subjectDetails.getSubject().getName()%></td>
                     </tr>
                     <%
                         if(teacher != null) {
                     %>
                             <tr>
-                                <td>Teacher:</td>
+                                <td>Вчитель:</td>
                                 <td><%=teacher.getName()%></td>
                             </tr>
                     <%
                         }
                     %>
                     <tr>
-                        <td>Theme:</td>
+                        <td>Тема:</td>
                         <td><%=theme.getName()%></td>
                     </tr>
                     <tr>
-                        <td>Date:</td>
+                        <td>Дата:</td>
                         <td><%=strDate%></td>
                     </tr>
                     <tr>
-                        <td>Topic:</td>
+                        <td>Тема уроку:</td>
                         <td><%=lesson.getTopic()%></td>
                     </tr>
                 </table>
                 <form action="save-marks" method="post">
                     <table id="myTable">
                         <tr>
-                            <th>Pupil</th>
-                            <th>Mark</th>
+                            <th>Учень</th>
+                            <th>Оцінка</th>
                         </tr>
                         <tr>
                             <th>
-                                <input id="pupil" onkeyup="filter(id, 0)" class="search" placeholder="Search...">
+                                <input id="pupil" onkeyup="filter(id, 0)" class="search" placeholder="Пошук...">
                             </th>
                             <th></th>
                         </tr>
@@ -88,8 +88,8 @@
                                                 <input name="list[<%=i%>].lesson.id" value="<%=lesson.getId()%>" type="hidden"/>
                                                 <input name="list[<%=i++%>].mark"
                                                        value="<%=mark.getMark()==null?"":mark.getMark()%>"
-                                                       pattern="a|[1-9]|1[0-2]"
-                                                       oninvalid="this.setCustomValidity('Inputted value is invalid')"
+                                                       pattern="н|[1-9]|1[0-2]"
+                                                       oninvalid="this.setCustomValidity('Введіть коректне значення')"
                                                        oninput="this.setCustomValidity('')"/>
                                             </td>
                                     <%
@@ -115,7 +115,7 @@
                     %>
                             <button type="submit" class="bg-primary">
                                 <div class="inline"><i class='material-icons'>save</i></div>
-                                <div class="inline">Save</div>
+                                <div class="inline">Зберегти</div>
                             </button>
                     <%
                         }
@@ -123,11 +123,11 @@
                 </form>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick=history.back() class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
             </div>
         </div>

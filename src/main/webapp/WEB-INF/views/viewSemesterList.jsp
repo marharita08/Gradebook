@@ -5,7 +5,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
     <head>
-        <title>Semester List</title>
+        <title>Список семестрів</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <style><%@include file="../css/style.css"%></style>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -34,10 +34,10 @@
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>ID</th>
                         </sec:authorize>
-                        <th>Name</th>
-                        <th>School year</th>
-                        <th>Start date</th>
-                        <th>End date</th>
+                        <th>Назва</th>
+                        <th>Навчальний рік</th>
+                        <th>Дата початку</th>
+                        <th>Дата закінчення</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th></th>
                             <th></th>
@@ -57,7 +57,7 @@
                                                id="id"
                                                onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                                class="search-slim"
-                                               placeholder="Search...">
+                                               placeholder="Пошук...">
                                     </th>
                                 </sec:authorize>
                                 <th>
@@ -65,28 +65,28 @@
                                            id="name"
                                            onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                            class="search"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <th>
                                     <input type="text"
                                            id="schoolYear"
                                            onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                            class="search"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <th>
                                     <input type="text"
                                            id="startDate"
                                            onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                            class="search"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <th>
                                     <input type="text"
                                            id="endDate"
                                            onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
                                            class="search"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th></th>
@@ -105,16 +105,16 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick='history.back()' class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
                 <sec:authorize access="hasAuthority('ADMIN')">
                     <button onclick='location.href="<%=root%>semester"' class="bg-primary">
                         <div class="inline"><i class='material-icons'>edit_calendar</i></div>
-                        <div class="inline">Add</div>
+                        <div class="inline">Додати</div>
                     </button>
                 </sec:authorize>
             </div>
@@ -127,7 +127,7 @@
             if (!obj.length) {
                 html.push(
                     "<tr class='card'>",
-                    "<td colspan='<%=colspan%>'>List of semesters is empty</td>",
+                    "<td colspan='<%=colspan%>'>Список семестрів пустий</td>",
                     "</tr>"
                 );
             } else {
@@ -176,7 +176,7 @@
                         html.push(
                             "<td>",
                             "<a href='<%=root%>semester/", id, "/teacher/<%=currUser.getId()%>'>",
-                            "my subjects",
+                            "мої предмети",
                             "</a>",
                             "</td>"
                         );
@@ -185,7 +185,7 @@
                         html.push(
                             "<td>",
                             "<a href='<%=root%>semester/", id, "/pupil/<%=currUser.getId()%>'>",
-                            "my subjects",
+                            "мої предмети",
                             "</a>",
                             "</td>"
                         );

@@ -5,7 +5,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
     <head>
-        <title>Subject Details List</title>
+        <title>Список деталей предметів</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <style><%@include file="../css/style.css"%></style>
@@ -39,11 +39,11 @@
                     <tr>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>ID</th>
-                            <th>Semester</th>
+                            <th>Семестр</th>
                         </sec:authorize>
-                        <th>Class</th>
-                        <th>Teacher</th>
-                        <th>Subject</th>
+                        <th>Клас</th>
+                        <th>Вчитель</th>
+                        <th>Предмет</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th></th>
                             <th></th>
@@ -61,50 +61,40 @@
                             <tr>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th>
-                                        <input
-                                                type="text"
-                                                id="id"
-                                                onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
-                                                class="search-slim"
-                                                placeholder="Search..."
-                                        >
+                                        <input type="text"
+                                               id="id"
+                                               onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                               class="search-slim"
+                                               placeholder="Пошук...">
                                     </th>
                                     <th>
-                                        <input
-                                                type="text"
-                                                id="semester"
-                                                onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
-                                                class="search"
-                                                placeholder="Search..."
-                                        >
+                                        <input type="text"
+                                               id="semester"
+                                               onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                               class="search"
+                                               placeholder="Пошук...">
                                     </th>
                                 </sec:authorize>
                                 <th>
-                                    <input
-                                            type="text"
-                                            id="class"
-                                            onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
-                                            class="search-slim"
-                                            placeholder="Search..."
-                                    >
+                                    <input type="text"
+                                           id="class"
+                                           onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                           class="search-slim"
+                                           placeholder="Пошук...">
                                 </th>
                                 <th>
-                                    <input
-                                            type="text"
-                                            id="teacher"
-                                            onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
-                                            class="search"
-                                            placeholder="Search..."
-                                    >
+                                    <input type="text"
+                                           id="teacher"
+                                           onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                           class="search"
+                                           placeholder="Пошук...">
                                 </th>
                                 <th>
-                                    <input
-                                            type="text"
-                                            id="subject"
-                                            onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
-                                            class="search"
-                                            placeholder="Search..."
-                                    >
+                                    <input type="text"
+                                           id="subject"
+                                           onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
+                                           class="search"
+                                           placeholder="Пошук...">
                                 </th>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th></th>
@@ -125,16 +115,16 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick=history.back() class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
                 <sec:authorize access="hasAuthority('ADMIN')">
                     <button onclick='location.href="<%=root%>subject-detail"' class="bg-primary">
                         <div class="inline"><i class='material-icons'>post_add</i></div>
-                        <div class="inline">Add</div>
+                        <div class="inline">Додати</div>
                     </button>
                 </sec:authorize>
             </div>
@@ -147,7 +137,7 @@
             if (!obj.length) {
                 html.push(
                     "<tr class='card'>",
-                    "<td colspan='<%=colspan%>'>List of subject details is empty</td>",
+                    "<td colspan='<%=colspan%>'>Список деталей предметів пустий</td>",
                     "</tr>"
                 );
             } else {
@@ -197,7 +187,7 @@
                     }
                     html.push(
                         "<td>",
-                        "<a href='<%=root%>subject-details/", id, "/themes'>view themes</a>",
+                        "<a href='<%=root%>subject-details/", id, "/themes'>теми</a>",
                         "</td>"
                     );
                     if (<%=isTeacher%>) {
@@ -207,7 +197,7 @@
                         if (obj[i].teacher != null && obj[i].teacher.id === <%=currUser.getId()%>) {
                             html.push(
                                 "<td>",
-                                "<a href='<%=root%>subject-details/", id, "/theme'>add theme</a>",
+                                "<a href='<%=root%>subject-details/", id, "/theme'>додати тему</a>",
                                 "</td>"
                             );
                         }
@@ -222,7 +212,7 @@
                         || <%=isAdmin%> || <%=isTeacher%>) {
                         html.push(
                             "<td>",
-                            "<a href='<%=root%>subject-details/", id, "/marks?page=1'>view marks</a>",
+                            "<a href='<%=root%>subject-details/", id, "/marks?page=1'>оцінки</a>",
                             "</td>",
                         );
                     }

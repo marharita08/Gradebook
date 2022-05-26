@@ -3,7 +3,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
         <link rel="icon" type="img/png" href="images/icon.png">
-        <title>Error Page</title>
+        <title>Помилка</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <style><%@include file="../css/style.css"%></style>
     </head>
@@ -15,7 +15,7 @@
                     int status = response.getStatus();
                     if(status == 500) {
                 %>
-                        <h2>Exception occurred while processing the request</h2>
+                        <h2>На сервері сталася помилка</h2>
                 <%
                         if (exception == null) {
                             Throwable e = (Throwable) request.getAttribute("javax.servlet.error.exception");
@@ -33,17 +33,17 @@
                         }
                     } else if (status == 403) {
                 %>
-                        <h2>Error: <%=status%></h2>
-                        <p>Forbidden.</p>
+                        <h2>Помилка: <%=status%></h2>
+                        <p>Заборонено.</p>
                 <%
                     } else if (status == 404) {
                 %>
-                        <h2>Error: <%=status%></h2>
-                        <p>Resource not found.</p>
+                        <h2>Помилка: <%=status%></h2>
+                        <p>Ресурс не знайдено.</p>
                 <%
                     } else {
                 %>
-                        <h2>Error: <%=status%></h2>
+                        <h2>Помилка: <%=status%></h2>
                 <%
                     }
                     String msg = (String) request.getAttribute("message");
@@ -53,7 +53,7 @@
                 <br/>
                 <button onclick="history.back()" type="button" class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
             </div>
         </div>

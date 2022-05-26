@@ -59,8 +59,8 @@ public class SubjectDetailsController {
         }
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("viewAllSubjectDetails"));
-        model.put("header", "Subject Details List");
+        model.put("pagination", paginationController.makePagingLinks("subject-details"));
+        model.put("header", "Список деталей предметів");
         model.put("pageNum", page);
         LOGGER.info("Printing subject details list.");
         return new ModelAndView("viewSubjectDetailsList", model);
@@ -89,7 +89,7 @@ public class SubjectDetailsController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Add subject details", "");
+        crumbsMap.put("Долати деталі предмету", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new SubjectDetails());
         model.put("selectedClass", 0);
@@ -100,7 +100,7 @@ public class SubjectDetailsController {
         model.put("teacherList", teacherDAO.getAllTeachers());
         model.put("subjectList", subjects);
         model.put("semesterList", semesters);
-        model.put("title", "Add Subject Details");
+        model.put("title", "Долати деталі предмету");
         model.put("formAction", "subject-detail");
         LOGGER.info("Printing form for input subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
@@ -137,7 +137,7 @@ public class SubjectDetailsController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Edit subject details", "");
+        crumbsMap.put("Редагувати деталі предмету", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", subjectDetails);
         model.put("selectedClass", subjectDetails.getPupilClass().getId());
@@ -148,7 +148,7 @@ public class SubjectDetailsController {
         model.put("teacherList", teacherDAO.getAllTeachers());
         model.put("subjectList", subjectDAO.getAllSubjects());
         model.put("semesterList", semesterDAO.getAllSemesters());
-        model.put("title", "Edit subject details");
+        model.put("title", "Редагувати деталі предмету");
         model.put("formAction", "../subject-detail/" + subjectDetails.getId());
         LOGGER.info("Printing form for changing subject details data.");
         return new ModelAndView("subjectDetailsForm", model);
@@ -209,11 +209,11 @@ public class SubjectDetailsController {
             model.put("pupilClass", pupil.getPupilClass());
         }
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Teachers", "/teachers?page=1");
-        crumbsMap.put("Subject details", "");
+        crumbsMap.put("Вчителі", "/teachers?page=1");
+        crumbsMap.put("Деталі предметів", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", list);
-        model.put("header", "Subjects of " + teacher.getName());
+        model.put("header", "Предмети, які викладає " + teacher.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
         LOGGER.info("Printing subject details list.");
@@ -242,11 +242,11 @@ public class SubjectDetailsController {
             model.put("pupilClass", pupil.getPupilClass());
         }
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Pupils", "/pupils?page=1");
-        crumbsMap.put("Subject details", "");
+        crumbsMap.put("Учні", "/pupils?page=1");
+        crumbsMap.put("Деталі предметів", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", list);
-        model.put("header", "Subjects of " + pupilClass.getName());
+        model.put("header", "Предмети " + pupilClass.getName() + " класу");
         model.put("pagination", "");
         model.put("pageNum", 1);
         LOGGER.info("Printing subject details list.");
@@ -275,11 +275,11 @@ public class SubjectDetailsController {
             model.put("pupilClass", pupil.getPupilClass());
         }
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Subject", "/subjects?page=1");
-        crumbsMap.put("Subject details", "");
+        crumbsMap.put("Предмети", "/subjects?page=1");
+        crumbsMap.put("Деталі предметів", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", list);
-        model.put("header", "Subject " + subject.getName());
+        model.put("header", subject.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
         LOGGER.info("Printing subject details list.");
@@ -309,10 +309,10 @@ public class SubjectDetailsController {
         List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndTeacher(semesterID, teacherID);
         model.put("list", list);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Semesters", "/semesters?page=1");
-        crumbsMap.put("Subject details", "");
+        crumbsMap.put("Семестри", "/semesters?page=1");
+        crumbsMap.put("Деталі предметів", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
-        model.put("header", "Subjects of " + teacher.getName() + " for " + semester.getName());
+        model.put("header", teacher.getName() + semester.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
         LOGGER.info("Printing subject details list.");
@@ -342,10 +342,10 @@ public class SubjectDetailsController {
         List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndPupil(semesterID, pupilID);
         model.put("list", list);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Semesters", "/semesters?page=1");
-        crumbsMap.put("Subject details", "");
+        crumbsMap.put("Семестри", "/semesters?page=1");
+        crumbsMap.put("Деталі предметів", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
-        model.put("header", "Subjects of " + pupil.getPupilClass().getName() + " for " + semester.getName());
+        model.put("header", "Предмети " + pupil.getPupilClass().getName() + " класу " + semester.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
         LOGGER.info("Printing subject details list.");
@@ -385,7 +385,7 @@ public class SubjectDetailsController {
 
     private Map<String, String> getBasicCrumbsMap() {
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Subject details", SUBJECT_DETAILS_LINK);
+        crumbsMap.put("Деталі предметів", SUBJECT_DETAILS_LINK);
         return crumbsMap;
     }
 }

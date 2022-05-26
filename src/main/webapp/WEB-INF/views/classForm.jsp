@@ -23,7 +23,7 @@
                         <br/>
                         <div class="row">
                             <div class="col-25">
-                                <label>Grade</label>
+                                <label>Клас</label>
                             </div>
                             <div class="col-75">
                                 <form:select path="grade">
@@ -42,7 +42,7 @@
                         </div>
                         <div class="row">
                             <div class="col-25">
-                                <label>Name</label>
+                                <label>Назва</label>
                             </div>
                             <div class="col-75">
                                 <form:input path="name" required="true"/><br/><br/>

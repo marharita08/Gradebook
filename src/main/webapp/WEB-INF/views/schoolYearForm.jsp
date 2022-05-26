@@ -23,7 +23,7 @@
                         <br/>
                         <div class="row">
                             <div class="col-25">
-                                <label>Name</label>
+                                <label>Назва</label>
                             </div>
                             <div class="col-75">
                                 <form:input path="name" required="true"/><br/><br/>
@@ -31,7 +31,7 @@
                         </div>
                         <div class="row">
                             <div class="col-25">
-                                <label>Start date</label>
+                                <label>Дата початку</label>
                             </div>
                             <div class="col-75">
                                 <form:input type="date" path="startDate" required="true"/><br/><br/>
@@ -39,7 +39,7 @@
                         </div>
                         <div class="row">
                             <div class="col-25">
-                                <label>End date</label>
+                                <label>Дата закінчення</label>
                             </div>
                             <div class="col-75">
                                 <form:input type="date" path="endDate" required="true"/><br/><br/>
@@ -48,11 +48,11 @@
                         <form:input path="id" type="hidden"/>
                         <button onclick="history.back()" type="button" class="bg-primary">
                             <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                            <div class="inline">Cancel</div>
+                            <div class="inline">Назад</div>
                         </button>
                         <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>" class="bg-primary">
                             <div class="inline"><i class='material-icons'>save</i></div>
-                            <div class="inline">Save</div>
+                            <div class="inline">Зберегти</div>
                         </button>
                         <br/><br/>
                     </form:form>

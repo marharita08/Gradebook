@@ -19,8 +19,8 @@
                 <h2><%=request.getAttribute("header")%></h2>
                 <table id="myTable">
                     <tr>
-                        <th>Subject</th>
-                        <th>Marks</th>
+                        <th>Предмет</th>
+                        <th>Оцінки</th>
                     </tr>
                     <tr>
                         <th>
@@ -28,7 +28,7 @@
                                    id="subject"
                                    onkeyup="filter(id, 0)"
                                    class="search"
-                                   placeholder="Search...">
+                                   placeholder="Пошук...">
                         </th>
                         <th></th>
                     </tr>

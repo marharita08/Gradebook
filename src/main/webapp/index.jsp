@@ -1,4 +1,5 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
     <head>
         <title>Home</title>
@@ -12,35 +13,37 @@
         <div align="center">
             <div class="box box-index" align="left">
                 <div class="menu">
-                    <h2>Menu: </h2>
+                    <h2>Меню: </h2>
                     <nav class="push">
                         <sec:authorize access="hasAuthority('PUPIL')">
-                            <a href="<%=root%>pupil/<%=currUser.getId()%>/pupils">My class</a>
-                            <a href="<%=root%>pupil/<%=currUser.getId()%>/subject-details">My subjects</a>
-                            <a href="<%=root%>pupil/<%=currUser.getId()%>/marks">My marks</a>
+                            <a href="<%=root%>pupil/<%=currUser.getId()%>/pupils">Мій клас</a>
+                            <a href="<%=root%>pupil/<%=currUser.getId()%>/subject-details">Мої предмети</a>
+                            <a href="<%=root%>pupil/<%=currUser.getId()%>/marks">Мої оцінки</a>
                         </sec:authorize>
                         <sec:authorize access="hasAuthority('TEACHER')">
-                            <a href="<%=root%>teacher/<%=currUser.getId()%>/classes">My classes</a>
-                            <a href="<%=root%>teacher/<%=currUser.getId()%>/subject-details">My subjects</a>
+                            <a href="<%=root%>teacher/<%=currUser.getId()%>/classes">Мої класи</a>
+                            <a href="<%=root%>teacher/<%=currUser.getId()%>/subject-details">Мої предмети</a>
+                        </sec:authorize>
+                        <sec:authorize access="hasAuthority('ADMIN')">
+                             <a href="users?page=1">Всі користувачі</a>
+                             <a href="pupils?page=1">Всі учні</a>
                         </sec:authorize>
                         <sec:authorize access="hasAnyAuthority('ADMIN', 'TEACHER', 'PUPIL')">
-                            <a href="teachers?page=1">All teachers</a>
-                            <a href="classes?page=1">All classes</a>
-                            <a href="subjects?page=1">All subjects</a>
+                            <a href="teachers?page=1">Всі вчителі</a>
+                            <a href="classes?page=1">Всі класи</a>
+                            <a href="subjects?page=1">Всі предмети</a>
                         </sec:authorize>
-                        <a href="semesters?page=1">All Semesters</a>
-                        <a href="years?page=1">All School Years</a>
+                        <a href="years?page=1">Всі навчальні роки</a>
+                        <a href="semesters?page=1">Всі семестри</a>
                         <sec:authorize access="hasAuthority('ADMIN')">
-                            <a href="subject-details?page=1">All subject details</a>
-                            <a href="pupils?page=1">All pupils</a>
-                            <a href="users?page=1">All users</a>
+                            <a href="subject-details?page=1">Всі деталі предметів</a>
                         </sec:authorize>
                     </nav>
                 </div>
                 <div align="center" class="school-div">
                     <figure>
                         <img src="images/school.jpg" class="school">
-                        <figcaption>Full name of the school</figcaption>
+                        <figcaption>Повна назва школи</figcaption>
                     </figure>
                 </div>
             </div>

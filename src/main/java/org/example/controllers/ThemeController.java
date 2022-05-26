@@ -49,7 +49,7 @@ public class ThemeController {
         list = dao.getThemesBySubjectDetails(id);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap(id)));
         model.put("list", list);
-        model.put("header", "Themes for "
+        model.put("header", "Теми з предмету "
                 + subjectDetails.getSubject().getName()
                 + " " + subjectDetails.getPupilClass().getName());
         model.put("subjectDetails", subjectDetails);
@@ -78,11 +78,11 @@ public class ThemeController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap(id);
-        crumbsMap.put("Add theme", "");
+        crumbsMap.put("Додати тему", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new Theme(subjectDetails));
-        model.put("title", "Add theme");
-        model.put("formAction", "theme");
+        model.put("title", "Додати тему");
+        model.put("formAction", "../../theme");
         LOGGER.info("Printing form for input themes data.");
         return new ModelAndView("themeForm", model);
     }
@@ -123,11 +123,11 @@ public class ThemeController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap(id);
-        crumbsMap.put("Edit theme", "");
+        crumbsMap.put("Редагувати тему", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", theme);
-        model.put("title", "Edit theme");
-        model.put("formAction", "../theme/" + theme.getId());
+        model.put("title", "Редагувати тему");
+        model.put("formAction", theme.getId());
         LOGGER.info("Printing form for changing theme data.");
         return new ModelAndView("themeForm", model);
     }
@@ -173,13 +173,13 @@ public class ThemeController {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         if (user.hasRole("ADMIN")) {
-            crumbsMap.put("Subject details", "/subject-details?page=1");
+            crumbsMap.put("Деталі предметів", "/subject-details?page=1");
         } else if (user.hasRole("TEACHER")) {
-            crumbsMap.put("Subject details", "/teacher/" + user.getId() + "/subject-details");
+            crumbsMap.put("Деталі предметів", "/teacher/" + user.getId() + "/subject-details");
         } else if (user.hasRole("PUPIL")) {
-            crumbsMap.put("Subject details", "/pupil/" + user.getId() + "/subject-details");
+            crumbsMap.put("Деталі предметів", "/pupil/" + user.getId() + "/subject-details");
         }
-        crumbsMap.put("Themes", "/subject-details/" + subjectDetailsID + "/themes");
+        crumbsMap.put("Теми", "/subject-details/" + subjectDetailsID + "/themes");
         return crumbsMap;
     }
 }

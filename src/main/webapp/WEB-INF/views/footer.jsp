@@ -1,3 +1,3 @@
 <footer class="bg-primary">
-    <p>Secondary school</p>
+    <p>Загальноосвітня школа</p>
 </footer>

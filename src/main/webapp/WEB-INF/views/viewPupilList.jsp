@@ -5,7 +5,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
     <head>
-        <title>Pupil List</title>
+        <title>Список учнів</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <style><%@include file="../css/style.css"%></style>
@@ -32,9 +32,9 @@
                     <tr>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>ID</th>
-                            <th>Class</th>
+                            <th>Клас</th>
                         </sec:authorize>
-                        <th>Name</th>
+                        <th>Ім<span>&#39;</span>я</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th></th>
                             <th></th>
@@ -52,14 +52,14 @@
                                                id="id"
                                                onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                                class="search-slim"
-                                               placeholder="Search...">
+                                               placeholder="Пошук...">
                                     </th>
                                     <th>
                                         <input type="text"
                                                id="class"
                                                onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                                class="search-slim"
-                                               placeholder="Search...">
+                                               placeholder="Пошук...">
                                     </th>
                                 </sec:authorize>
                                 <th>
@@ -67,7 +67,7 @@
                                            id="name"
                                            onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
                                            class="search"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th></th>
@@ -84,16 +84,16 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick='history.back()' class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
                 <sec:authorize access="hasAuthority('ADMIN')">
                     <button onclick='location.href="<%=root%>user"' class="bg-primary">
                         <div class="inline"><i class='material-icons'>person_add</i></div>
-                        <div class="inline">Add</div>
+                        <div class="inline">Додати</div>
                     </button>
                 </sec:authorize>
             </div>
@@ -106,7 +106,7 @@
             if (!obj.length) {
                 html.push(
                     "<tr class='card'>",
-                    "<td colspan='<%=colspan%>'>List of pupils is empty</td>",
+                    "<td colspan='<%=colspan%>'>Список учнів пустий</td>",
                     "</tr>"
                 );
             } else {
@@ -145,7 +145,7 @@
                     html.push("<td>");
                     if (obj[i].id === <%=currUser.getId()%> || <%=isAdmin%> || <%=isTeacher%>) {
                         html.push(
-                            "<a href='<%=root%>pupil/", id, "/marks'>view marks</a>",
+                            "<a href='<%=root%>pupil/", id, "/marks'>оцінки</a>",
                         );
                     }
                     html.push("</td></tr>");

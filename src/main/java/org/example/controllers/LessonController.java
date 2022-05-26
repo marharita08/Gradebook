@@ -47,10 +47,10 @@ public class LessonController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap(theme);
-        crumbsMap.put("Add lesson", "");
+        crumbsMap.put("Додати урок", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new Lesson(theme));
-        model.put("title", "Add lesson");
+        model.put("title", "Додати урок");
         model.put("formAction", "../../lesson");
         LOGGER.info("Printing form for input lesson's data.");
         return new ModelAndView("lessonForm", model);
@@ -91,9 +91,9 @@ public class LessonController {
         }
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap(theme);
-        crumbsMap.put("Edit lesson", "");
+        crumbsMap.put("Редагувати урок", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
-        model.put("title", "Edit lesson");
+        model.put("title", "Редагувати урок");
         model.put("command", lesson);
         model.put("formAction", "../lesson/" + lesson.getId());
         LOGGER.info("Printing form for changing lesson's data.");
@@ -166,14 +166,14 @@ public class LessonController {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         if (user.hasRole("ADMIN")) {
-            crumbsMap.put("Subject details", "/subject-details?page=1");
+            crumbsMap.put("Деталі предметів", "/subject-details?page=1");
         } else if (user.hasRole("TEACHER")) {
-            crumbsMap.put("Subject details", "/teacher/" + user.getId() + "/subject-details");
+            crumbsMap.put("Деталі предметів", "/teacher/" + user.getId() + "/subject-details");
         } else if (user.hasRole("PUPIL")) {
-            crumbsMap.put("Subject details", "/pupil/" + user.getId() + "/subject-details");
+            crumbsMap.put("Деталі предметів", "/pupil/" + user.getId() + "/subject-details");
         }
-        crumbsMap.put("Themes", "/subject-details/" + theme.getSubjectDetails().getId() + "/themes");
-        crumbsMap.put("Lessons", "/theme/" + theme.getId() + "/lessons");
+        crumbsMap.put("Теми", "/subject-details/" + theme.getSubjectDetails().getId() + "/themes");
+        crumbsMap.put("Уроки", "/theme/" + theme.getId() + "/lessons");
         return crumbsMap;
     }
 }

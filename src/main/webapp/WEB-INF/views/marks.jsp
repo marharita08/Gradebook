@@ -25,18 +25,18 @@
                 %>
                 <table>
                     <tr>
-                        <td>Class:</td>
+                        <td>Клас:</td>
                         <td><%=subjectDetails.getPupilClass().getName()%></td>
                     </tr>
                     <tr>
-                        <td>Subject:</td>
+                        <td>Предмет:</td>
                         <td><%=subjectDetails.getSubject().getName()%></td>
                     </tr>
                     <%
                         if(teacher != null) {
                     %>
                     <tr>
-                        <td>Teacher:</td>
+                        <td>Вчитель:</td>
                         <td><%=teacher.getName()%></td>
                     </tr>
                     <%
@@ -53,7 +53,7 @@
                             if (lessons.isEmpty()) {
                         %>
                                 <tr class="borders">
-                                    <td>List of marks is empty</td>
+                                    <td>Список оцінок порожній</td>
                                 </tr>
                         <%
                             } else {
@@ -70,11 +70,11 @@
                                         <%
                                             }
                                         %>
-                                            <td class="borders"><p class="dates">Thematic</p></td>
+                                            <td class="borders"><p class="dates">Тематична</p></td>
                                     <%
                                         }
                                     %>
-                                    <td class="borders"><p class="dates">Semester</p></td>
+                                    <td class="borders"><p class="dates">Семестрова</p></td>
                                 </tr>
                                 <%
                                     int i = 0;
@@ -102,8 +102,8 @@
                                                                            type="hidden"/>
                                                                     <input name="list[<%=i++%>].mark"
                                                                            value="<%=mark.getMark()==null?"":mark.getMark()%>"
-                                                                           pattern="a|[1-9]|1[0-2]"
-                                                                           oninvalid="this.setCustomValidity('Inputted value is invalid')"
+                                                                           pattern="н|[1-9]|1[0-2]"
+                                                                           oninvalid="this.setCustomValidity('Введіть коректне значення')"
                                                                            oninput="this.setCustomValidity('')"
                                                                            class="width-40"/>
                                                             <%
@@ -141,7 +141,7 @@
                     %>
                             <button type="submit" class="bg-primary">
                                 <div class="inline"><i class='material-icons'>save</i></div>
-                                <div class="inline">Save</div>
+                                <div class="inline">Зберегти</div>
                             </button>
                     <%
                         }
@@ -150,11 +150,11 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick=history.back() class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
             </div>
         </div>

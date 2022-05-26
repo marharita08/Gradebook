@@ -50,7 +50,7 @@ public class SemesterController {
         model.put("list", list);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("pagination", paginationController.makePagingLinks("semesters"));
-        model.put("header", "Semesters list");
+        model.put("header", "Список семестрів");
         model.put("pageNum", page);
         LOGGER.info("Printing semester list.");
         return new ModelAndView("viewSemesterList", model);
@@ -71,12 +71,12 @@ public class SemesterController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Add semester", "");
+        crumbsMap.put("Додати семестр", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new Semester());
         model.put("list", schoolYears);
         model.put("selectedSchoolYear", 0);
-        model.put("title", "Add semester");
+        model.put("title", "Додати семестр");
         model.put("formAction", "semester");
         LOGGER.info("Printing form for input semester data.");
         return new ModelAndView("semesterForm", model);
@@ -113,12 +113,12 @@ public class SemesterController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Edit semester", "");
+        crumbsMap.put("Редагувати семестр", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", semester);
         model.put("list", schoolYearDAO.getAllSchoolYears());
         model.put("selectedSchoolYear", semester.getSchoolYear().getId());
-        model.put("title", "Edit semester");
+        model.put("title", "Редагувати семестр");
         model.put("formAction", "../semester/" + semester.getId());
         LOGGER.info("Printing form for changing semester data.");
         return new ModelAndView("semesterForm", model);
@@ -174,7 +174,7 @@ public class SemesterController {
 
     private Map<String, String> getBasicCrumbsMap() {
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Semesters", SEMESTERS_LINK);
+        crumbsMap.put("Семестри", SEMESTERS_LINK);
         return crumbsMap;
     }
 }

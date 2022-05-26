@@ -6,7 +6,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
     <head>
-        <title>Theme list</title>
+        <title>Список тем</title>
         <link rel="icon" type="img/png" href="../images/icon.png">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -33,18 +33,18 @@
                 %>
                 <table>
                     <tr>
-                        <td>Class:</td>
+                        <td>Клас:</td>
                         <td><%=subjectDetails.getPupilClass().getName()%></td>
                     </tr>
                     <tr>
-                        <td>Subject:</td>
+                        <td>Предмет:</td>
                         <td><%=subjectDetails.getSubject().getName()%></td>
                     </tr>
                     <%
                         if(teacher != null) {
                     %>
                             <tr>
-                                <td>Teacher:</td>
+                                <td>Вчитель:</td>
                                 <td><%=teacher.getName()%></td>
                             </tr>
                     <%
@@ -56,7 +56,7 @@
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>ID</th>
                         </sec:authorize>
-                        <th>Name</th>
+                        <th>Назва</th>
                         <th></th>
                         <sec:authorize access="hasAuthority('TEACHER')">
                             <th></th>
@@ -74,7 +74,7 @@
                                        id="id"
                                        onkeyup="filter(id, <%=i++%>)"
                                        class="search-slim"
-                                       placeholder="Search...">
+                                       placeholder="Пошук...">
                             </th>
                         </sec:authorize>
                         <th>
@@ -82,7 +82,7 @@
                                    id="name"
                                    onkeyup="filter(id, <%=i%>)"
                                    class="search"
-                                   placeholder="Search...">
+                                   placeholder="Пошук...">
                         </th>
                         <th></th>
                         <sec:authorize access="hasAuthority('TEACHER')">
@@ -96,13 +96,13 @@
                             if (list.isEmpty()) {
                         %>
                                 <tr class="card">
-                                    <td colspan="<%=colspan%>">List of themes is empty</td>
+                                    <td colspan="<%=colspan%>">Список тем пустий</td>
                                 </tr>
                         <%
                             }
                             for (Theme theme:list) {
                         %>
-                                <tr class="card" onclick="location.href='../../theme/<%=theme.getId()%>'">
+                                <tr class="card">
                                     <sec:authorize access="hasAuthority('ADMIN')">
                                         <td><%=theme.getId()%></td>
                                     </sec:authorize>
@@ -111,14 +111,14 @@
                                         <div class="inline"><%=theme.getName()%></div>
                                     </td>
                                     <td>
-                                        <a href="<%=root%>theme/<%=theme.getId()%>/lessons">view lessons</a>
+                                        <a href="<%=root%>theme/<%=theme.getId()%>/lessons">уроки</a>
                                     </td>
                                     <sec:authorize access="hasAuthority('TEACHER')">
                                         <%
                                             if(teacher != null && currUser.getId() == teacher.getId()) {
                                         %>
                                         <td>
-                                            <a href="<%=root%>theme/<%=theme.getId()%>/lesson">add lesson</a>
+                                            <a href="<%=root%>theme/<%=theme.getId()%>/lesson">додати урок</a>
                                         </td>
                                         <td>
                                             <a href="<%=root%>theme/<%=theme.getId()%>">
@@ -143,11 +143,11 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick=history.back() class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
                 <sec:authorize access="hasAuthority('TEACHER')">
                     <%
@@ -155,7 +155,7 @@
                     %>
                             <button onclick='location.href="theme"' class="bg-primary">
                                 <div class="inline"><i class='material-icons'>note_add</i></div>
-                                <div class="inline">Add</div>
+                                <div class="inline">Додати</div>
                             </button>
                     <%
                         }

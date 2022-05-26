@@ -32,8 +32,8 @@
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>ID</th>
                         </sec:authorize>
-                        <th>Name</th>
-                        <th>Position</th>
+                        <th>Ім<span>&#39;</span>я</th>
+                        <th>Посада</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th></th>
                             <th></th>
@@ -51,7 +51,7 @@
                                                id="id"
                                                onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                                class="search-slim"
-                                               placeholder="Search...">
+                                               placeholder="Пошук...">
                                     </th>
                                 </sec:authorize>
                                 <th>
@@ -59,14 +59,14 @@
                                            id="name"
                                            onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                            class="search-middle"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <th>
                                     <input type="text"
                                            id="position"
                                            onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
                                            class="search-middle"
-                                           placeholder="Search...">
+                                           placeholder="Пошук...">
                                 </th>
                                 <sec:authorize access="hasAuthority('ADMIN')">
                                     <th></th>
@@ -83,16 +83,16 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick='history.back()' class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
                 <sec:authorize access="hasAuthority('ADMIN')">
                     <button onclick='location.href="<%=root%>user"' class="bg-primary">
                         <div class="inline"><i class='material-icons'>person_add</i></div>
-                        <div class="inline">Add</div>
+                        <div class="inline">Додати</div>
                     </button>
                 </sec:authorize>
             </div>
@@ -105,7 +105,7 @@
             if (!obj.length) {
                 html.push(
                     "<tr class='card'>",
-                    "<td colspan='<%=colspan%>'>List of teachers is empty</td>",
+                    "<td colspan='<%=colspan%>'>Список вчителів пустий</td>",
                     "</tr>"
                 );
             } else {
@@ -136,7 +136,7 @@
                         );
                     }
                     html.push("<td>",
-                        "<a href='<%=root%>teacher/", id, "/subject-details'>view subjects</a>",
+                        "<a href='<%=root%>teacher/", id, "/subject-details'>предмети</a>",
                         "</td>",
                         "</tr>"
                     );

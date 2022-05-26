@@ -53,7 +53,7 @@ public class PupilClassController {
         model.put("list", list);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("pagination", paginationController.makePagingLinks("classes"));
-        model.put("header", "All classes");
+        model.put("header", "Всі класи");
         model.put("pageNum", page);
         LOGGER.info("Printing class list.");
         return new ModelAndView("viewClassList", model);
@@ -76,11 +76,11 @@ public class PupilClassController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Teachers", "/teachers?page=1");
-        crumbsMap.put("Classes", "");
+        crumbsMap.put("Вчителі", "/teachers?page=1");
+        crumbsMap.put("Класи", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", dao.getPupilClassesByTeacher(id));
-        model.put("header", "Classes taught by " + teacher.getName());
+        model.put("header", "Класи в яких викладає " + teacher.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
         LOGGER.info("Printing class list.");
@@ -98,11 +98,11 @@ public class PupilClassController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Add class", "");
+        crumbsMap.put("Додати клас", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new PupilClass());
         model.put("selectedGrade", 1);
-        model.put("title", "Add class");
+        model.put("title", "Додати клас");
         model.put("formAction", "class");
         LOGGER.info("Printing form for input class data.");
         return new ModelAndView("classForm", model);
@@ -139,11 +139,11 @@ public class PupilClassController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Edit class", "");
+        crumbsMap.put("Редагувати клас", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", pupilClass);
         model.put("selectedGrade", pupilClass.getGrade());
-        model.put("title", "Edit class");
+        model.put("title", "Редагувати клас");
         model.put("formAction", "../class/" + pupilClass.getId());
         LOGGER.info("Printing form for changing class data.");
         return new ModelAndView("classForm", model);
@@ -199,7 +199,7 @@ public class PupilClassController {
 
     private Map<String, String> getBasicCrumbsMap() {
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Classes", CLASSES_LINK);
+        crumbsMap.put("Класи", CLASSES_LINK);
         return crumbsMap;
     }
 }

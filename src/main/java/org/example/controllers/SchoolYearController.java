@@ -46,7 +46,7 @@ public class SchoolYearController {
         model.put("list", list);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("pagination", paginationController.makePagingLinks("years"));
-        model.put("header", "School years list");
+        model.put("header", "Список навчальних років");
         model.put("pageNum", page);
         LOGGER.info("Printing school years list.");
         return new ModelAndView("viewSchoolYearList", model);
@@ -63,10 +63,10 @@ public class SchoolYearController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Add school year", "");
+        crumbsMap.put("Додати навчальний рік", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new SchoolYear());
-        model.put("title", "Add school year");
+        model.put("title", "Додати навчальний рік");
         model.put("formAction", "year");
         LOGGER.info("Printing form for input school year data.");
         return new ModelAndView("schoolYearForm", model);
@@ -103,11 +103,11 @@ public class SchoolYearController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Edit school year", "");
+        crumbsMap.put("Редагувати навчальний рік", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", schoolYear);
-        model.put("title", "Edit school year");
-        model.put("formAction", "../saveEditedSchoolYear");
+        model.put("title", "Редагувати навчальний рік");
+        model.put("formAction", "../year/" + id);
         LOGGER.info("Printing form for changing school year data.");
         return new ModelAndView("schoolYearForm", model);
     }
@@ -162,7 +162,7 @@ public class SchoolYearController {
 
     private Map<String, String> getBasicCrumbsMap() {
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("School years", SCHOOL_YEAR_LINK);
+        crumbsMap.put("Навчальні роки", SCHOOL_YEAR_LINK);
         return crumbsMap;
     }
 }

@@ -28,7 +28,7 @@
                         <br/>
                         <div class="row">
                             <div class="col-25">
-                                <label>Class</label>
+                                <label>Клас</label>
                             </div>
                             <div class="col-75">
                                 <form:select path="pupilClass.id">
@@ -47,7 +47,7 @@
                         </div>
                         <div class="row">
                             <div class="col-25">
-                                <label>Teacher</label>
+                                <label>Вчитель</label>
                             </div>
                             <div class="col-75">
                                 <form:select path="teacher.id">
@@ -67,7 +67,7 @@
                         </div>
                         <div class="row">
                             <div class="col-25">
-                                <label>Subject</label>
+                                <label>Придмет</label>
                             </div>
                             <div class="col-75">
                                 <form:select path="subject.id">
@@ -86,7 +86,7 @@
                         </div>
                         <div class="row">
                             <div class="col-25">
-                                <label>Semester</label>
+                                <label>Семестр</label>
                             </div>
                             <div class="col-75">
                                 <form:select path="semester.id">
@@ -106,11 +106,11 @@
                         <form:input path="id" type="hidden"/>
                         <button onclick="history.back()" type="button" class="bg-primary">
                             <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                            <div class="inline">Cancel</div>
+                            <div class="inline">Назад</div>
                         </button>
                         <button formmethod="post" formaction="<%=request.getAttribute("formAction")%>" class="bg-primary">
                             <div class="inline"><i class='material-icons'>save</i></div>
-                            <div class="inline">Save</div>
+                            <div class="inline">Зберегти</div>
                         </button>
                         <br/><br/>
                     </form:form>

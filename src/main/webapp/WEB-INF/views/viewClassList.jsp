@@ -5,7 +5,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
     <head>
-        <title>Class List</title>
+        <title>Список класів</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <style><%@include file="../css/style.css"%></style>
@@ -33,8 +33,8 @@
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th>ID</th>
                         </sec:authorize>
-                        <th>Grade</th>
-                        <th>Name</th>
+                        <th>Клас</th>
+                        <th>Назва</th>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th></th>
                             <th></th>
@@ -57,7 +57,7 @@
                                        id="id"
                                        onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                        class="search-slim"
-                                       placeholder="Search...">
+                                       placeholder="Пошук...">
                             </th>
                         </sec:authorize>
                         <th>
@@ -65,14 +65,14 @@
                                    id="grade"
                                    onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
                                    class="search-slim"
-                                   placeholder="Search...">
+                                   placeholder="Пошук...">
                         </th>
                         <th>
                             <input type="text"
                                    id="name"
                                    onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
                                    class="search-slim"
-                                   placeholder="Search...">
+                                   placeholder="Пошук...">
                         </th>
                         <sec:authorize access="hasAuthority('ADMIN')">
                             <th></th>
@@ -92,16 +92,16 @@
                 <br/>
                 <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
-                    <div class="inline">Menu</div>
+                    <div class="inline">Меню</div>
                 </button>
                 <button onclick='history.back()' class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>
-                    <div class="inline">Back</div>
+                    <div class="inline">Назад</div>
                 </button>
                 <sec:authorize access="hasAuthority('ADMIN')">
                     <button onclick='location.href="<%=root%>class"' class="bg-primary">
                         <div class="inline"><i class='material-icons'>group_add</i></div>
-                        <div class="inline">Add</div>
+                        <div class="inline">Додати</div>
                     </button>
                 </sec:authorize>
             </div>
@@ -114,7 +114,7 @@
             if (!obj.length) {
                 html.push(
                     "<tr class='card'>",
-                    "<td colspan='<%=colspan%>'>List of classes is empty</td>",
+                    "<td colspan='<%=colspan%>'>Список класів пустий</td>",
                     "</tr>"
                 );
             } else {
@@ -147,13 +147,13 @@
                     if (<%=isAdmin||isTeacher%>) {
                         html.push(
                             "<td>",
-                            "<a href='<%=root%>class/", id, "/pupils'>view pupils</a>",
+                            "<a href='<%=root%>class/", id, "/pupils'>учні</a>",
                             "</td>"
                         );
                     }
                     html.push(
                         "<td>",
-                        "<a href='<%=root%>class/", id, "/subject-details'>view subjects</a>",
+                        "<a href='<%=root%>class/", id, "/subject-details'>предмети</a>",
                         "</td>",
                         "</tr>"
                     );

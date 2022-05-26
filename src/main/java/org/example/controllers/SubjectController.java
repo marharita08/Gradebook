@@ -55,7 +55,7 @@ public class SubjectController {
         model.put("list", list);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("pagination", paginationController.makePagingLinks("viewAllSubjects"));
-        model.put("header", "Subject list");
+        model.put("header", "Список предметів");
         model.put("pageNum", page);
         LOGGER.info("Printing subject list.");
         return new ModelAndView("viewSubjectList", model);
@@ -72,10 +72,10 @@ public class SubjectController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Add subject", "");
+        crumbsMap.put("Додати предмет", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new PupilClass());
-        model.put("title", "Add subject");
+        model.put("title", "Додати предмет");
         model.put("formAction", "subject");
         LOGGER.info("Printing form for input subject data.");
         return new ModelAndView("subjectForm", model);
@@ -112,12 +112,11 @@ public class SubjectController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Edit subject", "");
+        crumbsMap.put("Редагувати предмет", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", dao.getSubject(id));
-        model.put("title", "Edit subject");
+        model.put("title", "Редагувати предмет");
         model.put("formAction", "../subject/" + subject.getId());
-        model.put("toRoot", "../");
         LOGGER.info("Printing form for changing subject data.");
         return new ModelAndView("subjectForm", model);
     }
@@ -172,7 +171,7 @@ public class SubjectController {
 
     private Map<String, String> getBasicCrumbsMap() {
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Subjects", SUBJECTS_LINK);
+        crumbsMap.put("Предмети", SUBJECTS_LINK);
         return crumbsMap;
     }
 }

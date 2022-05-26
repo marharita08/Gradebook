@@ -8,7 +8,7 @@ public class BreadcrumbsController {
 
     public static String getBreadcrumbs(Map<String, String> map) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<li><a href='").append(ROOT).append("'>").append("Home</a></li>");
+        sb.append("<li><a href='").append(ROOT).append("'>").append("Меню</a></li>");
         int i = 0;
         for (Map.Entry<String, String> entry: map.entrySet()) {
             if (map.size() == ++i) {

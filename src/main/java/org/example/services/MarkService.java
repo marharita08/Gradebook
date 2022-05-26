@@ -59,7 +59,7 @@ public class MarkService {
 
     public Map<String, Mark> getSemesterMarks(SubjectDetails subjectDetails) {
         List<Mark> semesterMarks = dao.getSemesterMarks(subjectDetails.getId());
-        Map<String, Mark> markMap = new TreeMap<>();;
+        Map<String, Mark> markMap = new TreeMap<>();
         for (Mark mark:semesterMarks) {
             markMap.put(mark.getPupil().getName(), mark);
         }
@@ -69,7 +69,7 @@ public class MarkService {
     public void saveMarks(MarkList list) throws Exception {
         for (Mark mark : list.getList()) {
             if (!mark.getMark().equals("")) {
-                if (mark.getMark().equals("a")) {
+                if (mark.getMark().equals("н")) {
                     dao.addAbsent(mark);
                     dao.deleteMark(mark);
                 } else {

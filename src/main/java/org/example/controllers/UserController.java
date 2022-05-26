@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.interfaces.*;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -97,7 +99,7 @@ public class UserController {
         Pupil pupil = new Pupil();
         Teacher teacher = new Teacher();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("Add user", "");
+        crumbsMap.put("Додати користувача", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("teacher", teacher);
         model.put("pupil", pupil);
@@ -223,7 +225,7 @@ public class UserController {
         return new ModelAndView("redirect:/users?page=" + pageNum);
     }
 
-    @RequestMapping(value = "/checkUsername", method = RequestMethod.GET)
+    @RequestMapping(value = "/checkUsername", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
     public String checkUsername(@RequestParam("val") String name, @RequestParam("id") int id){
@@ -231,7 +233,7 @@ public class UserController {
         String response = "";
         if(user != null) {
             if (user.getId() != id) {
-                response = "Username already taken!";
+                response = "Ім'я користувача зайняте!";
             }
         }
         return response;
@@ -270,7 +272,7 @@ public class UserController {
             pupil = new Pupil();
         }
         Map<String, String> crumbsMap = getBasicCrumbsMap();
-        crumbsMap.put("User page", "");
+        crumbsMap.put("Сторінка користувача", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("teacher", teacher);
         model.put("pupil", pupil);
@@ -305,7 +307,7 @@ public class UserController {
 
     private Map<String, String> getBasicCrumbsMap() {
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Users", USERS_LINK);
+        crumbsMap.put("Користувачі", USERS_LINK);
         return crumbsMap;
     }
 }

@@ -31,7 +31,7 @@ public class PostgresMarkDAO implements MarkDAO {
             " where PUPIL_ID = ? " +
             "order by lesson_date";
     private static final String GET_MARKS_BY_LESSON = "select p.PUPIL_ID, COALESCE(MARK_ID, ABSENT_ID) as MARK_ID, M.LESSON_ID, " +
-            "CASE WHEN absent_id is not null THEN 'a' ELSE to_char(mark, '99') END as mark " +
+            "CASE WHEN absent_id is not null THEN 'н' ELSE to_char(mark, '99') END as mark " +
             "from PUPIL p " +
             "join CLASS c on p.CLASS_ID = c.CLASS_ID " +
             "join SUBJECT_DETAILS SD on c.CLASS_ID = SD.CLASS_ID " +
@@ -39,7 +39,7 @@ public class PostgresMarkDAO implements MarkDAO {
             "join LESSON l on t.THEME_ID = l.THEME_ID and LESSON_ID = ? " +
             "left join MARK M on p.PUPIL_ID = M.PUPIL_ID and l.LESSON_ID = M.LESSON_ID " +
             "left join absent A on p.PUPIL_ID = A.PUPIL_ID and l.LESSON_ID = A.LESSON_ID " +
-            "order by regexp_replace(p.NAME, '^.* ', '')";
+            "order by p.NAME";
     private static final String GET_MARKS_BY_THEME_AND_PUPIL = "with tab as ( " +
             "select p.*, MARK_ID, L.LESSON_ID, MARK, LESSON_DATE from PUPIL p " +
             "join CLASS c on p.CLASS_ID = c.CLASS_ID " +
@@ -49,7 +49,7 @@ public class PostgresMarkDAO implements MarkDAO {
             "left join MARK M on p.PUPIL_ID = M.PUPIL_ID  and M.LESSON_ID = L.LESSON_ID " +
             "where p.PUPIL_ID = ?) " +
             "select tab.PUPIL_ID, tab.CLASS_ID, tab.NAME, tab.LESSON_DATE, COALESCE(MARK_ID, ABSENT_ID) as MARK_ID, tab.LESSON_ID, " +
-            "CASE WHEN absent_id is not null THEN 'a' ELSE to_char(mark, '99') END as mark " +
+            "CASE WHEN absent_id is not null THEN 'н' ELSE to_char(mark, '99') END as mark " +
             "from tab " +
             "left join ABSENT a on a.lesson_id=tab.lesson_id and a.pupil_id=tab.pupil_id " +
             "union " +
@@ -66,7 +66,7 @@ public class PostgresMarkDAO implements MarkDAO {
             "group by p.PUPIL_ID, p.NAME, t.THEME_ID, t.NAME) " +
             "select PUPIL_ID, pupil_NAME, round(avg(Thematic)) mark, null mark_id, null lesson_id from tab " +
             "group by PUPIL_ID, pupil_NAME " +
-            "order by regexp_replace(pupil_name, '^.* ', '')";
+            "order by pupil_name";
     private final LessonDAO lessonDAO;
     private final PupilDAO pupilDAO;
     private final ConnectionPool connectionPool;

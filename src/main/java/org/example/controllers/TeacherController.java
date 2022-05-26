@@ -48,11 +48,11 @@ public class TeacherController {
             list = dao.getTeachersByPage(page, teachersPerPage);
         }
         Map<String, String> crumbsMap = new LinkedHashMap<>();
-        crumbsMap.put("Teachers", "");
+        crumbsMap.put("Вчителі", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("list", list);
         model.put("pagination", paginationController.makePagingLinks("teachers"));
-        model.put("header", "Teacher list");
+        model.put("header", "Список вчителів");
         model.put("pageNum", page);
         LOGGER.info("Printing teachers list.");
         return new ModelAndView("viewTeacherList", model);
