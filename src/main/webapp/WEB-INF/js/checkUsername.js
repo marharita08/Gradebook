@@ -1,7 +1,7 @@
 var request = new XMLHttpRequest();
-function checkUsername(userID) {
+function checkUsername(userID, dbName) {
     var val = document.getElementById("username").value;
-    var url = "/Gradebook/checkUsername?val=" + val + "&id=" + userID;
+    var url = "/Gradebook/checkUsername?val=" + val + "&id=" + userID + "&dbname=" + dbName;
     try {
         request.onreadystatechange = function () {
             if (request.readyState === 4) {

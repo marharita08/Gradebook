@@ -4,7 +4,7 @@
 
 <html>
     <head>
-        <title>Реєстрація</title>
+        <title>Додати адміністратора</title>
         <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -17,34 +17,17 @@
                 <br/>
                 <div class="card" style="width: 50%">
                     <br/>
-                    <h2>Реєстрація</h2>
+                    <h2>Додати адміністратора</h2>
+                    <p>Введіть дані користувача, який буде головним адміністратором вашої школи.</p>
                     <br/>
                     <form:form>
-                        <div class="row">
-                            <div class="col-25">
-                                <label>Школа</label>
-                            </div>
-                            <div class="col-75">
-                                <form:select path="dbName" onchange="check()">
-                                     <%
-                                         for (School school:(List<School>)request.getAttribute("list")) {
-                                     %>
-                                           <option value="<%=school.getId()%>">
-                                               <%=school.getName()%>
-                                           </option>
-                                     <%
-                                          }
-                                     %>
-                                </form:select>
-                            </div>
-                        </div>
-                        <p id="placeToShow" class="warning"></p>
+                        <form:input path="dbName" type="hidden"/>
                         <div class="row">
                             <div class="col-25">
                                 <label>Ім<span>&#39;</span>я</label>
                             </div>
                             <div class="col-75">
-                                <form:input type="text" path="username" onkeyup="check()" placeholder="Ім'я користувача"/>
+                                <form:input type="text" path="username" placeholder="Ім'я користувача"/>
                                 <br/><br/>
                             </div>
                         </div>
@@ -57,7 +40,7 @@
                                 <br/><br/>
                             </div>
                         </div>
-                        <button formmethod="post" formaction="registration" class="bg-primary" id="save">Зареєструватись</button>
+                        <button formmethod="post" formaction="admin" class="bg-primary" id="save">Додати</button>
                         <br/><br/>
                     </form:form>
                 </div>
@@ -65,11 +48,4 @@
         </div>
         <%@include file="footer.jsp"%>
     </body>
-    <script>
-        function check() {
-            var dbName = document.getElementById("dbName").value;
-            checkUsername(0, dbName);
-        }
-        <%@include file="../js/checkUsername.js"%>
-    </script>
 </html>

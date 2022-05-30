@@ -2,6 +2,7 @@ package org.example.controllers;
 
 import org.apache.log4j.Logger;
 import org.example.dao.interfaces.LessonDAO;
+import org.example.dao.interfaces.SchoolDAO;
 import org.example.dao.interfaces.ThemeDAO;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
@@ -20,11 +21,13 @@ import java.util.Map;
 public class LessonController {
     private final LessonDAO dao;
     private final ThemeDAO themeDAO;
+    private final SchoolDAO schoolDAO;
     private static final Logger LOGGER = Logger.getLogger(LessonController.class.getName());
 
-    public LessonController(LessonDAO dao, ThemeDAO themeDAO) {
+    public LessonController(LessonDAO dao, ThemeDAO themeDAO, SchoolDAO schoolDAO) {
         this.dao = dao;
         this.themeDAO = themeDAO;
+        this.schoolDAO = schoolDAO;
     }
 
     /**
@@ -35,17 +38,20 @@ public class LessonController {
     @Secured("TEACHER")
     public ModelAndView addLesson(@PathVariable int id) {
         LOGGER.info("Add new lesson for theme " + id + ".");
-        Theme theme = themeDAO.getTheme(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Theme theme = themeDAO.getTheme(id, dbName);
         if (theme == null) {
             LOGGER.error("Theme " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
             return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = getBasicCrumbsMap(theme);
         crumbsMap.put("Додати урок", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
@@ -65,7 +71,8 @@ public class LessonController {
     @Secured("TEACHER")
     public ModelAndView saveAddedLesson(@ModelAttribute Lesson lesson) {
         LOGGER.info("Saving added lesson.");
-        dao.addLesson(lesson);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.addLesson(lesson, user.getDbName());
         LOGGER.info("Redirect to list of lessons for " + lesson.getTheme().getId() + " theme.");
         return new ModelAndView("redirect:/theme/" + lesson.getTheme().getId() + "/lessons");
     }
@@ -79,17 +86,20 @@ public class LessonController {
     @Secured("TEACHER")
     public ModelAndView editLesson(@PathVariable int id) {
         LOGGER.info("Edit lesson " + id + ".");
-        Lesson lesson = dao.getLesson(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Lesson lesson = dao.getLesson(id, dbName);
         if (lesson == null) {
             LOGGER.error("Lesson " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         Theme theme = lesson.getTheme();
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
             return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
         Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = getBasicCrumbsMap(theme);
         crumbsMap.put("Редагувати урок", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
@@ -109,7 +119,8 @@ public class LessonController {
     @Secured("TEACHER")
     public ModelAndView saveEditedLesson(@ModelAttribute Lesson lesson) {
         LOGGER.info("Saving edited lesson.");
-        dao.updateLesson(lesson);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.updateLesson(lesson, user.getDbName());
         LOGGER.info("Redirect to list of lessons for " + lesson.getTheme().getId() + " theme.");
         return new ModelAndView("redirect:/theme/" + lesson.getTheme().getId() + "/lessons");
     }
@@ -123,17 +134,17 @@ public class LessonController {
     @Secured("TEACHER")
     public ModelAndView deleteLesson(@PathVariable int id) {
         LOGGER.info("Deleting lesson " + id);
-        Lesson lesson = dao.getLesson(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Lesson lesson = dao.getLesson(id, user.getDbName());
         if (lesson == null) {
             LOGGER.error("Lesson " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         Theme theme = lesson.getTheme();
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
             return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
-        dao.deleteLesson(id);
+        dao.deleteLesson(id, user.getDbName());
         LOGGER.info("Redirect to list of lessons for " + theme.getId() + " theme.");
         return new ModelAndView("redirect:/theme/" + theme.getId() + "/lessons");
     }
@@ -147,14 +158,18 @@ public class LessonController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewLessonsByTheme(@PathVariable int id) {
         LOGGER.info("Getting list of lessons for " + id + " theme.");
-        Theme theme = themeDAO.getTheme(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Theme theme = themeDAO.getTheme(id, user.getDbName());
         if (theme == null) {
             LOGGER.error("Theme " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         List<Lesson> list;
         Map<String, Object> model = new HashMap<>();
-        list = dao.getLessonsByTheme(id);
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        list = dao.getLessonsByTheme(id, dbName);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap(theme)));
         model.put("list", list);
         model.put("theme", theme);

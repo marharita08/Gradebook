@@ -8,9 +8,9 @@ import java.sql.*;
 import java.util.stream.Collectors;
 
 public class GenerateTables {
-    private static final String INSERT_USER = "Insert into GRADEBOOK_USER (username, password) values (?, ?)";
+   /* private static final String INSERT_USER = "Insert into GRADEBOOK_USER (username, password) values (?, ?)";
     private static final String ADD_ROLE_TO_USER = "insert into USER_ROLE values (?, ?)";
-    private static final String GET_COUNT_OF_USERS = "select count(USER_ID) as AMOUNT from GRADEBOOK_USER ";
+    private static final String GET_COUNT_OF_USERS = "select count(USER_ID) as AMOUNT from GRADEBOOK_USER ";*/
     private static final Logger LOGGER = Logger.getLogger(GenerateTables.class.getName());
     private final ConnectionPool connectionPool;
 
@@ -20,13 +20,13 @@ public class GenerateTables {
 
     public void generate() {
         try (InputStream stream =
-                     Thread.currentThread().getContextClassLoader().getResourceAsStream("init.sql")) {
-            LOGGER.info("Reading from init.sql .");
+                     Thread.currentThread().getContextClassLoader().getResourceAsStream("initSchools.sql")) {
+            LOGGER.info("Reading from initSchools.sql .");
             String sql = new BufferedReader(new InputStreamReader(stream))
                     .lines().collect(Collectors.joining("\n"));
             try (Connection connection = connectionPool.getConnection();
                  Statement stmt = connection.createStatement()) {
-                LOGGER.info("Executing init.sql .");
+                LOGGER.info("Executing initSchools.sql .");
                 stmt.execute(sql);
             }
         } catch (SQLException | IOException e) {
@@ -34,7 +34,7 @@ public class GenerateTables {
         }
     }
 
-    public void initDefaultUser(User user) {
+    /*public void initDefaultUser(User user) {
         try (Connection connection = connectionPool.getConnection();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_USERS);
@@ -58,5 +58,5 @@ public class GenerateTables {
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
-    }
+    }*/
 }

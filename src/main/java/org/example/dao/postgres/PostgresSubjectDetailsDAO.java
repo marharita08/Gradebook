@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.*;
 import org.example.entities.*;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -70,14 +69,14 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return List<SubjectDetails>
      */
     @Override
-    public List<SubjectDetails> getAllSubjectDetails() {
+    public List<SubjectDetails> getAllSubjectDetails(String dbName) {
         LOGGER.info("Reading all subject details from database.");
         List<SubjectDetails> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_SUBJECT_DETAILS)) {
             while (resultSet.next()) {
-                list.add(parseSubjectDetails(resultSet));
+                list.add(parseSubjectDetails(resultSet, dbName));
             }
             LOGGER.info("List of subject details complete.");
         } catch (SQLException throwables) {
@@ -86,7 +85,7 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
         return list;
     }
 
-    private SubjectDetails parseSubjectDetails(ResultSet resultSet) {
+    private SubjectDetails parseSubjectDetails(ResultSet resultSet, String dbName) {
         SubjectDetails subjectDetails = null;
         try {
             int id = resultSet.getInt("subject_details_ID");
@@ -95,14 +94,14 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
             int subjectID = resultSet.getInt("subject_id");
             int semesterID = resultSet.getInt("semester_id");
             Teacher teacher;
-            PupilClass pupilClass = pupilClassDAO.getPupilClass(classID);
+            PupilClass pupilClass = pupilClassDAO.getPupilClass(classID, dbName);
             if (teacherID == 0) {
                 teacher = null;
             } else {
-                teacher = teacherDAO.getTeacher(teacherID);
+                teacher = teacherDAO.getTeacher(teacherID, dbName);
             }
-            Subject subject = subjectDAO.getSubject(subjectID);
-            Semester semester = semesterDAO.getSemester(semesterID);
+            Subject subject = subjectDAO.getSubject(subjectID, dbName);
+            Semester semester = semesterDAO.getSemester(semesterID, dbName);
             subjectDetails = new SubjectDetails(id, pupilClass, teacher, subject, semester);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
@@ -116,15 +115,15 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return SubjectDetails
      */
     @Override
-    public SubjectDetails getSubjectDetails(int id) {
+    public SubjectDetails getSubjectDetails(int id, String dbName) {
         LOGGER.info("Reading subject details " + id + " from database.");
         SubjectDetails subjectDetails = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    subjectDetails = parseSubjectDetails(resultSet);
+                    subjectDetails = parseSubjectDetails(resultSet, dbName);
                 }
                 LOGGER.info("Reading complete");
             }
@@ -139,9 +138,9 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @param subjectDetails adding subject details
      */
     @Override
-    public void addSubjectDetails(SubjectDetails subjectDetails) throws Exception {
+    public void addSubjectDetails(SubjectDetails subjectDetails, String dbName) throws Exception {
         LOGGER.info("Inserting subject details " + subjectDetails.getId() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_SUBJECT_DETAILS)) {
             preparedStatement.setInt(1, subjectDetails.getPupilClass().getId());
             if(subjectDetails.getTeacher().getId() == 0){
@@ -155,9 +154,9 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
             LOGGER.info("Inserting complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
             Exception exception = new Exception("Class "
-                    + pupilClassDAO.getPupilClass(subjectDetails.getPupilClass().getId()).getName()
+                    + pupilClassDAO.getPupilClass(subjectDetails.getPupilClass().getId(), dbName).getName()
                     + " already has subject details for subject "
-                    + subjectDAO.getSubject(subjectDetails.getSubject().getId()).getName() + ".");
+                    + subjectDAO.getSubject(subjectDetails.getSubject().getId(), dbName).getName() + ".");
             LOGGER.error(exception.getMessage(), exception);
             throw exception;
         } catch (SQLException throwables) {
@@ -170,9 +169,9 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @param subjectDetails editing subject
      */
     @Override
-    public void updateSubjectDetails(SubjectDetails subjectDetails) throws Exception {
+    public void updateSubjectDetails(SubjectDetails subjectDetails, String dbName) throws Exception {
         LOGGER.info("Updating subject details " + subjectDetails.getId() + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SUBJECT_DETAILS)) {
             preparedStatement.setInt(1, subjectDetails.getPupilClass().getId());
             if(subjectDetails.getTeacher().getId() == 0){
@@ -187,9 +186,9 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
             LOGGER.info("Updating complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
             Exception exception = new Exception("Class "
-                    + pupilClassDAO.getPupilClass(subjectDetails.getPupilClass().getId()).getName()
+                    + pupilClassDAO.getPupilClass(subjectDetails.getPupilClass().getId(), dbName).getName()
                     + " already has subject details for subject "
-                    + subjectDAO.getSubject(subjectDetails.getSubject().getId()).getName() + ".");
+                    + subjectDAO.getSubject(subjectDetails.getSubject().getId(), dbName).getName() + ".");
             LOGGER.error(exception.getMessage(), exception);
             throw exception;
         } catch (SQLException throwables) {
@@ -201,10 +200,9 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * Delete subject details from database.
      * @param id subject details id
      */
-    @Transactional
     @Override
-    public void deleteSubjectDetails(int id) {
-        try (Connection connection = connectionPool.getConnection();
+    public void deleteSubjectDetails(int id, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_SUBJECT_DETAILS)) {
             LOGGER.info("Deleting subject details " + id + ".");
             preparedStatement.setInt(1, id);
@@ -220,15 +218,15 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return List<SubjectDetails>
      */
     @Override
-    public List<SubjectDetails> getSubjectDetailsByTeacher(int id) {
+    public List<SubjectDetails> getSubjectDetailsByTeacher(int id, String dbName) {
         LOGGER.info("Reading subject details for teacher " + id + ".");
         List<SubjectDetails> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_TEACHER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSubjectDetails(resultSet));
+                    list.add(parseSubjectDetails(resultSet, dbName));
                 }
                 LOGGER.info("List of subject details complete.");
             }
@@ -243,15 +241,15 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return List<SubjectDetails>
      */
     @Override
-    public List<SubjectDetails> getSubjectDetailsByPupilClass(int id) {
+    public List<SubjectDetails> getSubjectDetailsByPupilClass(int id, String dbName) {
         LOGGER.info("Reading subject details for class " + id + ".");
         List<SubjectDetails> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_CLASS)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSubjectDetails(resultSet));
+                    list.add(parseSubjectDetails(resultSet, dbName));
                 }
                 LOGGER.info("List of subject details complete.");
             }
@@ -266,16 +264,16 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return List<SubjectDetails>
      */
     @Override
-    public List<SubjectDetails> getSubjectDetailsBySubject(int id) {
+    public List<SubjectDetails> getSubjectDetailsBySubject(int id, String dbName) {
 
         LOGGER.info("Reading subject details for subject " + id + ".");
         List<SubjectDetails> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_SUBJECT)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSubjectDetails(resultSet));
+                    list.add(parseSubjectDetails(resultSet, dbName));
                 }
                 LOGGER.info("List of subject details complete.");
             }
@@ -290,16 +288,16 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return List<SubjectDetails>
      */
     @Override
-    public List<SubjectDetails> getSubjectDetailsBySemesterAndTeacher(int semesterID, int teacherID) {
+    public List<SubjectDetails> getSubjectDetailsBySemesterAndTeacher(int semesterID, int teacherID, String dbName) {
         LOGGER.info("Reading subject details for semester " + semesterID + " and teacher " + teacherID + ".");
         List<SubjectDetails> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_SEMESTER_AND_TEACHER)) {
             preparedStatement.setInt(1, semesterID);
             preparedStatement.setInt(2, teacherID);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSubjectDetails(resultSet));
+                    list.add(parseSubjectDetails(resultSet, dbName));
                 }
                 LOGGER.info("List of subject details complete.");
             }
@@ -314,16 +312,16 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return List<SubjectDetails>
      */
     @Override
-    public List<SubjectDetails> getSubjectDetailsBySemesterAndPupil(int semesterID, int pupilID) {
+    public List<SubjectDetails> getSubjectDetailsBySemesterAndPupil(int semesterID, int pupilID, String dbName) {
         LOGGER.info("Reading subject details for semester " + semesterID + " and pupil " + pupilID + ".");
         List<SubjectDetails> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_SEMESTER_AND_PUPIL)) {
             preparedStatement.setInt(1, semesterID);
             preparedStatement.setInt(2, pupilID);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSubjectDetails(resultSet));
+                    list.add(parseSubjectDetails(resultSet, dbName));
                 }
                 LOGGER.info("List of subject details complete.");
             }
@@ -338,10 +336,10 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return int
      */
     @Override
-    public int getCountOfSubjectDetails() {
+    public int getCountOfSubjectDetails(String dbName) {
         LOGGER.info("Counting subject details.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_SUBJECT_DETAILS)) {
             resultSet.next();
@@ -360,16 +358,16 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @return List<SubjectDetails>
      */
     @Override
-    public List<SubjectDetails> getSubjectDetailsByPage(int page, int range) {
+    public List<SubjectDetails> getSubjectDetailsByPage(int page, int range, String dbName) {
         List<SubjectDetails> list = new ArrayList<>();
         LOGGER.info("Reading subject details for page " + page + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT_DETAILS_BY_PAGE)) {
             preparedStatement.setInt(1, range);
             preparedStatement.setInt(2, (page - 1) * range);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSubjectDetails(resultSet));
+                    list.add(parseSubjectDetails(resultSet, dbName));
                 }
                 LOGGER.info("List of subject details complete.");
             }
@@ -387,7 +385,7 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<SubjectDetails> searchSubjectDetails(String val, String param) throws Exception {
+    public List<SubjectDetails> searchSubjectDetails(String val, String param, String dbName) throws Exception {
         List<SubjectDetails> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");
@@ -412,13 +410,13 @@ public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching subject details by " + param + ".");
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSubjectDetails(resultSet));
+                    list.add(parseSubjectDetails(resultSet, dbName));
                 }
                 LOGGER.info("List of subject details complete.");
             }

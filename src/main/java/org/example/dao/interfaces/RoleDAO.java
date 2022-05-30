@@ -10,19 +10,13 @@ public interface RoleDAO {
      * @param id user id
      * @return Set<Role>
      */
-    Set<Role> getRolesByUser(int id);
+    Set<Role> getRolesByUser(int id, String dbName);
 
     /**
      * Read all roles from database and put them into set.
      * @return Set<Role>
      */
-    Set<Role> getAllRoles();
+    Set<Role> getAllRoles(String dbName);
 
-    /**
-     * Get role from database by id.
-     * @param id role id
-     * @return Role
-     */
-    Role getRoleByID(int id);
 
 }

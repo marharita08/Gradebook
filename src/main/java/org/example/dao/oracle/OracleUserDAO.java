@@ -55,10 +55,10 @@ public class OracleUserDAO implements UserDAO {
      * @return User
      */
     @Override
-    public User getUserByUsername(String username) {
+    public User getUserByUsername(String username, String dbName) {
         LOGGER.info("Reading user " + username + " from database.");
         User user = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_USER_BY_USERNAME)) {
             preparedStatement.setString(1, username);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -79,10 +79,10 @@ public class OracleUserDAO implements UserDAO {
      * @return User
      */
     @Override
-    public User getUserByID(int id) {
+    public User getUserByID(int id, String dbName) {
         LOGGER.info("Reading user " + id + " from database.");
         User user = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_USER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -102,10 +102,10 @@ public class OracleUserDAO implements UserDAO {
      * @return List<User>
      */
     @Override
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers(String dbName) {
         LOGGER.info("Reading all users from database.");
         List<User> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_USERS)) {
             while (resultSet.next()) {
@@ -124,8 +124,9 @@ public class OracleUserDAO implements UserDAO {
             int id = resultSet.getInt("USER_ID");
             String username = resultSet.getString("USERNAME");
             String password = resultSet.getString("PASSWORD");
-            Set<Role> roles = roleDAO.getRolesByUser(id);
-            user = new User(id, username, password, roles);
+            String dbName = resultSet.getString("dbName");
+            Set<Role> roles = roleDAO.getRolesByUser(id, dbName);
+            user = new User(id, username, password, roles, dbName);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -138,11 +139,11 @@ public class OracleUserDAO implements UserDAO {
      * @param user adding user
      */
     @Override
-    public void addUser(User user) throws Exception {
-        User user1 = getUserByUsername(user.getUsername());
+    public void addUser(User user, String dbName) throws Exception {
+        User user1 = getUserByUsername(user.getUsername(), dbName);
         if (user1 == null) {
             LOGGER.info("Inserting user " + user.getUsername() + " into database.");
-            try (Connection connection = connectionPool.getConnection();
+            try (Connection connection = connectionPool.getConnection(dbName);
                  PreparedStatement preparedStatement = connection.prepareStatement(INSERT_USER)) {
                 preparedStatement.setString(1, user.getUsername());
                 preparedStatement.setString(2, user.getPassword());
@@ -163,11 +164,11 @@ public class OracleUserDAO implements UserDAO {
      * @param user editing user
      */
     @Override
-    public void updateUser(User user) throws Exception {
-        User user1 = getUserByUsername(user.getUsername());
+    public void updateUser(User user, String dbName) throws Exception {
+        User user1 = getUserByUsername(user.getUsername(), dbName);
         if(user1 == null || user1.getId() == user.getId()) {
             LOGGER.info("Updating user " + user.getUsername() + ".");
-            try (Connection connection = connectionPool.getConnection();
+            try (Connection connection = connectionPool.getConnection(dbName);
                  PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_USER)) {
                 preparedStatement.setString(1, user.getUsername());
                 preparedStatement.setString(2, user.getPassword());
@@ -190,15 +191,15 @@ public class OracleUserDAO implements UserDAO {
      */
     @Transactional
     @Override
-    public void deleteUser(int id) {
+    public void deleteUser(int id, String dbName) {
         LOGGER.info("Deleting user " + id + ".");
-        User user = getUserByID(id);
+        User user = getUserByID(id, dbName);
         if (user.hasRole("TEACHER")) {
-            teacherDAO.deleteTeacher(id);
+            teacherDAO.deleteTeacher(id, dbName);
         } else if (user.hasRole("PUPIL")) {
-            pupilDAO.deletePupil(id);
+            pupilDAO.deletePupil(id, dbName);
         } else {
-            try (Connection connection = connectionPool.getConnection();
+            try (Connection connection = connectionPool.getConnection(dbName);
                  PreparedStatement preparedStatement = connection.prepareStatement(DELETE_USER)) {
                 try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_ROLES_OF_DELETING_USER)) {
                     LOGGER.info("Deleting user's roles from database.");
@@ -221,9 +222,9 @@ public class OracleUserDAO implements UserDAO {
      * @param roleID role's id
      */
     @Override
-    public void deleteUserRole(int userID, int roleID) {
+    public void deleteUserRole(int userID, int roleID, String dbName) {
         LOGGER.info("Deleting role " + roleID + " from user " + userID + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ROLE_OF_USER)) {
             preparedStatement.setInt(1, userID);
             preparedStatement.setInt(2, roleID);
@@ -240,8 +241,8 @@ public class OracleUserDAO implements UserDAO {
      * @param roleID role's id
      */
     @Override
-    public void addUserRole(int userID, int roleID) {
-        try (Connection connection = connectionPool.getConnection();
+    public void addUserRole(int userID, int roleID, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(CHECK_ROLE_OF_USER)) {
             preparedStatement.setInt(1, userID);
             preparedStatement.setInt(2, roleID);
@@ -271,10 +272,10 @@ public class OracleUserDAO implements UserDAO {
      * @return int
      */
     @Override
-    public int getCountOfUsers() {
+    public int getCountOfUsers(String dbName) {
         LOGGER.info("Counting users.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_USERS)) {
             resultSet.next();
@@ -293,10 +294,10 @@ public class OracleUserDAO implements UserDAO {
      * @return List<User>
      */
     @Override
-    public List<User> getUsersByPage(int page, int range) {
+    public List<User> getUsersByPage(int page, int range, String dbName) {
         LOGGER.info("Reading users for " + page + " page.");
         List<User> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_USERS_BY_PAGE)) {
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
@@ -320,7 +321,7 @@ public class OracleUserDAO implements UserDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<User> searchUsers(String val, String param) throws Exception {
+    public List<User> searchUsers(String val, String param, String dbName) throws Exception {
         List<User> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");
@@ -339,7 +340,7 @@ public class OracleUserDAO implements UserDAO {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching users by " + param + ".");
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");

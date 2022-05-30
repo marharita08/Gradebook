@@ -2,12 +2,16 @@ package org.example.controllers;
 
 import org.apache.log4j.Logger;
 import org.example.dao.interfaces.PupilClassDAO;
+import org.example.dao.interfaces.SchoolDAO;
 import org.example.dao.interfaces.SubjectDAO;
 import org.example.dao.interfaces.TeacherDAO;
 import org.example.entities.PupilClass;
+import org.example.entities.School;
 import org.example.entities.Subject;
+import org.example.entities.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -22,16 +26,18 @@ public class SubjectController {
     private final SubjectDAO dao;
     private final PupilClassDAO pupilClassDAO;
     private final TeacherDAO teacherDAO;
+    private final SchoolDAO schoolDAO;
     private static final int subjectPerPage = 25;
     private static final String SUBJECTS_LINK = "/subjects?page=1";
     private static final Logger LOGGER = Logger.getLogger(SubjectController.class.getName());
 
     public SubjectController(SubjectDAO dao,
                              PupilClassDAO pupilClassDAO,
-                             TeacherDAO teacherDAO) {
+                             TeacherDAO teacherDAO, SchoolDAO schoolDAO) {
         this.dao = dao;
         this.pupilClassDAO = pupilClassDAO;
         this.teacherDAO = teacherDAO;
+        this.schoolDAO = schoolDAO;
     }
 
     /**
@@ -44,13 +50,17 @@ public class SubjectController {
         LOGGER.info("Getting list of subjects for " + page + " page.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfSubjects();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        int count = dao.getCountOfSubjects(dbName);
         PaginationController paginationController = new PaginationController(count, subjectPerPage, page);
         List<Subject> list;
-        if(count <= subjectPerPage) {
-            list = dao.getAllSubjects();
+        if (count <= subjectPerPage) {
+            list = dao.getAllSubjects(dbName);
         } else {
-            list = dao.getSubjectsByPage(page, subjectPerPage);
+            list = dao.getSubjectsByPage(page, subjectPerPage, dbName);
         }
         model.put("list", list);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
@@ -71,6 +81,9 @@ public class SubjectController {
         LOGGER.info("Add new subject.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        School school = schoolDAO.getSchool(Integer.parseInt(user.getDbName()));
+        model.put("school", school);
         Map<String, String> crumbsMap = getBasicCrumbsMap();
         crumbsMap.put("Додати предмет", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
@@ -90,7 +103,8 @@ public class SubjectController {
     @Secured("ADMIN")
     public ModelAndView saveAddedSubject(@ModelAttribute Subject subject) {
         LOGGER.info("Saving added subject.");
-        dao.addSubject(subject);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.addSubject(subject, user.getDbName());
         LOGGER.info("Redirect to subject list.");
         return new ModelAndView("redirect:" + SUBJECTS_LINK);
     }
@@ -104,17 +118,21 @@ public class SubjectController {
     @Secured("ADMIN")
     public ModelAndView editSubject(@PathVariable int id) {
         LOGGER.info("Edit subject.");
-        Subject subject = dao.getSubject(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Subject subject = dao.getSubject(id, dbName);
         if (subject == null) {
             LOGGER.error("Subject " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = getBasicCrumbsMap();
         crumbsMap.put("Редагувати предмет", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
-        model.put("command", dao.getSubject(id));
+        model.put("command", dao.getSubject(id, dbName));
         model.put("title", "Редагувати предмет");
         model.put("formAction", "../subject/" + subject.getId());
         LOGGER.info("Printing form for changing subject data.");
@@ -130,7 +148,8 @@ public class SubjectController {
     @Secured("ADMIN")
     public ModelAndView saveEditedSubject(@ModelAttribute Subject subject) {
         LOGGER.info("Saving edited subject.");
-        dao.updateSubject(subject);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.updateSubject(subject, user.getDbName());
         LOGGER.info("Redirect to subject list.");
         return new ModelAndView("redirect:" + SUBJECTS_LINK);
     }
@@ -144,12 +163,14 @@ public class SubjectController {
     @Secured("ADMIN")
     public ModelAndView deleteSubject(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting subject " + id + ".");
-        Subject subject = dao.getSubject(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Subject subject = dao.getSubject(id, dbName);
         if (subject == null) {
             LOGGER.error("Subject " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        dao.deleteSubject(id);
+        dao.deleteSubject(id, dbName);
         LOGGER.info("Redirect to subject list on page " + pageNum + ".");
         return new ModelAndView("redirect:/subjects?page=" + pageNum);
     }
@@ -161,10 +182,12 @@ public class SubjectController {
                                  @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching subjects by " + param + ".");
         List<Subject> list;
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
         if(!val.isEmpty()) {
-            list = dao.searchSubjects(val, param);
+            list = dao.searchSubjects(val, param, dbName);
         } else {
-            list = dao.getSubjectsByPage(1, subjectPerPage);
+            list = dao.getSubjectsByPage(1, subjectPerPage, dbName);
         }
         return list;
     }

@@ -19,11 +19,19 @@
     <nav class="navbar-fixed-top  bg-primary">
         <ul>
             <li>
-                <a href="<%=root%>">
+                <a href="<%=root%>main">
                     <div class="inline"><i class='material-icons'>home</i></div>
                     <div class="inline">Головна</div>
                 </a>
             </li>
+            <sec:authorize access="!isAuthenticated()">
+                <li>
+                    <a href="<%=root%>school">
+                        <div class="inline"><i class='material-icons'>add_box</i></div>
+                        <div class="inline">Додати школу</div>
+                    </a>
+                </li>
+            </sec:authorize>
             <sec:authorize access="hasAuthority('PUPIL')">
                 <li>
                     <a href="<%=root%>pupil/<%=currUser.getId()%>/pupils">

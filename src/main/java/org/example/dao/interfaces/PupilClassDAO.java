@@ -9,44 +9,44 @@ public interface PupilClassDAO {
      * Read all classes from database and put them into list.
      * @return List<PupilClass>
      */
-    List<PupilClass> getAllPupilClasses();
+    List<PupilClass> getAllPupilClasses(String dbName);
 
     /**
      * Read class from database by id.
      * @param id class id
      * @return PupilClass
      */
-    PupilClass getPupilClass(int id);
+    PupilClass getPupilClass(int id, String dbName);
 
     /**
      * Insert new class into database.
      * @param pupilClass adding class
      */
-    void addPupilClass(PupilClass pupilClass);
+    void addPupilClass(PupilClass pupilClass, String dbName);
 
     /**
      * Update class data into database.
      * @param pupilClass editing class
      */
-    void updatePupilClass(PupilClass pupilClass);
+    void updatePupilClass(PupilClass pupilClass, String dbName);
 
     /**
      * Delete class from database.
      * @param id class id
      */
-    void deletePupilClass(int id);
+    void deletePupilClass(int id, String dbName);
 
     /**
      * Read classes from database dy subjects and put them into list.
      * @return List<PupilClass>
      */
-    List<PupilClass> getPupilClassesBySubject(int id);
+    List<PupilClass> getPupilClassesBySubject(int id, String dbName);
 
     /**
      * Get total count of classes from database.
      * @return int
      */
-    int getCountOfPupilClasses();
+    int getCountOfPupilClasses(String dbName);
 
     /**
      * Get class list for page.
@@ -54,7 +54,7 @@ public interface PupilClassDAO {
      * @param range amount of teachers per page
      * @return List<PupilClass>
      */
-    List<PupilClass> getPupilClassesByPage(int page, int range);
+    List<PupilClass> getPupilClassesByPage(int page, int range, String dbName);
 
     /**
      * Search classes by set parameter.
@@ -63,11 +63,11 @@ public interface PupilClassDAO {
      * @return List<PupilClass>
      * @throws Exception if set parameter is wrong
      */
-    List<PupilClass> searchPupilClasses(String val, String param) throws Exception;
+    List<PupilClass> searchPupilClasses(String val, String param, String dbName) throws Exception;
 
     /**
      * Read classes from database by teacher and put them into list.
      * @return List<PupilClass>
      */
-    List<PupilClass> getPupilClassesByTeacher(int id);
+    List<PupilClass> getPupilClassesByTeacher(int id, String dbName);
 }

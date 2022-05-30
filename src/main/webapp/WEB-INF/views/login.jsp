@@ -2,6 +2,8 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ page import="java.util.List" %>
+<%@ page import="org.example.entities.School" %>
 <html>
     <head>
         <title>Вхід</title>
@@ -11,31 +13,48 @@
         <style><%@include file="/WEB-INF/css/style.css"%></style>
     </head>
     <body>
-        <%@include file="WEB-INF/views/header.jsp"%>
+        <%@include file="header.jsp"%>
         <div align="center">
             <div align="center" class="box">
                 <br/>
                 <div class="card" style="width: 50%">
                     <br/>
                     <h2 align="center">Вхід</h2>
-
-                    <%
-                        if(request.getParameter("error") != null) {
-                    %>
-                            <div class="warning">
-                                Невірне ім<span>&#39;</span>я користувача або пароль.
-                            </div>
-                    <%
-                        }
-                        if(request.getParameter("logout") != null) {
-                    %>
-                            <div class="success">
-                                Вихід із системи було здійснено успішно.
-                            </div>
-                    <%
-                        }
-                    %>
                     <form method="post" action="/Gradebook/login">
+                        <%
+                            if(request.getParameter("error") != null) {
+                        %>
+                              <div class="warning">
+                                  Невірне ім<span>&#39;</span>я користувача або пароль.
+                              </div>
+                        <%
+                            }
+                            if(request.getParameter("logout") != null) {
+                        %>
+                              <div class="success">
+                                 Вихід із системи було здійснено успішно.
+                              </div>
+                        <%
+                            }
+                        %>
+                        <div class="row">
+                            <div class="col-25">
+                                <label>Школа</label>
+                            </div>
+                            <div class="col-75">
+                                <select name="dbName">
+                                    <%
+                                        for (School school:(List<School>)request.getAttribute("list")) {
+                                    %>
+                                            <option value="<%=school.getId()%>">
+                                                <%=school.getName()%>
+                                            </option>
+                                    <%
+                                        }
+                                    %>
+                                </select>
+                            </div>
+                        </div>
                         <br/>
                         <div class="row">
                             <div class="col-25">
@@ -62,6 +81,6 @@
                 </div>
             </div>
         </div>
-        <%@include file="WEB-INF/views/footer.jsp"%>
+        <%@include file="footer.jsp"%>
     </body>
 </html>

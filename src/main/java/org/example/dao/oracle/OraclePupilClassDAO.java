@@ -49,10 +49,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @return List<PupilClass>
      */
     @Override
-    public List<PupilClass> getAllPupilClasses() {
+    public List<PupilClass> getAllPupilClasses(String dbName) {
         LOGGER.info("Reading all classes from database.");
         List<PupilClass> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_CLASSES)) {
             while (resultSet.next()) {
@@ -84,10 +84,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @return PupilClass
      */
     @Override
-    public PupilClass getPupilClass(int id) {
+    public PupilClass getPupilClass(int id, String dbName) {
         LOGGER.info("Reading class " + id + " from database.");
         PupilClass pupilClass = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_CLASS)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()){
@@ -107,9 +107,9 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @param pupilClass adding class
      */
     @Override
-    public void addPupilClass(PupilClass pupilClass) {
+    public void addPupilClass(PupilClass pupilClass, String dbName) {
         LOGGER.info("Inserting pupil " + pupilClass.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_CLASS)) {
             preparedStatement.setInt(1, pupilClass.getGrade());
             preparedStatement.setString(2, pupilClass.getName());
@@ -125,9 +125,9 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @param pupilClass editing class
      */
     @Override
-    public void updatePupilClass(PupilClass pupilClass) {
+    public void updatePupilClass(PupilClass pupilClass, String dbName) {
         LOGGER.info("Updating pupil " + pupilClass.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_CLASS)) {
             preparedStatement.setInt(1, pupilClass.getGrade());
             preparedStatement.setString(2, pupilClass.getName());
@@ -145,8 +145,8 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      */
     @Transactional
     @Override
-    public void deletePupilClass(int id) {
-        try (Connection connection = connectionPool.getConnection();
+    public void deletePupilClass(int id, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_CLASS)) {
             try (PreparedStatement preparedStatement1 = connection.prepareStatement(UPDATE_PUPILS_OF_DELETING_CLASS)) {
                 LOGGER.info("Setting class_id=null for pupils from " + id + " class.");
@@ -187,10 +187,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @return List<PupilClass>
      */
     @Override
-    public List<PupilClass> getPupilClassesBySubject(int id) {
+    public List<PupilClass> getPupilClassesBySubject(int id, String dbName) {
         LOGGER.info("Reading classes for " + id + " subject.");
         List<PupilClass> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_CLASSES_BY_SUBJECT)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -210,10 +210,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @return List<PupilClass>
      */
     @Override
-    public List<PupilClass> getPupilClassesByTeacher(int id) {
+    public List<PupilClass> getPupilClassesByTeacher(int id, String dbName) {
         LOGGER.info("Reading classes for " + id + " teacher.");
         List<PupilClass> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_CLASSES_BY_TEACHER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -233,10 +233,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @return int
      */
     @Override
-    public int getCountOfPupilClasses() {
+    public int getCountOfPupilClasses(String dbName) {
         LOGGER.info("Counting classes.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_CLASSES)) {
             resultSet.next();
@@ -255,10 +255,10 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @return List<PupilClass>
      */
     @Override
-    public List<PupilClass> getPupilClassesByPage(int page, int range) {
+    public List<PupilClass> getPupilClassesByPage(int page, int range, String dbName) {
         LOGGER.info("Reading classes for page " + page + ".");
         List<PupilClass> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_CLASSES_BY_PAGE)) {
             preparedStatement.setInt(1, (page - 1)*range + 1);
             preparedStatement.setInt(2, page*range);
@@ -282,7 +282,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<PupilClass> searchPupilClasses(String val, String param) throws Exception {
+    public List<PupilClass> searchPupilClasses(String val, String param, String dbName) throws Exception {
         List<PupilClass> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");
@@ -301,7 +301,7 @@ public class OraclePupilClassDAO implements PupilClassDAO {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching classes by " + param + ".");
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");

@@ -36,12 +36,12 @@ public class PostgresSemesterDAO implements SemesterDAO {
         this.schoolYearDAO = schoolYearDAO;
     }
 
-    private Semester parseSemester(ResultSet resultSet) {
+    private Semester parseSemester(ResultSet resultSet, String dbName) {
         Semester semester = null;
         try {
             int id = resultSet.getInt("SEMESTER_ID");
             int schoolYearID = resultSet.getInt("SCHOOL_YEAR_ID");
-            SchoolYear schoolYear = schoolYearDAO.getSchoolYear(schoolYearID);
+            SchoolYear schoolYear = schoolYearDAO.getSchoolYear(schoolYearID, dbName);
             String name = resultSet.getString("NAME");
             Date startDate = resultSet.getDate("START_DATE");
             Date endDate = resultSet.getDate("END_DATE");
@@ -57,14 +57,14 @@ public class PostgresSemesterDAO implements SemesterDAO {
      * @return List<Semester>
      */
     @Override
-    public List<Semester> getAllSemesters() {
+    public List<Semester> getAllSemesters(String dbName) {
         LOGGER.info("Reading all semesters from database.");
         List<Semester> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_SEMESTERS)) {
             while (resultSet.next()) {
-                list.add(parseSemester(resultSet));
+                list.add(parseSemester(resultSet, dbName));
             }
             LOGGER.info("List of semesters complete.");
         } catch (SQLException throwables) {
@@ -79,15 +79,15 @@ public class PostgresSemesterDAO implements SemesterDAO {
      * @return Semester
      */
     @Override
-    public Semester getSemester(int id) {
+    public Semester getSemester(int id, String dbName) {
         LOGGER.info("Reading semester " + id + " from database.");
         Semester semester = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SEMESTER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    semester = parseSemester(resultSet);
+                    semester = parseSemester(resultSet, dbName);
                 }
                 LOGGER.info("Reading complete");
             }
@@ -102,9 +102,9 @@ public class PostgresSemesterDAO implements SemesterDAO {
      * @param semester adding semester
      */
     @Override
-    public void addSemester(Semester semester) {
+    public void addSemester(Semester semester, String dbName) {
         LOGGER.info("Inserting semester " + semester.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_SEMESTER)) {
             preparedStatement.setInt(1, semester.getSchoolYear().getId());
             preparedStatement.setString(2, semester.getName());
@@ -122,9 +122,9 @@ public class PostgresSemesterDAO implements SemesterDAO {
      * @param semester editing semester
      */
     @Override
-    public void updateSemester(Semester semester) {
+    public void updateSemester(Semester semester, String dbName) {
         LOGGER.info("Updating school year " + semester.getName() + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SEMESTER)) {
             preparedStatement.setInt(1, semester.getSchoolYear().getId());
             preparedStatement.setString(2, semester.getName());
@@ -144,8 +144,8 @@ public class PostgresSemesterDAO implements SemesterDAO {
      */
     @Transactional
     @Override
-    public void deleteSemester(int id) {
-        try (Connection connection = connectionPool.getConnection();
+    public void deleteSemester(int id, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_SEMESTER)) {
             LOGGER.info("Deleting semester " + id + "from database.");
             preparedStatement.setInt(1, id);
@@ -161,10 +161,10 @@ public class PostgresSemesterDAO implements SemesterDAO {
      * @return int
      */
     @Override
-    public int getCountOfSemesters() {
+    public int getCountOfSemesters(String dbName) {
         LOGGER.info("Counting semesters.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_SEMESTERS)) {
             resultSet.next();
@@ -183,16 +183,16 @@ public class PostgresSemesterDAO implements SemesterDAO {
      * @return List<Semester>
      */
     @Override
-    public List<Semester> getSemestersByPage(int page, int range) {
+    public List<Semester> getSemestersByPage(int page, int range, String dbName) {
         List<Semester> list = new ArrayList<>();
         LOGGER.info("Reading semesters for " + page + " page.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SEMESTERS_BY_PAGE)) {
             preparedStatement.setInt(1, range);
             preparedStatement.setInt(2, (page - 1) * range);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSemester(resultSet));
+                    list.add(parseSemester(resultSet, dbName));
                 }
                 LOGGER.info("List of semesters complete.");
             }
@@ -210,7 +210,7 @@ public class PostgresSemesterDAO implements SemesterDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<Semester> searchSemesters(String val, String param) throws Exception {
+    public List<Semester> searchSemesters(String val, String param, String dbName) throws Exception {
         List<Semester> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");
@@ -235,13 +235,13 @@ public class PostgresSemesterDAO implements SemesterDAO {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching school years by " + param + ".");
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseSemester(resultSet));
+                    list.add(parseSemester(resultSet, dbName));
                 }
                 LOGGER.info("List of school years complete.");
             }

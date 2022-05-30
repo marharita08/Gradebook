@@ -26,7 +26,7 @@
             Set<Role> roles = (Set<Role>) request.getAttribute("roles");
             String action = (String) request.getAttribute("action");
             int id = user.getId();
-            String func = "checkUsername(" + id + ")";
+            String func = "checkUsername(" + id + "," + user.getDbName() + ")";
         %>
         <div align="center">
             <div class="box" align="left">

@@ -28,5 +28,6 @@
     <bean id="teacherDAO" class="org.example.dao.postgres.PostgresTeacherDAO"/>
     <bean id="themeDAO" class="org.example.dao.postgres.PostgresThemeDAO"/>
     <bean id="userDAO" class="org.example.dao.postgres.PostgresUserDAO"/>
+    <bean id="schoolDAO" class="org.example.dao.postgres.PostgresSchoolDAO"/>
 
 </beans>

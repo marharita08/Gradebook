@@ -8,7 +8,6 @@ import org.example.dao.interfaces.TeacherDAO;
 import org.example.dao.interfaces.UserDAO;
 import org.example.entities.Role;
 import org.example.entities.User;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ public class PostgresUserDAO implements UserDAO {
     private static final String GET_ALL_USERS = "SELECT * FROM GRADEBOOK_USER order by user_id";
     private static final String GET_USER_BY_USERNAME = "SELECT * FROM GRADEBOOK_USER where USERNAME=?";
     private static final String GET_USER = "SELECT * FROM GRADEBOOK_USER where USER_ID=?";
-    private static final String INSERT_USER = "Insert into GRADEBOOK_USER (username, password) values (?, ?)";
+    private static final String INSERT_USER = "Insert into GRADEBOOK_USER (username, password, dbname) values (?, ?, ?)";
     private static final String UPDATE_USER = "UPDATE GRADEBOOK_USER set username = ?, password = ? where user_id = ?";
     private static final String DELETE_USER = "Delete from GRADEBOOK_USER where user_id = ?";
     private static final String DELETE_ROLE_OF_USER = "Delete from USER_ROLE where user_id = ? and  role_id = ?";
@@ -52,10 +51,10 @@ public class PostgresUserDAO implements UserDAO {
      * @return User
      */
     @Override
-    public User getUserByUsername(String username) {
+    public User getUserByUsername(String username, String dbName) {
         LOGGER.info("Reading user " + username + " from database.");
         User user = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_USER_BY_USERNAME)) {
             preparedStatement.setString(1, username);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -76,10 +75,10 @@ public class PostgresUserDAO implements UserDAO {
      * @return User
      */
     @Override
-    public User getUserByID(int id) {
+    public User getUserByID(int id, String dbName) {
         LOGGER.info("Reading user " + id + " from database.");
         User user = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_USER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -99,10 +98,10 @@ public class PostgresUserDAO implements UserDAO {
      * @return List<User>
      */
     @Override
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers(String dbName) {
         LOGGER.info("Reading all users from database.");
         List<User> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_USERS)) {
             while (resultSet.next()) {
@@ -121,8 +120,9 @@ public class PostgresUserDAO implements UserDAO {
             int id = resultSet.getInt("USER_ID");
             String username = resultSet.getString("USERNAME");
             String password = resultSet.getString("PASSWORD");
-            Set<Role> roles = roleDAO.getRolesByUser(id);
-            user = new User(id, username, password, roles);
+            String dbName = resultSet.getString("dbName");
+            Set<Role> roles = roleDAO.getRolesByUser(id, dbName);
+            user = new User(id, username, password, roles, dbName);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -135,14 +135,15 @@ public class PostgresUserDAO implements UserDAO {
      * @param user adding user
      */
     @Override
-    public void addUser(User user) throws Exception {
-        User user1 = getUserByUsername(user.getUsername());
+    public void addUser(User user, String dbName) throws Exception {
+        User user1 = getUserByUsername(user.getUsername(), dbName);
         if (user1 == null) {
             LOGGER.info("Inserting user " + user.getUsername() + " into database.");
-            try (Connection connection = connectionPool.getConnection();
+            try (Connection connection = connectionPool.getConnection(dbName);
                  PreparedStatement preparedStatement = connection.prepareStatement(INSERT_USER)) {
                 preparedStatement.setString(1, user.getUsername());
                 preparedStatement.setString(2, user.getPassword());
+                preparedStatement.setString(3, dbName);
                 preparedStatement.executeUpdate();
                 LOGGER.info("Inserting complete.");
             } catch (SQLException throwables) {
@@ -160,11 +161,11 @@ public class PostgresUserDAO implements UserDAO {
      * @param user editing user
      */
     @Override
-    public void updateUser(User user) throws Exception {
-        User user1 = getUserByUsername(user.getUsername());
+    public void updateUser(User user, String dbName) throws Exception {
+        User user1 = getUserByUsername(user.getUsername(), dbName);
         if(user1 == null || user1.getId() == user.getId()) {
             LOGGER.info("Updating user " + user.getUsername() + ".");
-            try (Connection connection = connectionPool.getConnection();
+            try (Connection connection = connectionPool.getConnection(dbName);
                  PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_USER)) {
                 preparedStatement.setString(1, user.getUsername());
                 preparedStatement.setString(2, user.getPassword());
@@ -185,11 +186,10 @@ public class PostgresUserDAO implements UserDAO {
      * Delete user from database.
      * @param id user's id
      */
-    @Transactional
     @Override
-    public void deleteUser(int id) {
+    public void deleteUser(int id, String dbName) {
         LOGGER.info("Deleting user " + id + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_USER)) {
             LOGGER.info("Deleting user from database.");
             preparedStatement.setInt(1, id);
@@ -206,9 +206,9 @@ public class PostgresUserDAO implements UserDAO {
      * @param roleID role's id
      */
     @Override
-    public void deleteUserRole(int userID, int roleID) {
+    public void deleteUserRole(int userID, int roleID, String dbName) {
         LOGGER.info("Deleting role " + roleID + " from user " + userID + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ROLE_OF_USER)) {
             preparedStatement.setInt(1, userID);
             preparedStatement.setInt(2, roleID);
@@ -225,8 +225,8 @@ public class PostgresUserDAO implements UserDAO {
      * @param roleID role's id
      */
     @Override
-    public void addUserRole(int userID, int roleID) {
-        try (Connection connection = connectionPool.getConnection();
+    public void addUserRole(int userID, int roleID, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(CHECK_ROLE_OF_USER)) {
             preparedStatement.setInt(1, userID);
             preparedStatement.setInt(2, roleID);
@@ -256,10 +256,10 @@ public class PostgresUserDAO implements UserDAO {
      * @return int
      */
     @Override
-    public int getCountOfUsers() {
+    public int getCountOfUsers(String dbName) {
         LOGGER.info("Counting users.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_USERS)) {
             resultSet.next();
@@ -278,10 +278,10 @@ public class PostgresUserDAO implements UserDAO {
      * @return List<User>
      */
     @Override
-    public List<User> getUsersByPage(int page, int range) {
+    public List<User> getUsersByPage(int page, int range, String dbName) {
         LOGGER.info("Reading users for " + page + " page.");
         List<User> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_USERS_BY_PAGE)) {
             preparedStatement.setInt(1, range);
             preparedStatement.setInt(2, (page - 1) * range);
@@ -305,7 +305,7 @@ public class PostgresUserDAO implements UserDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<User> searchUsers(String val, String param) throws Exception {
+    public List<User> searchUsers(String val, String param, String dbName) throws Exception {
         List<User> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");
@@ -324,7 +324,7 @@ public class PostgresUserDAO implements UserDAO {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching users by " + param + ".");
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");

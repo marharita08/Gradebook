@@ -1,5 +1,6 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="org.example.entities.School" %>
 <html>
     <head>
         <title>Home</title>
@@ -9,7 +10,10 @@
         <link rel="icon" type="img/png" href="images/icon.png">
     </head>
     <body>
-        <%@include file="WEB-INF/views/header.jsp"%>
+        <%@include file="header.jsp"%>
+        <%
+            School currSchool = (School)request.getAttribute("school");
+        %>
         <div align="center">
             <div class="box box-index" align="left">
                 <div class="menu">
@@ -43,12 +47,12 @@
                 <div align="center" class="school-div">
                     <figure>
                         <img src="images/school.jpg" class="school">
-                        <figcaption>Повна назва школи</figcaption>
+                        <figcaption><%=currSchool.getName()%></figcaption>
                     </figure>
                 </div>
             </div>
         </div>
-        <%@include file="WEB-INF/views/footer.jsp"%>
+        <%@include file="footer.jsp"%>
     </body>
 </html>
 

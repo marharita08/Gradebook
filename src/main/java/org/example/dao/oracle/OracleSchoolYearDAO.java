@@ -65,7 +65,7 @@ public class OracleSchoolYearDAO implements SchoolYearDAO {
      * @return List<SchoolYear>
      */
     @Override
-    public List<SchoolYear> getAllSchoolYears() {
+    public List<SchoolYear> getAllSchoolYears(String dbName) {
         LOGGER.info("Reading all school years from database.");
         List<SchoolYear> list = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
@@ -87,7 +87,7 @@ public class OracleSchoolYearDAO implements SchoolYearDAO {
      * @return SchoolYear
      */
     @Override
-    public SchoolYear getSchoolYear(int id) {
+    public SchoolYear getSchoolYear(int id, String dbName) {
         LOGGER.info("Reading school year " + id + " from database.");
         SchoolYear schoolYear = null;
         try (Connection connection = connectionPool.getConnection();
@@ -110,7 +110,7 @@ public class OracleSchoolYearDAO implements SchoolYearDAO {
      * @param schoolYear adding school year
      */
     @Override
-    public void addSchoolYear(SchoolYear schoolYear) {
+    public void addSchoolYear(SchoolYear schoolYear, String dbName) {
         LOGGER.info("Inserting school year " + schoolYear.getName() + " into database.");
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_SCHOOL_YEAR)) {
@@ -129,7 +129,7 @@ public class OracleSchoolYearDAO implements SchoolYearDAO {
      * @param schoolYear editing school year
      */
     @Override
-    public void updateSchoolYear(SchoolYear schoolYear) {
+    public void updateSchoolYear(SchoolYear schoolYear, String dbName) {
         LOGGER.info("Updating school year " + schoolYear.getName() + ".");
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SCHOOL_YEAR)) {
@@ -150,7 +150,7 @@ public class OracleSchoolYearDAO implements SchoolYearDAO {
      */
     @Override
     @Transactional
-    public void deleteSchoolYear(int id) {
+    public void deleteSchoolYear(int id, String dbName) {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_SCHOOL_YEAR)) {
             try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_MARKS_FOR_DELETING_SCHOOL_YEAR)) {
@@ -192,7 +192,7 @@ public class OracleSchoolYearDAO implements SchoolYearDAO {
      * @return int
      */
     @Override
-    public int getCountOfSchoolYears() {
+    public int getCountOfSchoolYears(String dbName) {
         LOGGER.info("Counting school years.");
         int count = 0;
         try (Connection connection = connectionPool.getConnection();
@@ -214,7 +214,7 @@ public class OracleSchoolYearDAO implements SchoolYearDAO {
      * @return List<SchoolYear>
      */
     @Override
-    public List<SchoolYear> getSchoolYearsByPage(int page, int range) {
+    public List<SchoolYear> getSchoolYearsByPage(int page, int range, String dbName) {
         List<SchoolYear> list = new ArrayList<>();
         LOGGER.info("Reading school years for " + page + " page.");
         try (Connection connection = connectionPool.getConnection();
@@ -241,7 +241,7 @@ public class OracleSchoolYearDAO implements SchoolYearDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<SchoolYear> searchSchoolYears(String val, String param) throws Exception {
+    public List<SchoolYear> searchSchoolYears(String val, String param, String dbName) throws Exception {
         List<SchoolYear> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");

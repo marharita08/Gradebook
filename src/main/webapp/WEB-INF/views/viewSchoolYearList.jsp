@@ -87,7 +87,7 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
+                <button onclick='location.href="<%=root%>main"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
                     <div class="inline">Меню</div>
                 </button>

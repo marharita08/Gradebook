@@ -1,4 +1,5 @@
 from java.io import FileInputStream
+import sys
  
 propInputStream = FileInputStream("src/main/resources/datasource.properties")
 configProps = Properties()
@@ -8,14 +9,19 @@ domainName=configProps.get("domain.name")
 adminURL=configProps.get("admin.url")
 adminUserName=configProps.get("admin.username")
 adminPassword=configProps.get("admin.password")
- 
-dsName=configProps.get("datasource.name")
+
+if len(sys.argv) == 0:
+   dsName=configProps.get("datasource.name")
+   dsJNDIName=configProps.get("datasource.jndiname")
+   dsDatabaseName=configProps.get("datasource.database.name")
+else:
+   dsName=sys.argv[1]
+   dsJNDIName=configProps.get("datasource.jndiname") + '/' + sys.argv[1]
+   dsDatabaseName=sys.argv[1]
 dsFileName=configProps.get("datasource.filename")
-dsDatabaseName=configProps.get("datasource.database.name")
 datasourceTarget=configProps.get("datasource.target")
-dsJNDIName=configProps.get("datasource.jndiname")
 dsDriverName=configProps.get("datasource.driver.class")
-dsURL=configProps.get("datasource.url")
+dsURL=configProps.get("datasource.url") + dsName
 dsUserName=configProps.get("datasource.username")
 dsPassword=configProps.get("datasource.password")
 dsTestQuery=configProps.get("datasource.test.query")

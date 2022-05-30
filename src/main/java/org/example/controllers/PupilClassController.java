@@ -2,11 +2,13 @@ package org.example.controllers;
 
 import org.apache.log4j.Logger;
 import org.example.dao.interfaces.PupilClassDAO;
+import org.example.dao.interfaces.SchoolDAO;
 import org.example.dao.interfaces.SubjectDAO;
 import org.example.dao.interfaces.TeacherDAO;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -21,15 +23,17 @@ public class PupilClassController {
     private final PupilClassDAO dao;
     private final SubjectDAO subjectDAO;
     private final TeacherDAO teacherDAO;
+    private final SchoolDAO schoolDAO;
     private static final int pupilClassPerPage = 25;
     private static final String CLASSES_LINK = "/classes?page=1";
     private static final Logger LOGGER = Logger.getLogger(PupilClassController.class.getName());
 
     public PupilClassController(PupilClassDAO dao,
-                                SubjectDAO subjectDAO, TeacherDAO teacherDAO) {
+                                SubjectDAO subjectDAO, TeacherDAO teacherDAO, SchoolDAO schoolDAO) {
         this.dao = dao;
         this.subjectDAO = subjectDAO;
         this.teacherDAO = teacherDAO;
+        this.schoolDAO = schoolDAO;
     }
 
     /**
@@ -41,15 +45,19 @@ public class PupilClassController {
     public ModelAndView viewAllClasses(@RequestParam("page") int page) {
         LOGGER.info("Getting list of classes for " + page + " page.");
         LOGGER.info("Form a model.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfPupilClasses();
+        int count = dao.getCountOfPupilClasses(dbName);
         PaginationController paginationController = new PaginationController(count, pupilClassPerPage, page);
         List<PupilClass> list;
         if(count <= pupilClassPerPage) {
-            list = dao.getAllPupilClasses();
+            list = dao.getAllPupilClasses(dbName);
         } else {
-            list = dao.getPupilClassesByPage(page, pupilClassPerPage);
+            list = dao.getPupilClassesByPage(page, pupilClassPerPage, dbName);
         }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         model.put("list", list);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("pagination", paginationController.makePagingLinks("classes"));
@@ -68,18 +76,22 @@ public class PupilClassController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewPupilClassesByTeacher(@PathVariable int id) {
         LOGGER.info("Getting list of classes by " + id + " teacher.");
-        Teacher teacher = teacherDAO.getTeacher(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Teacher teacher = teacherDAO.getTeacher(id, dbName);
         if (teacher == null) {
             LOGGER.error("Teacher " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         crumbsMap.put("Вчителі", "/teachers?page=1");
         crumbsMap.put("Класи", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
-        model.put("list", dao.getPupilClassesByTeacher(id));
+        model.put("list", dao.getPupilClassesByTeacher(id, dbName));
         model.put("header", "Класи в яких викладає " + teacher.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
@@ -99,6 +111,9 @@ public class PupilClassController {
         Map<String, Object> model = new HashMap<>();
         Map<String, String> crumbsMap = getBasicCrumbsMap();
         crumbsMap.put("Додати клас", "");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        School school = schoolDAO.getSchool(Integer.parseInt(user.getDbName()));
+        model.put("school", school);
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new PupilClass());
         model.put("selectedGrade", 1);
@@ -117,7 +132,8 @@ public class PupilClassController {
     @Secured("ADMIN")
     public ModelAndView saveAddedClass(@ModelAttribute PupilClass pupilClass) {
         LOGGER.info("Saving added class.");
-        dao.addPupilClass(pupilClass);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.addPupilClass(pupilClass, user.getDbName());
         LOGGER.info("Redirect to list of classes.");
         return new ModelAndView("redirect:/classes?page=1");
     }
@@ -131,13 +147,17 @@ public class PupilClassController {
     @Secured("ADMIN")
     public ModelAndView editClass(@PathVariable int id) {
         LOGGER.info("Edit class.");
-        PupilClass pupilClass = dao.getPupilClass(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        PupilClass pupilClass = dao.getPupilClass(id, dbName);
         if (pupilClass == null) {
             LOGGER.error("Class " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = getBasicCrumbsMap();
         crumbsMap.put("Редагувати клас", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
@@ -158,7 +178,8 @@ public class PupilClassController {
     @Secured("ADMIN")
     public ModelAndView saveEditedClass(@ModelAttribute PupilClass pupilClass) {
         LOGGER.info("Saving edited class.");
-        dao.updatePupilClass(pupilClass);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.updatePupilClass(pupilClass, user.getDbName());
         LOGGER.info("Redirect to list of classes.");
         return new ModelAndView("redirect:/classes?page=1");
     }
@@ -172,12 +193,14 @@ public class PupilClassController {
     @Secured("ADMIN")
     public ModelAndView deleteClass(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting class " + id + ".");
-        PupilClass pupilClass = dao.getPupilClass(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        PupilClass pupilClass = dao.getPupilClass(id, dbName);
         if (pupilClass == null) {
             LOGGER.error("Class " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        dao.deletePupilClass(id);
+        dao.deletePupilClass(id, dbName);
         LOGGER.info("Redirect to list of classes on page " + pageNum + ".");
         return new ModelAndView("redirect:/classes?page=" + pageNum);
     }
@@ -188,11 +211,13 @@ public class PupilClassController {
     public List<PupilClass> searchPupilClasses(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching classes by " + param + ".");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
         List<PupilClass> list;
         if(!val.isEmpty()) {
-            list = dao.searchPupilClasses(val, param);
+            list = dao.searchPupilClasses(val, param, dbName);
         } else {
-            list = dao.getPupilClassesByPage(1, pupilClassPerPage);
+            list = dao.getPupilClassesByPage(1, pupilClassPerPage, dbName);
         }
         return list;
     }

@@ -1,7 +1,8 @@
 CREATE TABLE if not exists GRADEBOOK_USER(
    USER_ID  serial primary key,
    USERNAME VARCHAR(50) NOT NULL UNIQUE,
-   PASSWORD VARCHAR(200) NOT NULL);
+   PASSWORD VARCHAR(200) NOT NULL,
+   dbName   Varchar(10) not null);
 
 CREATE TABLE if not exists ROLE(
    ROLE_ID  INTEGER primary key,

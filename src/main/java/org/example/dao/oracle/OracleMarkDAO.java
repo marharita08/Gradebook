@@ -70,7 +70,7 @@ public class OracleMarkDAO implements MarkDAO {
         this.connectionPool = connectionPool;
     }
 
-    private Mark parseMark(ResultSet resultSet) {
+    private Mark parseMark(ResultSet resultSet, String dbName) {
         Mark mark = null;
         try {
             int id = resultSet.getInt("mark_ID");
@@ -78,9 +78,9 @@ public class OracleMarkDAO implements MarkDAO {
             int pupilID = resultSet.getInt("pupil_id");
             String markInt = resultSet.getString("mark");
             if (lessonID == 0) {
-                mark = new Mark(id, pupilDAO.getPupil(pupilID), null, markInt);
+                mark = new Mark(id, pupilDAO.getPupil(pupilID, dbName), null, markInt);
             } else {
-                mark = new Mark(id, pupilDAO.getPupil(pupilID), lessonDAO.getLesson(lessonID), markInt);
+                mark = new Mark(id, pupilDAO.getPupil(pupilID, dbName), lessonDAO.getLesson(lessonID, dbName), markInt);
             }
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
@@ -94,15 +94,15 @@ public class OracleMarkDAO implements MarkDAO {
      * @return Mark
      */
     @Override
-    public Mark getMark(int id) {
+    public Mark getMark(int id, String dbName) {
         LOGGER.info("Reading mark " + id + " from database.");
         Mark mark = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_MARK)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    mark = parseMark(resultSet);
+                    mark = parseMark(resultSet, dbName);
                 }
                 LOGGER.info("Reading complete");
             }
@@ -117,9 +117,9 @@ public class OracleMarkDAO implements MarkDAO {
      * @param mark adding mark
      */
     @Override
-    public void addMark(Mark mark) throws Exception {
+    public void addMark(Mark mark, String dbName) throws Exception {
         LOGGER.info("Inserting mark " + mark.getId() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_MARK)) {
             preparedStatement.setInt(1, mark.getPupil().getId());
             preparedStatement.setInt(2, mark.getLesson().getId());
@@ -127,7 +127,7 @@ public class OracleMarkDAO implements MarkDAO {
             preparedStatement.executeUpdate();
             LOGGER.info("Inserting complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
-            throwException(mark);
+            throwException(mark, dbName);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -138,16 +138,16 @@ public class OracleMarkDAO implements MarkDAO {
      * @param mark adding absent
      */
     @Override
-    public void addAbsent(Mark mark) throws Exception {
+    public void addAbsent(Mark mark, String dbName) throws Exception {
         LOGGER.info("Inserting mark into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_ABSENT)) {
             preparedStatement.setInt(1, mark.getLesson().getId());
             preparedStatement.setInt(2, mark.getPupil().getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Inserting complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
-            throwException(mark);
+            throwException(mark, dbName);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -159,9 +159,9 @@ public class OracleMarkDAO implements MarkDAO {
      * @param mark editing mark
      */
     @Override
-    public void updateMark(Mark mark) throws Exception {
+    public void updateMark(Mark mark, String dbName) throws Exception {
         LOGGER.info("Updating mark " + mark.getId() + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_MARK)) {
             preparedStatement.setInt(1, mark.getPupil().getId());
             preparedStatement.setInt(2, mark.getLesson().getId());
@@ -170,16 +170,16 @@ public class OracleMarkDAO implements MarkDAO {
             preparedStatement.executeUpdate();
             LOGGER.info("Updating complete.");
         } catch (SQLIntegrityConstraintViolationException e) {
-            throwException(mark);
+            throwException(mark, dbName);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
     }
 
-    private void throwException(Mark mark) throws Exception {
-        Lesson lesson = lessonDAO.getLesson(mark.getLesson().getId());
+    private void throwException(Mark mark, String dbName) throws Exception {
+        Lesson lesson = lessonDAO.getLesson(mark.getLesson().getId(), dbName);
         Exception exception = new Exception("Pupil "
-                + pupilDAO.getPupil(mark.getPupil().getId()).getName()
+                + pupilDAO.getPupil(mark.getPupil().getId(), dbName).getName()
                 + " already has mark for lesson "
                 + lesson.getTheme().getSubjectDetails().getSubject().getName() + " "
                 + lesson.getDate() + " " + lesson.getTopic() + ".");
@@ -192,9 +192,9 @@ public class OracleMarkDAO implements MarkDAO {
      * @param mark deleted mark
      */
     @Override
-    public void deleteMark(Mark mark) {
+    public void deleteMark(Mark mark, String dbName) {
         LOGGER.info("Deleting " + mark.getId() + " mark.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_MARK)) {
             preparedStatement.setInt(1, mark.getId());
             preparedStatement.executeUpdate();
@@ -209,9 +209,9 @@ public class OracleMarkDAO implements MarkDAO {
      * @param mark deleted absent
      */
     @Override
-    public void deleteAbsent(Mark mark) {
+    public void deleteAbsent(Mark mark, String dbName) {
         LOGGER.info("Deleting " + mark.getId() + " absent.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ABSENT)) {
             preparedStatement.setInt(1, mark.getId());
             preparedStatement.executeUpdate();
@@ -227,15 +227,15 @@ public class OracleMarkDAO implements MarkDAO {
      * @return List<Mark>
      */
     @Override
-    public List<Mark> getMarksByPupil(int id) {
+    public List<Mark> getMarksByPupil(int id, String dbName) {
         LOGGER.info("Reading marks for " + id + " pupil.");
         List<Mark> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_MARKS_BY_PUPIL)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()){
                 while (resultSet.next()) {
-                    list.add(parseMark(resultSet));
+                    list.add(parseMark(resultSet, dbName));
                 }
                 LOGGER.info("List of marks complete.");
             }
@@ -251,15 +251,15 @@ public class OracleMarkDAO implements MarkDAO {
      * @return List<Mark>
      */
     @Override
-    public List<Mark> getMarksByLesson(int id) {
+    public List<Mark> getMarksByLesson(int id, String dbName) {
         LOGGER.info("Reading marks for " + id + " lesson.");
         List<Mark> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_MARKS_BY_LESSON)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()){
                 while (resultSet.next()) {
-                    list.add(parseMark(resultSet));
+                    list.add(parseMark(resultSet, dbName));
                 }
                 LOGGER.info("List of marks complete.");
             }
@@ -276,16 +276,16 @@ public class OracleMarkDAO implements MarkDAO {
      * @return List<Mark>
      */
     @Override
-    public List<Mark> getMarksByThemeAndPupil(int themeID, int pupilID) {
+    public List<Mark> getMarksByThemeAndPupil(int themeID, int pupilID, String dbName) {
         LOGGER.info("Reading marks for " + themeID + " theme and " + pupilID + " pupil.");
         List<Mark> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_MARKS_BY_THEME_AND_PUPIL)) {
             preparedStatement.setInt(1, themeID);
             preparedStatement.setInt(2, pupilID);
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseMark(resultSet));
+                    list.add(parseMark(resultSet, dbName));
                 }
                 LOGGER.info("List of marks complete.");
             }
@@ -301,15 +301,15 @@ public class OracleMarkDAO implements MarkDAO {
      * @return List<Mark>
      */
     @Override
-    public List<Mark> getSemesterMarks(int id) {
+    public List<Mark> getSemesterMarks(int id, String dbName) {
         LOGGER.info("Reading semester marks for " + id + " subject details.");
         List<Mark> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SEMESTER_MARKS)) {
             preparedStatement.setInt(1, id);
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parseMark(resultSet));
+                    list.add(parseMark(resultSet, dbName));
                 }
                 LOGGER.info("List of marks complete.");
             }

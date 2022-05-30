@@ -41,14 +41,14 @@ public class PostgresPupilDAO implements PupilDAO {
      * @return List<Pupil>
      */
     @Override
-    public List<Pupil> getAllPupils() {
+    public List<Pupil> getAllPupils(String dbName) {
         LOGGER.info("Reading all pupils from database.");
         List<Pupil> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_PUPILS)) {
             while (resultSet.next()) {
-                list.add(parsePupil(resultSet));
+                list.add(parsePupil(resultSet, dbName));
             }
             LOGGER.info("List of pupils complete.");
         } catch (SQLException throwables) {
@@ -57,7 +57,7 @@ public class PostgresPupilDAO implements PupilDAO {
         return list;
     }
 
-    private Pupil parsePupil(ResultSet resultSet) {
+    private Pupil parsePupil(ResultSet resultSet, String dbName) {
         Pupil pupil = null;
         try {
             int id = resultSet.getInt("Pupil_ID");
@@ -66,7 +66,7 @@ public class PostgresPupilDAO implements PupilDAO {
             if (classID == 0) {
                 pupil = new Pupil(id, name, null);
             } else {
-                PupilClass pupilClass = pupilClassDAO.getPupilClass(classID);
+                PupilClass pupilClass = pupilClassDAO.getPupilClass(classID, dbName);
                 pupil = new Pupil(id, name, pupilClass);
             }
         } catch (SQLException throwables) {
@@ -81,15 +81,15 @@ public class PostgresPupilDAO implements PupilDAO {
      * @return Pupil
      */
     @Override
-    public Pupil getPupil(int id) {
+    public Pupil getPupil(int id, String dbName) {
         LOGGER.info("Reading pupil " + id + " from database.");
         Pupil pupil = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_PUPIL)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    pupil = parsePupil(resultSet);
+                    pupil = parsePupil(resultSet, dbName);
                 }
                 LOGGER.info("Reading complete");
             }
@@ -104,9 +104,9 @@ public class PostgresPupilDAO implements PupilDAO {
      * @param pupil adding pupil
      */
     @Override
-    public void addPupil(Pupil pupil) {
+    public void addPupil(Pupil pupil, String dbName) {
         LOGGER.info("Inserting pupil " + pupil.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_PUPIL)) {
             preparedStatement.setInt(1, pupil.getId());
             if (pupil.getPupilClass().getId() != 0) {
@@ -127,9 +127,9 @@ public class PostgresPupilDAO implements PupilDAO {
      * @param pupil editing pupil
      */
     @Override
-    public void updatePupil(Pupil pupil) {
+    public void updatePupil(Pupil pupil, String dbName) {
         LOGGER.info("Updating pupil " + pupil.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_PUPIL)) {
             if (pupil.getPupilClass().getId() != 0) {
                 preparedStatement.setInt(1, pupil.getPupilClass().getId());
@@ -151,8 +151,8 @@ public class PostgresPupilDAO implements PupilDAO {
      */
     @Transactional
     @Override
-    public void deletePupil(int id) {
-        try (Connection connection = connectionPool.getConnection();
+    public void deletePupil(int id, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_PUPIL)) {
             LOGGER.info("Deleting pupil " + id + ".");
             preparedStatement.setInt(1, id);
@@ -169,15 +169,15 @@ public class PostgresPupilDAO implements PupilDAO {
      * @return List<Pupil>
      */
     @Override
-    public List<Pupil> getPupilsByPupilClass(int id) {
+    public List<Pupil> getPupilsByPupilClass(int id, String dbName) {
         LOGGER.info("Reading pupils for class " + id + ".");
         List<Pupil> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_PUPILS_BY_CLASS)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parsePupil(resultSet));
+                    list.add(parsePupil(resultSet, dbName));
                 }
                 LOGGER.info("List of pupils complete.");
             }
@@ -192,10 +192,10 @@ public class PostgresPupilDAO implements PupilDAO {
      * @return int
      */
     @Override
-    public int getCountOfPupils() {
+    public int getCountOfPupils(String dbName) {
         LOGGER.info("Counting pupils.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_PUPILS)) {
             resultSet.next();
@@ -214,16 +214,16 @@ public class PostgresPupilDAO implements PupilDAO {
      * @return List<Pupil>
      */
     @Override
-    public List<Pupil> getPupilsByPage(int page, int range) {
+    public List<Pupil> getPupilsByPage(int page, int range, String dbName) {
         LOGGER.info("Reading pupils for page " + page + ".");
         List<Pupil> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_PUPILS_BY_PAGE)) {
             preparedStatement.setInt(1, range);
             preparedStatement.setInt(2, (page - 1) * range);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parsePupil(resultSet));
+                    list.add(parsePupil(resultSet, dbName));
                 }
                 LOGGER.info("List of pupils complete.");
             }
@@ -241,7 +241,7 @@ public class PostgresPupilDAO implements PupilDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<Pupil> searchPupils(String val, String param) throws Exception {
+    public List<Pupil> searchPupils(String val, String param, String dbName) throws Exception {
         List<Pupil> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");
@@ -260,13 +260,13 @@ public class PostgresPupilDAO implements PupilDAO {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching pupils by " + param + ".");
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    list.add(parsePupil(resultSet));
+                    list.add(parsePupil(resultSet, dbName));
                 }
                 LOGGER.info("List of pupils complete.");
             }

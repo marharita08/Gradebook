@@ -37,10 +37,10 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @return List<Subject>
      */
     @Override
-    public List<Subject> getAllSubjects() {
+    public List<Subject> getAllSubjects(String dbName) {
         LOGGER.info("Reading all subjects from database.");
         List<Subject> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_SUBJECTS)) {
             while (resultSet.next()) {
@@ -71,10 +71,10 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @return Subject
      */
     @Override
-    public Subject getSubject(int id) {
+    public Subject getSubject(int id, String dbName) {
         LOGGER.info("Reading subject " + id + " from database.");
         Subject subject = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECT)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -94,9 +94,9 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @param subject adding subject
      */
     @Override
-    public void addSubject(Subject subject) {
+    public void addSubject(Subject subject, String dbName) {
         LOGGER.info("Inserting subject  " + subject.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_SUBJECT)) {
             preparedStatement.setString(1, subject.getName());
             preparedStatement.executeUpdate();
@@ -111,9 +111,9 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @param subject editing subject
      */
     @Override
-    public void updateSubject(Subject subject) {
+    public void updateSubject(Subject subject, String dbName) {
         LOGGER.info("Updating subject " + subject.getName() + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SUBJECT)) {
             preparedStatement.setString(1, subject.getName());
             preparedStatement.setInt(2, subject.getId());
@@ -130,8 +130,8 @@ public class PostgresSubjectDAO implements SubjectDAO {
      */
     @Transactional
     @Override
-    public void deleteSubject(int id) {
-        try (Connection connection = connectionPool.getConnection();
+    public void deleteSubject(int id, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_SUBJECT)) {
             LOGGER.info("Deleting subject " + id + ".");
             preparedStatement.setInt(1, id);
@@ -148,10 +148,10 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @return List<Subject>
      */
     @Override
-    public List<Subject> getSubjectsByPupilClass(int id) {
+    public List<Subject> getSubjectsByPupilClass(int id, String dbName) {
         LOGGER.info("Reading subjects for class " + id + ".");
         List<Subject> subjectList = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECTS_BY_CLASS)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -172,10 +172,10 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @return List<Subject>
      */
     @Override
-    public List<Subject> getSubjectsByTeacher(int id) {
+    public List<Subject> getSubjectsByTeacher(int id, String dbName) {
         LOGGER.info("Reading subject details for teacher " + id + ".");
         List<Subject> subjectList = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECTS_BY_TEACHER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -195,10 +195,10 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @return int
      */
     @Override
-    public int getCountOfSubjects() {
+    public int getCountOfSubjects(String dbName) {
         LOGGER.info("Counting subjects.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_SUBJECTS)) {
             resultSet.next();
@@ -217,10 +217,10 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @return List<Subject>
      */
     @Override
-    public List<Subject> getSubjectsByPage(int page, int range) {
+    public List<Subject> getSubjectsByPage(int page, int range, String dbName) {
         LOGGER.info("Reading subjects for page " + page + ".");
         List<Subject> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SUBJECTS_BY_PAGE)) {
             preparedStatement.setInt(1, range);
             preparedStatement.setInt(2, (page - 1) * range);
@@ -245,7 +245,7 @@ public class PostgresSubjectDAO implements SubjectDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<Subject> searchSubjects(String val, String param) throws Exception {
+    public List<Subject> searchSubjects(String val, String param, String dbName) throws Exception {
         System.out.println(val + " " + param);
         List<Subject> list = new ArrayList<>();
         String sql;
@@ -260,7 +260,7 @@ public class PostgresSubjectDAO implements SubjectDAO {
             throw e;
         }
         LOGGER.info("Searching subjects by " + param + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");
             try (ResultSet resultSet = preparedStatement.executeQuery()) {

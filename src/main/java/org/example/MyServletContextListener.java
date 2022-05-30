@@ -3,14 +3,10 @@ package org.example;
 import org.apache.log4j.PropertyConfigurator;
 import org.example.dao.ConnectionPool;
 import org.example.dao.GenerateTables;
-import org.example.entities.User;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 
 public class MyServletContextListener implements ServletContextListener {
@@ -28,7 +24,8 @@ public class MyServletContextListener implements ServletContextListener {
         PropertyConfigurator.configure(properties);
         GenerateTables generateTables = new GenerateTables(new ConnectionPool());
         generateTables.generate();
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+        /*PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         User user = new User();
         Properties userProp = new Properties();
         try {
@@ -41,7 +38,7 @@ public class MyServletContextListener implements ServletContextListener {
             generateTables.initDefaultUser(user);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
     @Override

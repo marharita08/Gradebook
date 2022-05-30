@@ -15,16 +15,18 @@ public class User implements UserDetails {
     private String username;
     private String password;
     private Set<Role> roles;
+    private String dbName;
 
     public User() {
         roles = new HashSet<>();
     }
 
-    public User(int id, String username, String password, Set<Role> roles) {
+    public User(int id, String username, String password, Set<Role> roles, String dbName) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.roles = roles;
+        this.dbName = dbName;
     }
 
     public int getId() {
@@ -90,6 +92,14 @@ public class User implements UserDetails {
         roles.add(role);
     }
 
+    public String getDbName() {
+        return dbName;
+    }
+
+    public void setDbName(String dbName) {
+        this.dbName = dbName;
+    }
+
     public boolean hasRole(String role) {
         for (Role userRole:roles) {
             if (role.equals(userRole.getName())) {
@@ -104,12 +114,12 @@ public class User implements UserDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && username.equals(user.username) && password.equals(user.password) && roles.equals(user.roles);
+        return id == user.id && username.equals(user.username) && password.equals(user.password) && Objects.equals(roles, user.roles) && Objects.equals(dbName, user.dbName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, password, roles);
+        return Objects.hash(id, username, password, roles, dbName);
     }
 
     @Override
@@ -119,6 +129,7 @@ public class User implements UserDetails {
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", roles=" + roles +
+                ", dbName='" + dbName + '\'' +
                 '}';
     }
 }

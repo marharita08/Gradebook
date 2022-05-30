@@ -12,6 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -33,16 +35,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.csrf()
                 .disable();
-        http.authorizeRequests()
+        http.addFilterBefore(authenticationFilter(),
+                        UsernamePasswordAuthenticationFilter.class)
+                .authorizeRequests()
                 .antMatchers("/login*").permitAll()
                 .antMatchers("/registration*").permitAll()
                 .antMatchers("/checkUsername*").permitAll()
+                .antMatchers("/school*").permitAll()
+                .antMatchers("/admin*").permitAll()
                 .antMatchers("/*").authenticated()
                 .and()
                 .formLogin()
-                .loginPage("/login.jsp")
+                .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/")
+                .defaultSuccessUrl("/main")
                 .and().logout().logoutUrl("/logout");
     }
 
@@ -54,5 +60,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
+    }
+
+    public AuthenticationFilter authenticationFilter() throws Exception {
+        AuthenticationFilter filter = new AuthenticationFilter();
+        filter.setAuthenticationManager(authenticationManagerBean());
+        filter.setAuthenticationFailureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"));
+        return filter;
     }
 }

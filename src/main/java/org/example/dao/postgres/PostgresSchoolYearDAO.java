@@ -49,10 +49,10 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
      * @return List<SchoolYear>
      */
     @Override
-    public List<SchoolYear> getAllSchoolYears() {
+    public List<SchoolYear> getAllSchoolYears(String dbName) {
         LOGGER.info("Reading all school years from database.");
         List<SchoolYear> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_SCHOOL_YEARS)) {
             while (resultSet.next()) {
@@ -71,10 +71,10 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
      * @return SchoolYear
      */
     @Override
-    public SchoolYear getSchoolYear(int id) {
+    public SchoolYear getSchoolYear(int id, String dbName) {
         LOGGER.info("Reading school year " + id + " from database.");
         SchoolYear schoolYear = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SCHOOL_YEAR)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -94,9 +94,9 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
      * @param schoolYear adding school year
      */
     @Override
-    public void addSchoolYear(SchoolYear schoolYear) {
+    public void addSchoolYear(SchoolYear schoolYear, String dbName) {
         LOGGER.info("Inserting school year " + schoolYear.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_SCHOOL_YEAR)) {
             preparedStatement.setString(1, schoolYear.getName());
             preparedStatement.setDate(2, schoolYear.getStartDate());
@@ -113,9 +113,9 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
      * @param schoolYear editing school year
      */
     @Override
-    public void updateSchoolYear(SchoolYear schoolYear) {
+    public void updateSchoolYear(SchoolYear schoolYear, String dbName) {
         LOGGER.info("Updating school year " + schoolYear.getName() + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SCHOOL_YEAR)) {
             preparedStatement.setString(1, schoolYear.getName());
             preparedStatement.setDate(2, schoolYear.getStartDate());
@@ -134,8 +134,8 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
      */
     @Override
     @Transactional
-    public void deleteSchoolYear(int id) {
-        try (Connection connection = connectionPool.getConnection();
+    public void deleteSchoolYear(int id, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_SCHOOL_YEAR)) {
             LOGGER.info("Deleting school year " + id + "from database.");
             preparedStatement.setInt(1, id);
@@ -151,10 +151,10 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
      * @return int
      */
     @Override
-    public int getCountOfSchoolYears() {
+    public int getCountOfSchoolYears(String dbName) {
         LOGGER.info("Counting school years.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_SCHOOL_YEARS)) {
             resultSet.next();
@@ -173,10 +173,10 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
      * @return List<SchoolYear>
      */
     @Override
-    public List<SchoolYear> getSchoolYearsByPage(int page, int range) {
+    public List<SchoolYear> getSchoolYearsByPage(int page, int range, String dbName) {
         List<SchoolYear> list = new ArrayList<>();
         LOGGER.info("Reading school years for " + page + " page.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_SCHOOL_YEARS_BY_PAGE)) {
             preparedStatement.setInt(1, range);
             preparedStatement.setInt(2, (page - 1) * range);
@@ -200,7 +200,7 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<SchoolYear> searchSchoolYears(String val, String param) throws Exception {
+    public List<SchoolYear> searchSchoolYears(String val, String param, String dbName) throws Exception {
         List<SchoolYear> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");
@@ -222,7 +222,7 @@ public class PostgresSchoolYearDAO implements SchoolYearDAO {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching school years by " + param + ".");
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");

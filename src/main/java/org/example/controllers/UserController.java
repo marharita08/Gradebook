@@ -15,7 +15,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,18 +27,20 @@ public class UserController {
     private final TeacherDAO teacherDAO;
     private final PupilDAO pupilDAO;
     private final PupilClassDAO pupilClassDAO;
+    private final SchoolDAO schoolDAO;
     private static final int userPerPage = 25;
     private final PasswordEncoder passwordEncoder;
     private static final Logger LOGGER = Logger.getLogger(UserController.class.getName());
     private static final String USERS_LINK = "/users?page=1";
 
     public UserController(UserDAO dao, RoleDAO roleDAO, TeacherDAO teacherDAO,
-                          PupilDAO pupilDAO, PupilClassDAO pupilClassDAO, PasswordEncoder passwordEncoder) {
+                          PupilDAO pupilDAO, PupilClassDAO pupilClassDAO, SchoolDAO schoolDAO, PasswordEncoder passwordEncoder) {
         this.dao = dao;
         this.roleDAO = roleDAO;
         this.teacherDAO = teacherDAO;
         this.pupilDAO = pupilDAO;
         this.pupilClassDAO = pupilClassDAO;
+        this.schoolDAO = schoolDAO;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -69,16 +70,20 @@ public class UserController {
         LOGGER.info("Getting list of users for " + page + " page.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfUsers();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        int count = dao.getCountOfUsers(dbName);
         PaginationController paginationController = new PaginationController(count, userPerPage, page);
         List<User> list;
         if(count <= userPerPage) {
-            list = dao.getAllUsers();
+            list = dao.getAllUsers(dbName);
         } else {
-            list = dao.getUsersByPage(page, userPerPage);
+            list = dao.getUsersByPage(page, userPerPage, dbName);
         }
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
-        model.put("roles", roleDAO.getAllRoles());
+        model.put("roles", roleDAO.getAllRoles(dbName));
         model.put("list", list);
         model.put("pagination", paginationController);
         LOGGER.info("Printing users list.");
@@ -94,20 +99,21 @@ public class UserController {
     public ModelAndView addUser() {
         LOGGER.info("Add new user.");
         LOGGER.info("Form a model.");
+        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = currUser.getDbName();
         Map<String, Object> model = new HashMap<>();
-        User user = new User();
-        Pupil pupil = new Pupil();
-        Teacher teacher = new Teacher();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = getBasicCrumbsMap();
         crumbsMap.put("Додати користувача", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
-        model.put("teacher", teacher);
-        model.put("pupil", pupil);
-        model.put("user", user);
+        model.put("teacher", new Teacher());
+        model.put("pupil", new Pupil());
+        model.put("user", new User());
         model.put("method", "post");
-        model.put("roles", roleDAO.getAllRoles());
+        model.put("roles", roleDAO.getAllRoles(dbName));
         model.put("action", "user");
-        model.put("list", pupilClassDAO.getAllPupilClasses());
+        model.put("list", pupilClassDAO.getAllPupilClasses(dbName));
         return new ModelAndView("userPage", model);
     }
 
@@ -125,21 +131,23 @@ public class UserController {
                                        @RequestParam(value = "PUPIL", required = false) String pupilRole,
                                        @RequestParam(value = "TEACHER", required = false) String teacherRole) throws Exception {
         LOGGER.info("Saving added user.");
+        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = currUser.getDbName();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        dao.addUser(user);
-        int id = dao.getUserByUsername(user.getUsername()).getId();
+        dao.addUser(user, dbName);
+        int id = dao.getUserByUsername(user.getUsername(), dbName).getId();
         if (adminRole != null) {
-            dao.addUserRole(id, Integer.parseInt(adminRole));
+            dao.addUserRole(id, Integer.parseInt(adminRole), dbName);
         }
         if (pupilRole != null) {
-            dao.addUserRole(id, Integer.parseInt(pupilRole));
+            dao.addUserRole(id, Integer.parseInt(pupilRole), dbName);
             pupil.setId(id);
-            pupilDAO.addPupil(pupil);
+            pupilDAO.addPupil(pupil, dbName);
         }
         if (teacherRole != null) {
-            dao.addUserRole(id, Integer.parseInt(teacherRole));
+            dao.addUserRole(id, Integer.parseInt(teacherRole), dbName);
             teacher.setId(id);
-            teacherDAO.addTeacher(teacher);
+            teacherDAO.addTeacher(teacher, dbName);
         }
         LOGGER.info("Redirect to user list.");
         return new ModelAndView("redirect:" + USERS_LINK);
@@ -160,40 +168,41 @@ public class UserController {
                                        @RequestParam(value = "TEACHER", required = false) String teacherRole) throws Exception {
         LOGGER.info("Saving edited user.");
         User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = currUser.getDbName();
         if (!currUser.hasRole("ADMIN") && user.getId() != currUser.getId()) {
             return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
-        User oldUser = dao.getUserByID(user.getId());
+        User oldUser = dao.getUserByID(user.getId(), dbName);
         if (user.getPassword().equals("")) {
             user.setPassword(oldUser.getPassword());
         } else {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
-        dao.updateUser(user);
+        dao.updateUser(user, dbName);
         if (currUser.hasRole("ADMIN")) {
             int id = user.getId();
             if (adminRole != null && !oldUser.hasRole("ADMIN")) {
-                dao.addUserRole(id, Integer.parseInt(adminRole));
+                dao.addUserRole(id, Integer.parseInt(adminRole), dbName);
             } else if (adminRole == null && oldUser.hasRole("ADMIN")) {
-                dao.deleteUserRole(id, 1);
+                dao.deleteUserRole(id, 1, dbName);
             }
             if (pupilRole != null && !oldUser.hasRole("PUPIL")) {
-                dao.addUserRole(id, Integer.parseInt(pupilRole));
-                pupilDAO.addPupil(pupil);
+                dao.addUserRole(id, Integer.parseInt(pupilRole), dbName);
+                pupilDAO.addPupil(pupil, dbName);
             } else if (pupilRole == null && oldUser.hasRole("PUPIL")) {
-                dao.deleteUserRole(id, 3);
-                pupilDAO.deletePupil(id);
+                dao.deleteUserRole(id, 3, dbName);
+                pupilDAO.deletePupil(id, dbName);
             } else if (pupilRole != null && oldUser.hasRole("PUPIL")) {
-                pupilDAO.updatePupil(pupil);
+                pupilDAO.updatePupil(pupil, dbName);
             }
             if (teacherRole != null && !oldUser.hasRole("TEACHER")) {
-                dao.addUserRole(id, Integer.parseInt(teacherRole));
-                teacherDAO.addTeacher(teacher);
+                dao.addUserRole(id, Integer.parseInt(teacherRole), dbName);
+                teacherDAO.addTeacher(teacher, dbName);
             } else if (teacherRole == null && oldUser.hasRole("TEACHER")) {
-                dao.deleteUserRole(id, 2);
-                teacherDAO.deleteTeacher(id);
+                dao.deleteUserRole(id, 2, dbName);
+                teacherDAO.deleteTeacher(id, dbName);
             } else if (teacherRole != null && oldUser.hasRole("TEACHER")) {
-                teacherDAO.updateTeacher(teacher);
+                teacherDAO.updateTeacher(teacher, dbName);
             }
             LOGGER.info("Redirect to user list.");
             return new ModelAndView("redirect:.." + USERS_LINK);
@@ -211,16 +220,18 @@ public class UserController {
     @RequestMapping(value = "/user/{id}/delete", method = RequestMethod.GET)
     @Secured("ADMIN")
     public ModelAndView deleteUser(@PathVariable int id, @RequestParam("page") int pageNum) {
+        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = currUser.getDbName();
         if (id == 0) {
             return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
         LOGGER.info("Deleting user " + id + ".");
-        User user = dao.getUserByID(id);
+        User user = dao.getUserByID(id, dbName);
         if (user == null) {
             LOGGER.error("User " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        dao.deleteUser(id);
+        dao.deleteUser(id, dbName);
         LOGGER.info("Redirect to user list on page " + pageNum + ".");
         return new ModelAndView("redirect:/users?page=" + pageNum);
     }
@@ -228,8 +239,8 @@ public class UserController {
     @RequestMapping(value = "/checkUsername", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
-    public String checkUsername(@RequestParam("val") String name, @RequestParam("id") int id){
-        User user = dao.getUserByUsername(name);
+    public String checkUsername(@RequestParam("val") String name, @RequestParam("id") int id, @RequestParam("dbname") String dbName){
+        User user = dao.getUserByUsername(name, dbName);
         String response = "";
         if(user != null) {
             if (user.getId() != id) {
@@ -245,11 +256,13 @@ public class UserController {
     public List<User> searchUsers(@RequestParam("val") String val,
                               @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching users by " + param + ".");
+        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = currUser.getDbName();
         List<User> list;
         if(!val.isEmpty()) {
-            list = dao.searchUsers(val, param);
+            list = dao.searchUsers(val, param, dbName);
         } else {
-            list = dao.getUsersByPage(1, userPerPage);
+            list = dao.getUsersByPage(1, userPerPage, dbName);
         }
         return list;
     }
@@ -257,17 +270,20 @@ public class UserController {
     @RequestMapping(value = "/user/{id}")
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView getUserPage(@PathVariable int id) {
-        User user = dao.getUserByID(id);
-        Map<String, Object> model = new HashMap<>();
         User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = currUser.getDbName();
+        User user = dao.getUserByID(id, dbName);
+        Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         if (!currUser.hasRole("ADMIN") && user.getId() != currUser.getId()) {
             return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
-        Teacher teacher = teacherDAO.getTeacher(id);
+        Teacher teacher = teacherDAO.getTeacher(id, dbName);
         if (teacher == null) {
             teacher = new Teacher();
         }
-        Pupil pupil = pupilDAO.getPupil(id);
+        Pupil pupil = pupilDAO.getPupil(id, dbName);
         if (pupil == null) {
             pupil = new Pupil();
         }
@@ -277,10 +293,10 @@ public class UserController {
         model.put("teacher", teacher);
         model.put("pupil", pupil);
         model.put("user", user);
-        model.put("roles", roleDAO.getAllRoles());
+        model.put("roles", roleDAO.getAllRoles(dbName));
         model.put("action", "../user/" + id);
         if (currUser.hasRole("ADMIN")) {
-            model.put("list", pupilClassDAO.getAllPupilClasses());
+            model.put("list", pupilClassDAO.getAllPupilClasses(dbName));
         }
         return new ModelAndView("userPage", model);
     }
@@ -288,6 +304,8 @@ public class UserController {
     @RequestMapping(value = "/registration")
     public ModelAndView getSignUpPage() {
         Map<String, Object> model = new HashMap<>();
+        List<School> schools = schoolDAO.getAllSchools();
+        model.put("list", schools);
         model.put("command", new User());
         return new ModelAndView("signUp", model);
     }
@@ -296,18 +314,47 @@ public class UserController {
     public ModelAndView register(@ModelAttribute User user, HttpServletRequest request) throws Exception {
         String password = user.getPassword();
         user.setPassword(passwordEncoder.encode(password));
-        dao.addUser(user);
+        String dbName = user.getDbName();
+        dao.addUser(user, dbName);
+        String usernameDBName = String.format("%s%s%s", user.getUsername().trim(),
+                String.valueOf(Character.LINE_SEPARATOR), dbName);
         try {
-            request.login(user.getUsername(), password);
+            request.login(usernameDBName, password);
         } catch (ServletException e) {
             LOGGER.error("Error while login ", e);
         }
-        return new ModelAndView("redirect:/");
+        return new ModelAndView("redirect:/main");
     }
 
     private Map<String, String> getBasicCrumbsMap() {
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         crumbsMap.put("Користувачі", USERS_LINK);
         return crumbsMap;
+    }
+
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public ModelAndView getLoginPage() {
+        Map<String, Object> model = new HashMap<>();
+        List<School> schools = schoolDAO.getAllSchools();
+        model.put("list", schools);
+        return new ModelAndView("login", model);
+    }
+
+    @RequestMapping(value = "/admin", method = RequestMethod.POST)
+    public ModelAndView saveAdmin(@ModelAttribute User user, HttpServletRequest request) throws Exception {
+        String password = user.getPassword();
+        user.setPassword(passwordEncoder.encode(password));
+        String dbName = user.getDbName();
+        dao.addUser(user, dbName);
+        user = dao.getUserByUsername(user.getUsername(), dbName);
+        dao.addUserRole(user.getId(), 1, dbName);
+        String usernameDBName = String.format("%s%s%s", user.getUsername().trim(),
+                String.valueOf(Character.LINE_SEPARATOR), dbName);
+        try {
+            request.login(usernameDBName, password);
+        } catch (ServletException e) {
+            LOGGER.error("Error while login ", e);
+        }
+        return new ModelAndView("redirect:/main");
     }
 }

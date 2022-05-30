@@ -10,13 +10,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 
 public class AuthProvider implements AuthenticationProvider {
 
-    private UserService userService;
-    private PasswordEncoder passwordEncoder;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
     private static final Logger LOGGER = Logger.getLogger(AuthProvider.class.getName());
 
     public AuthProvider(UserService userService, PasswordEncoder passwordEncoder) {
@@ -29,8 +30,10 @@ public class AuthProvider implements AuthenticationProvider {
         String username = authentication.getName();
         String password = (String) authentication.getCredentials();
         User user = (User) userService.loadUserByUsername(username);
+        String[] usernameAndDBName = StringUtils.split(
+                username, String.valueOf(Character.LINE_SEPARATOR));
         LOGGER.info("Checking username.");
-        if(user != null && user.getUsername().equals(username)) {
+        if(user != null && usernameAndDBName != null && user.getUsername().equals(usernameAndDBName[0])) {
             LOGGER.info("Username found.");
             LOGGER.info("Checking password.");
             if(!passwordEncoder.matches(password, user.getPassword())) {

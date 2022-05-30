@@ -90,7 +90,7 @@
                     </tbody>
                 </table>
                 <br/>
-                <button onclick='location.href="<%=root%>index.jsp"' class="bg-primary">
+                <button onclick='location.href="<%=root%>main"' class="bg-primary">
                     <div class="inline"><i class='material-icons'>list</i></div>
                     <div class="inline">Меню</div>
                 </button>
@@ -140,7 +140,7 @@
                             "<a href='<%=root%>class/", id, "'><i class='material-icons'>edit</i></a>",
                             "</td><td>",
                             "<a href='<%=root%>class/", id,
-                            "delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a>",
+                            "/delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a>",
                             "</td>"
                         );
                     }

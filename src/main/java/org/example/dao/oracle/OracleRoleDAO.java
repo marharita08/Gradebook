@@ -27,10 +27,10 @@ public class OracleRoleDAO implements RoleDAO {
      * @return Set<Role>
      */
     @Override
-    public Set<Role> getRolesByUser(int id) {
+    public Set<Role> getRolesByUser(int id, String dbName) {
         LOGGER.info("Reading roles for user " + id + " from database.");
         Set<Role> set = new HashSet<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_ROLES_BY_USER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -58,36 +58,13 @@ public class OracleRoleDAO implements RoleDAO {
     }
 
     /**
-     * Get role from database by id.
-     * @param id role id
-     * @return Role
-     */
-    @Override
-    public Role getRoleByID(int id) {
-        LOGGER.info("Reading role " + id + " from database.");
-        Role role = null;
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_ROLE)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    role = parseRole(resultSet);
-                }
-            }
-        } catch (SQLException throwables) {
-            LOGGER.error(throwables.getMessage(), throwables);
-        }
-        return role;
-    }
-
-    /**
      * Read all roles from database and put them into set.
      * @return Set<Role>
      */
-    public Set<Role> getAllRoles() {
+    public Set<Role> getAllRoles(String dbName) {
         Set<Role> set = new HashSet<>();
         LOGGER.info("Reading all roles from database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_ROLES)) {
             while (resultSet.next()) {

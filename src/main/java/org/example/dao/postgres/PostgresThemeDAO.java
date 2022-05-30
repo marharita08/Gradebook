@@ -31,12 +31,12 @@ public class PostgresThemeDAO implements ThemeDAO {
         this.subjectDetailsDAO = subjectDetailsDAO;
     }
 
-    private Theme parseTheme(ResultSet resultSet) {
+    private Theme parseTheme(ResultSet resultSet, String dbName) {
         Theme theme = null;
         try {
             int id = resultSet.getInt("THEME_ID");
             int subjectDetailsID = resultSet.getInt("SUBJECT_DETAILS_ID");
-            SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(subjectDetailsID);
+            SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(subjectDetailsID, dbName);
             String name = resultSet.getString("NAME");
             theme = new Theme(id, subjectDetails, name);
         } catch (SQLException throwables) {
@@ -51,15 +51,15 @@ public class PostgresThemeDAO implements ThemeDAO {
      * @return Theme
      */
     @Override
-    public Theme getTheme(int id) {
+    public Theme getTheme(int id, String dbName) {
         LOGGER.info("Reading theme " + id + " from database.");
         Theme theme = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_THEME)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    theme = parseTheme(resultSet);
+                    theme = parseTheme(resultSet, dbName);
                 }
                 LOGGER.info("Reading complete.");
             }
@@ -74,9 +74,9 @@ public class PostgresThemeDAO implements ThemeDAO {
      * @param theme adding theme
      */
     @Override
-    public void addTheme(Theme theme) {
+    public void addTheme(Theme theme, String dbName) {
         LOGGER.info("Inserting theme " + theme.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_THEME)) {
             preparedStatement.setInt(1, theme.getSubjectDetails().getId());
             preparedStatement.setString(2, theme.getName());
@@ -92,9 +92,9 @@ public class PostgresThemeDAO implements ThemeDAO {
      * @param theme editing theme
      */
     @Override
-    public void updateTheme(Theme theme) {
+    public void updateTheme(Theme theme, String dbName) {
         LOGGER.info("Updating theme " + theme.getName() + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_THEME)) {
             preparedStatement.setInt(1, theme.getSubjectDetails().getId());
             preparedStatement.setString(2, theme.getName());
@@ -112,8 +112,8 @@ public class PostgresThemeDAO implements ThemeDAO {
      */
     @Transactional
     @Override
-    public void deleteTheme(int id) {
-        try (Connection connection = connectionPool.getConnection();
+    public void deleteTheme(int id, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_THEME)) {
             try (PreparedStatement preparedStatement1 = connection.prepareStatement(DELETE_MARKS_FOR_DELETING_THEME)) {
                 LOGGER.info("Deleting marks for theme " + id);
@@ -135,15 +135,15 @@ public class PostgresThemeDAO implements ThemeDAO {
      * @return List<Theme>
      */
     @Override
-    public List<Theme> getThemesBySubjectDetails(int id) {
+    public List<Theme> getThemesBySubjectDetails(int id, String dbName) {
         LOGGER.info("Reading themes for " + id + " subject details.");
         List<Theme> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_THEMES_BY_SUBJECT_DETAILS)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()){
                 while (resultSet.next()) {
-                    list.add(parseTheme(resultSet));
+                    list.add(parseTheme(resultSet, dbName));
                 }
                 LOGGER.info("List of themes complete.");
             }
@@ -159,10 +159,10 @@ public class PostgresThemeDAO implements ThemeDAO {
      * @return int count
      */
     @Override
-    public int getCountOfThemesBySubjectDetails(int id) {
+    public int getCountOfThemesBySubjectDetails(int id, String dbName) {
         LOGGER.info("Counting themes for " + id + " subject details.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_COUNT_OF_THEMES_BY_SUBJECT_DETAILS)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()){

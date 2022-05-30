@@ -39,10 +39,10 @@ public class PostgresTeacherDAO implements TeacherDAO {
      * @return List<Teacher>
      */
     @Override
-    public List<Teacher> getAllTeachers() {
+    public List<Teacher> getAllTeachers(String dbName) {
         LOGGER.info("Reading all teachers from database");
         List<Teacher> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_ALL_TEACHERS)) {
             while (resultSet.next()) {
@@ -74,10 +74,10 @@ public class PostgresTeacherDAO implements TeacherDAO {
      * @return Teacher
      */
     @Override
-    public Teacher getTeacher(int id) {
+    public Teacher getTeacher(int id, String dbName) {
         LOGGER.info("Reading teacher " + id + " from database.");
         Teacher teacher = null;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_TEACHER)) {
             preparedStatement.setInt(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -97,9 +97,9 @@ public class PostgresTeacherDAO implements TeacherDAO {
      * @param teacher adding teacher
      */
     @Override
-    public void addTeacher(Teacher teacher) {
+    public void addTeacher(Teacher teacher, String dbName) {
         LOGGER.info("Inserting teacher " + teacher.getName() + " into database.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(INSERT_TEACHER)) {
             preparedStatement.setInt(1, teacher.getId());
             preparedStatement.setString(2, teacher.getName());
@@ -116,9 +116,9 @@ public class PostgresTeacherDAO implements TeacherDAO {
      * @param teacher editing teacher
      */
     @Override
-    public void updateTeacher(Teacher teacher) {
+    public void updateTeacher(Teacher teacher, String dbName) {
         LOGGER.info("Updating teacher " + teacher.getName() + ".");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_TEACHER)) {
             preparedStatement.setString(1, teacher.getName());
             preparedStatement.setString(2, teacher.getPosition());
@@ -136,8 +136,8 @@ public class PostgresTeacherDAO implements TeacherDAO {
      */
     @Transactional
     @Override
-    public void deleteTeacher(int id) {
-        try (Connection connection = connectionPool.getConnection();
+    public void deleteTeacher(int id, String dbName) {
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_TEACHER)) {
             try (PreparedStatement preparedStatement1 = connection.prepareStatement(UPDATE_SUBJECT_DETAILS_OF_DELETING_TEACHER)) {
                 LOGGER.info("Setting teacher_id=null in subject details where teacher_id was " + id + ".");
@@ -154,62 +154,14 @@ public class PostgresTeacherDAO implements TeacherDAO {
     }
 
     /**
-     * Get list of teachers who teach some subject in class with set id.
-     * @param id class id
-     * @return List<Teacher>
-     */
-    @Override
-    public List<Teacher> getTeachersByPupilClass(int id) {
-        LOGGER.info("Reading teachers who teach into " + id + " class.");
-        List<Teacher> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_TEACHERS_BY_CLASS)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    list.add(parseTeacher(resultSet));
-                }
-                LOGGER.info("List of teachers complete.");
-            }
-        } catch (SQLException throwables) {
-            LOGGER.error(throwables.getMessage(), throwables);
-        }
-        return list;
-    }
-
-    /**
-     * Get list of teachers who teach subject with set id.
-     * @param id subject id
-     * @return List<Teacher>
-     */
-    @Override
-    public List<Teacher> getTeachersBySubject(int id) {
-        LOGGER.info("Reading teachers who teach " + id + " subject.");
-        List<Teacher> list = new ArrayList<>();
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(GET_TEACHERS_BY_SUBJECT)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    list.add(parseTeacher(resultSet));
-                }
-                LOGGER.info("List of teachers complete.");
-            }
-        } catch (SQLException throwables) {
-            LOGGER.error(throwables.getMessage(), throwables);
-        }
-        return list;
-    }
-
-    /**
      * Get total count of teachers from database.
      * @return int
      */
     @Override
-    public int getCountOfTeachers() {
+    public int getCountOfTeachers(String dbName) {
         LOGGER.info("Counting teachers.");
         int count = 0;
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(GET_COUNT_OF_TEACHERS)) {
             resultSet.next();
@@ -228,10 +180,10 @@ public class PostgresTeacherDAO implements TeacherDAO {
      * @return List<Teacher>
      */
     @Override
-    public List<Teacher> getTeachersByPage(int page, int range) {
+    public List<Teacher> getTeachersByPage(int page, int range, String dbName) {
         List<Teacher> list = new ArrayList<>();
         LOGGER.info("Reading teachers for " + page + " page.");
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(GET_TEACHERS_BY_PAGE)) {
             preparedStatement.setInt(1, range);
             preparedStatement.setInt(2, (page - 1) * range);
@@ -255,7 +207,7 @@ public class PostgresTeacherDAO implements TeacherDAO {
      * @throws Exception if set parameter is wrong
      */
     @Override
-    public List<Teacher> searchTeachers(String val, String param) throws Exception {
+    public List<Teacher> searchTeachers(String val, String param, String dbName) throws Exception {
         List<Teacher> list = new ArrayList<>();
         String sql;
         LOGGER.info("Checking parameter of searching.");
@@ -274,7 +226,7 @@ public class PostgresTeacherDAO implements TeacherDAO {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
         }
-        try (Connection connection = connectionPool.getConnection();
+        try (Connection connection = connectionPool.getConnection(dbName);
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             LOGGER.info("Searching teachers by " + param + ".");
             preparedStatement.setString(1, "%" + val.toUpperCase(Locale.ROOT) + "%");

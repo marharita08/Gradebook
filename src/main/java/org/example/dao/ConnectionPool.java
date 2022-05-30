@@ -29,4 +29,16 @@ public class ConnectionPool {
         }
         return conn;
     }
+
+    public Connection getConnection(String dbName) {
+        Connection conn = null;
+        try {
+            InitialContext initContext = new InitialContext();
+            DataSource ds = (DataSource) initContext.lookup(dbName);
+            conn = ds.getConnection();
+        } catch (NamingException | SQLException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return conn;
+    }
 }

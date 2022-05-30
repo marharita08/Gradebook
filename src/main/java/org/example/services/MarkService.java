@@ -23,15 +23,15 @@ public class MarkService {
         this.lessonDAO = lessonDAO;
     }
 
-    public Map<String, Map<Integer, List<Mark>>> getMarksForSubject(SubjectDetails subjectDetails, int page, int marksPerPage) {
-        List<Pupil> pupilList = pupilDAO.getPupilsByPupilClass(subjectDetails.getPupilClass().getId());
-        List<Theme> themeList = themeDAO.getThemesBySubjectDetails(subjectDetails.getId());
+    public Map<String, Map<Integer, List<Mark>>> getMarksForSubject(SubjectDetails subjectDetails, int page, int marksPerPage, String dbName) {
+        List<Pupil> pupilList = pupilDAO.getPupilsByPupilClass(subjectDetails.getPupilClass().getId(), dbName);
+        List<Theme> themeList = themeDAO.getThemesBySubjectDetails(subjectDetails.getId(), dbName);
         Map<String, Map<Integer, List<Mark>>> pupilMap = new LinkedHashMap<>();
         int size = 0;
         for (Pupil pupil:pupilList) {
             Map<Integer, List<Mark>> themeMap = new LinkedHashMap<>();
             for (Theme theme:themeList) {
-                List<Mark> markList = dao.getMarksByThemeAndPupil(theme.getId(), pupil.getId());
+                List<Mark> markList = dao.getMarksByThemeAndPupil(theme.getId(), pupil.getId(), dbName);
                 size += markList.size();
                 if ((page - 1) * marksPerPage < size && size <= page * marksPerPage) {
                     themeMap.put(theme.getId(), markList);
@@ -43,12 +43,12 @@ public class MarkService {
         return pupilMap;
     }
 
-    public Map<Integer, List<Lesson>> getLessonsForSubject(SubjectDetails subjectDetails, int page, int marksPerPage) {
-        List<Theme> themeList = themeDAO.getThemesBySubjectDetails(subjectDetails.getId());
+    public Map<Integer, List<Lesson>> getLessonsForSubject(SubjectDetails subjectDetails, int page, int marksPerPage, String dbName) {
+        List<Theme> themeList = themeDAO.getThemesBySubjectDetails(subjectDetails.getId(), dbName);
         Map<Integer, List<Lesson>> themeMap = new TreeMap<>();
         int size = 0;
         for (Theme theme:themeList) {
-            List<Lesson> lessonList = lessonDAO.getLessonsByTheme(theme.getId());
+            List<Lesson> lessonList = lessonDAO.getLessonsByTheme(theme.getId(), dbName);
             size += (lessonList.size() + 1);
             if ((page - 1) * marksPerPage < size && size <= page * marksPerPage) {
                 themeMap.put(theme.getId(), lessonList);
@@ -57,8 +57,8 @@ public class MarkService {
         return themeMap;
     }
 
-    public Map<String, Mark> getSemesterMarks(SubjectDetails subjectDetails) {
-        List<Mark> semesterMarks = dao.getSemesterMarks(subjectDetails.getId());
+    public Map<String, Mark> getSemesterMarks(SubjectDetails subjectDetails, String dbName) {
+        List<Mark> semesterMarks = dao.getSemesterMarks(subjectDetails.getId(), dbName);
         Map<String, Mark> markMap = new TreeMap<>();
         for (Mark mark:semesterMarks) {
             markMap.put(mark.getPupil().getName(), mark);
@@ -66,24 +66,24 @@ public class MarkService {
         return markMap;
     }
 
-    public void saveMarks(MarkList list) throws Exception {
+    public void saveMarks(MarkList list, String dbName) throws Exception {
         for (Mark mark : list.getList()) {
             if (!mark.getMark().equals("")) {
                 if (mark.getMark().equals("н")) {
-                    dao.addAbsent(mark);
-                    dao.deleteMark(mark);
+                    dao.addAbsent(mark, dbName);
+                    dao.deleteMark(mark, dbName);
                 } else {
-                    dao.addMark(mark);
-                    dao.deleteAbsent(mark);
+                    dao.addMark(mark, dbName);
+                    dao.deleteAbsent(mark, dbName);
                 }
             } else if (mark.getMark().equals("") && mark.getId() != 0) {
-                dao.deleteAbsent(mark);
-                dao.deleteMark(mark);
+                dao.deleteAbsent(mark, dbName);
+                dao.deleteMark(mark, dbName);
             }
         }
     }
 
-    public int getCountOfMarks(int id) {
-        return themeDAO.getCountOfThemesBySubjectDetails(id) + lessonDAO.getCountOfLessonsBySubjectDetails(id);
+    public int getCountOfMarks(int id, String dbName) {
+        return themeDAO.getCountOfThemesBySubjectDetails(id, dbName) + lessonDAO.getCountOfLessonsBySubjectDetails(id, dbName);
     }
 }

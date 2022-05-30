@@ -23,6 +23,7 @@ public class SubjectDetailsController {
     private final SubjectDAO subjectDAO;
     private final SemesterDAO semesterDAO;
     private final PupilDAO pupilDAO;
+    private final SchoolDAO schoolDAO;
     private static final int subjectDetailsPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(SubjectDetailsController.class.getName());
     private static final String SUBJECT_DETAILS_LINK = "/subject-details?page=1";
@@ -30,13 +31,14 @@ public class SubjectDetailsController {
     public SubjectDetailsController(SubjectDetailsDAO dao,
                                     PupilClassDAO classDAO,
                                     TeacherDAO teacherDAO,
-                                    SubjectDAO subjectDAO, SemesterDAO semesterDAO, PupilDAO pupilDAO) {
+                                    SubjectDAO subjectDAO, SemesterDAO semesterDAO, PupilDAO pupilDAO, SchoolDAO schoolDAO) {
         this.dao = dao;
         this.classDAO = classDAO;
         this.teacherDAO = teacherDAO;
         this.subjectDAO = subjectDAO;
         this.semesterDAO = semesterDAO;
         this.pupilDAO = pupilDAO;
+        this.schoolDAO = schoolDAO;
     }
 
     /**
@@ -49,13 +51,17 @@ public class SubjectDetailsController {
         LOGGER.info("Getting list of subject details for " + page + " page.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfSubjectDetails();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        int count = dao.getCountOfSubjectDetails(dbName);
         PaginationController paginationController = new PaginationController(count, subjectDetailsPerPage, page);
         List<SubjectDetails> list;
         if(count <= subjectDetailsPerPage) {
-            list = dao.getAllSubjectDetails();
+            list = dao.getAllSubjectDetails(dbName);
         } else {
-            list = dao.getSubjectDetailsByPage(page, subjectDetailsPerPage);
+            list = dao.getSubjectDetailsByPage(page, subjectDetailsPerPage, dbName);
         }
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
         model.put("list", list);
@@ -73,21 +79,25 @@ public class SubjectDetailsController {
     @RequestMapping(value = "/subject-detail")
     @Secured("ADMIN")
     public ModelAndView addSubjectDetails() throws Exception {
-        List<PupilClass> pupilClasses = classDAO.getAllPupilClasses();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        List<PupilClass> pupilClasses = classDAO.getAllPupilClasses(dbName);
         if (pupilClasses == null) {
             throw new Exception("There are no classes to add subject details.");
         }
-        List<Subject> subjects = subjectDAO.getAllSubjects();
+        List<Subject> subjects = subjectDAO.getAllSubjects(dbName);
         if (subjects == null) {
             throw new Exception("There are no subjects to add subject details.");
         }
-        List<Semester> semesters = semesterDAO.getAllSemesters();
+        List<Semester> semesters = semesterDAO.getAllSemesters(dbName);
         if (semesters == null) {
             throw new Exception("There are no semesters to add subject details.");
         }
         LOGGER.info("Add new subject details.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = getBasicCrumbsMap();
         crumbsMap.put("Долати деталі предмету", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
@@ -97,7 +107,7 @@ public class SubjectDetailsController {
         model.put("selectedSubject", 0);
         model.put("selectedSemester", 0);
         model.put("classList", pupilClasses);
-        model.put("teacherList", teacherDAO.getAllTeachers());
+        model.put("teacherList", teacherDAO.getAllTeachers(dbName));
         model.put("subjectList", subjects);
         model.put("semesterList", semesters);
         model.put("title", "Долати деталі предмету");
@@ -115,7 +125,8 @@ public class SubjectDetailsController {
     @Secured("ADMIN")
     public ModelAndView saveAddedSubjectDetails(@ModelAttribute SubjectDetails subjectDetails) throws Exception {
         LOGGER.info("Saving added subject details.");
-        dao.addSubjectDetails(subjectDetails);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.addSubjectDetails(subjectDetails, user.getDbName());
         LOGGER.info("Redirect to subject details list.");
         return new ModelAndView("redirect:" + SUBJECT_DETAILS_LINK);
     }
@@ -129,13 +140,17 @@ public class SubjectDetailsController {
     @Secured("ADMIN")
     public ModelAndView editSubjectDetails(@PathVariable int id) {
         LOGGER.info("Edit subject details.");
-        SubjectDetails subjectDetails = dao.getSubjectDetails(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        SubjectDetails subjectDetails = dao.getSubjectDetails(id, dbName);
         if (subjectDetails == null) {
             LOGGER.error("Subject details" + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = getBasicCrumbsMap();
         crumbsMap.put("Редагувати деталі предмету", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
@@ -144,10 +159,10 @@ public class SubjectDetailsController {
         model.put("selectedTeacher", subjectDetails.getTeacher().getId());
         model.put("selectedSubject", subjectDetails.getSubject().getId());
         model.put("selectedSemester", subjectDetails.getSemester().getId());
-        model.put("classList", classDAO.getAllPupilClasses());
-        model.put("teacherList", teacherDAO.getAllTeachers());
-        model.put("subjectList", subjectDAO.getAllSubjects());
-        model.put("semesterList", semesterDAO.getAllSemesters());
+        model.put("classList", classDAO.getAllPupilClasses(dbName));
+        model.put("teacherList", teacherDAO.getAllTeachers(dbName));
+        model.put("subjectList", subjectDAO.getAllSubjects(dbName));
+        model.put("semesterList", semesterDAO.getAllSemesters(dbName));
         model.put("title", "Редагувати деталі предмету");
         model.put("formAction", "../subject-detail/" + subjectDetails.getId());
         LOGGER.info("Printing form for changing subject details data.");
@@ -163,7 +178,8 @@ public class SubjectDetailsController {
     @Secured("ADMIN")
     public ModelAndView saveEditedSubjectDetails(@ModelAttribute SubjectDetails subjectDetails) throws Exception {
         LOGGER.info("Saving edited subject details.");
-        dao.updateSubjectDetails(subjectDetails);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.updateSubjectDetails(subjectDetails, user.getDbName());
         LOGGER.info("Redirect to subject details list.");
         return new ModelAndView("redirect:" + SUBJECT_DETAILS_LINK);
     }
@@ -177,12 +193,14 @@ public class SubjectDetailsController {
     @Secured("ADMIN")
     public ModelAndView deleteSubjectDetails(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting subject details " + id + ".");
-        SubjectDetails subjectDetails = dao.getSubjectDetails(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        SubjectDetails subjectDetails = dao.getSubjectDetails(id, dbName);
         if (subjectDetails == null) {
             LOGGER.error("Subject details" + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        dao.deleteSubjectDetails(id);
+        dao.deleteSubjectDetails(id, dbName);
         LOGGER.info("Redirect to subject details list on page " + pageNum + ".");
         return new ModelAndView("redirect:/subject-details?page=" + pageNum);
     }
@@ -195,19 +213,22 @@ public class SubjectDetailsController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewSubjectDetailsByTeacher(@PathVariable int id) {
         LOGGER.info("Getting list of subject details by " + id + " teacher.");
-        Teacher teacher = teacherDAO.getTeacher(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Teacher teacher = teacherDAO.getTeacher(id, dbName);
         if (teacher == null) {
             LOGGER.error("Teacher " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        List<SubjectDetails> list = dao.getSubjectDetailsByTeacher(id);
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<SubjectDetails> list = dao.getSubjectDetailsByTeacher(id, dbName);
         if (user.hasRole("PUPIL") && !user.hasRole("ADMIN")) {
-            Pupil pupil = pupilDAO.getPupil(user.getId());
+            Pupil pupil = pupilDAO.getPupil(user.getId(), dbName);
             model.put("pupilClass", pupil.getPupilClass());
         }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         crumbsMap.put("Вчителі", "/teachers?page=1");
         crumbsMap.put("Деталі предметів", "");
@@ -228,19 +249,22 @@ public class SubjectDetailsController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewSubjectDetailsByPupilClass(@PathVariable int id) {
         LOGGER.info("Getting list of subject details by " + id + " class.");
-        PupilClass pupilClass = classDAO.getPupilClass(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        PupilClass pupilClass = classDAO.getPupilClass(id, dbName);
         if (pupilClass == null) {
             LOGGER.error("Class " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        List<SubjectDetails> list = dao.getSubjectDetailsByPupilClass(id);
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<SubjectDetails> list = dao.getSubjectDetailsByPupilClass(id, dbName);
         if (user.hasRole("PUPIL") && !user.hasRole("ADMIN")) {
-            Pupil pupil = pupilDAO.getPupil(user.getId());
+            Pupil pupil = pupilDAO.getPupil(user.getId(), dbName);
             model.put("pupilClass", pupil.getPupilClass());
         }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         crumbsMap.put("Учні", "/pupils?page=1");
         crumbsMap.put("Деталі предметів", "");
@@ -261,19 +285,22 @@ public class SubjectDetailsController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewSubjectDetailsBySubject(@PathVariable int id) {
         LOGGER.info("Getting list of subject details by " + id + " subject.");
-        Subject subject = subjectDAO.getSubject(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Subject subject = subjectDAO.getSubject(id, dbName);
         if (subject == null) {
             LOGGER.error("Subject " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        List<SubjectDetails> list = dao.getSubjectDetailsBySubject(id);
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<SubjectDetails> list = dao.getSubjectDetailsBySubject(id, dbName);
         if (user.hasRole("PUPIL") && !user.hasRole("ADMIN")) {
-            Pupil pupil = pupilDAO.getPupil(user.getId());
+            Pupil pupil = pupilDAO.getPupil(user.getId(), dbName);
             model.put("pupilClass", pupil.getPupilClass());
         }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         crumbsMap.put("Предмети", "/subjects?page=1");
         crumbsMap.put("Деталі предметів", "");
@@ -294,19 +321,23 @@ public class SubjectDetailsController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewSubjectDetailsBySemesterAndTeacher(@PathVariable int semesterID, @PathVariable int teacherID) {
         LOGGER.info("Getting list of subject details by " + semesterID + " semester and " + teacherID + " teacher.");
-        Teacher teacher = teacherDAO.getTeacher(teacherID);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Teacher teacher = teacherDAO.getTeacher(teacherID, dbName);
         if (teacher == null) {
             LOGGER.error("Teacher " + teacherID + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        Semester semester = semesterDAO.getSemester(semesterID);
+        Semester semester = semesterDAO.getSemester(semesterID, dbName);
         if (semester == null) {
             LOGGER.error("Semester " + semesterID + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndTeacher(semesterID, teacherID);
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndTeacher(semesterID, teacherID, dbName);
         model.put("list", list);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         crumbsMap.put("Семестри", "/semesters?page=1");
@@ -327,19 +358,23 @@ public class SubjectDetailsController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewSubjectDetailsBySemesterAndPupil(@PathVariable int semesterID, @PathVariable int pupilID) {
         LOGGER.info("Getting list of subject details by " + semesterID + " semester and " + pupilID + " teacher.");
-        Pupil pupil = pupilDAO.getPupil(pupilID);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Pupil pupil = pupilDAO.getPupil(pupilID, dbName);
         if (pupil == null) {
             LOGGER.error("Pupil " + pupilID + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        Semester semester = semesterDAO.getSemester(semesterID);
+        Semester semester = semesterDAO.getSemester(semesterID, dbName);
         if (semester == null) {
             LOGGER.error("Semester " + semesterID + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndPupil(semesterID, pupilID);
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        List<SubjectDetails> list = dao.getSubjectDetailsBySemesterAndPupil(semesterID, pupilID, dbName);
         model.put("list", list);
         Map<String, String> crumbsMap = new LinkedHashMap<>();
         crumbsMap.put("Семестри", "/semesters?page=1");
@@ -360,7 +395,8 @@ public class SubjectDetailsController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewSubjectDetailsByPupil(@PathVariable int id) {
         LOGGER.info("Getting list of subject details by " + id + " pupil.");
-        Pupil pupil = pupilDAO.getPupil(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Pupil pupil = pupilDAO.getPupil(id, user.getDbName());
         if (pupil == null) {
             LOGGER.error("Pupil " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
@@ -375,10 +411,12 @@ public class SubjectDetailsController {
                                             @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching subject details by " + param + ".");
         List<SubjectDetails> list;
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
         if(!val.isEmpty()) {
-            list = dao.searchSubjectDetails(val, param);
+            list = dao.searchSubjectDetails(val, param, dbName);
         } else {
-            list = dao.getSubjectDetailsByPage(1, subjectDetailsPerPage);
+            list = dao.getSubjectDetailsByPage(1, subjectDetailsPerPage, dbName);
         }
         return list;
     }
