@@ -86,15 +86,20 @@
                         <div class="inline"><i class='material-icons'>account_circle</i></div>
                         <div class="inline"><%=" " + currUser.getUsername() + " "%></div>
                     </a>
-                    <a href="<%=root%>logout">
-                        <div class="inline"><i class='material-icons'>logout</i></div>
-                        <div class="inline">Вихід</div>
+                    <a>
+                        <form action="<%=root%>logout" method=post>
+                            <sec:csrfInput />
+                            <button type="submit" class="bg-primary">
+                                <div class="inline"><i class='material-icons'>logout</i></div>
+                                <div class="inline">Вихід</div>
+                            </button>
+                        </form>
                     </a>
                 </li>
             </sec:authorize>
             <sec:authorize access="!isAuthenticated()">
                 <li class="logout">
-                    <a href="<%=root%>login.jsp">
+                    <a href="<%=root%>login">
                         <div class="inline"><i class='material-icons'>login</i></div>
                         <div class="inline">Вхід</div>
                     </a>

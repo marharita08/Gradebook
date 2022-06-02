@@ -130,7 +130,7 @@ public class LessonController {
      * @param id lesson id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/lesson/{id}/delete")
+    @RequestMapping(value = "/lesson/{id}/delete", method = RequestMethod.POST)
     @Secured("TEACHER")
     public ModelAndView deleteLesson(@PathVariable int id) {
         LOGGER.info("Deleting lesson " + id);

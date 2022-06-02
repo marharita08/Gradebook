@@ -189,7 +189,7 @@ public class PupilClassController {
      * @param id class id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/class/{id}/delete")
+    @RequestMapping(value = "/class/{id}/delete", method = RequestMethod.POST)
     @Secured("ADMIN")
     public ModelAndView deleteClass(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting class " + id + ".");

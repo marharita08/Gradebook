@@ -163,7 +163,7 @@ public class SemesterController {
      * @param id semester id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/semester/{id}/delete")
+    @RequestMapping(value = "/semester/{id}/delete", method = RequestMethod.POST)
     @Secured("ADMIN")
     public ModelAndView deleteSemester(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting semester " + id + ".");

@@ -113,8 +113,14 @@
                 );
                 if (id !== 0) {
                     html.push(
-                        "<a href='<%=root%>user/", id,
-                        "/delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a>");
+                        "<a><form action='<%=root%>user/", id, "/delete' method=post>",
+                        '<sec:csrfInput />',
+                        "<input type='hidden' value='<%=pageNum%>' name='page'/>",
+                        "<button type='submit'>",
+                        "<i class='material-icons'>delete</i>",
+                        "</button>",
+                        "</form></a>"
+                    );
                 }
                 html.push(
                     "</td>",

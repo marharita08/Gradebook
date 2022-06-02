@@ -71,7 +71,7 @@ public class TeacherController {
      * @param id teacher's id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/teacher/{id}/delete")
+    @RequestMapping(value = "/teacher/{id}/delete", method = RequestMethod.POST)
     @Secured("ADMIN")
     public ModelAndView deleteTeacher(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting teacher " + id + ".");

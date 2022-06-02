@@ -217,7 +217,7 @@ public class UserController {
      * @param id user's id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/user/{id}/delete", method = RequestMethod.GET)
+    @RequestMapping(value = "/user/{id}/delete", method = RequestMethod.POST)
     @Secured("ADMIN")
     public ModelAndView deleteUser(@PathVariable int id, @RequestParam("page") int pageNum) {
         User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -240,6 +240,10 @@ public class UserController {
     @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
     public String checkUsername(@RequestParam("val") String name, @RequestParam("id") int id, @RequestParam("dbname") String dbName){
+        if (dbName.equals("null")) {
+            User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            dbName = currUser.getDbName();
+        }
         User user = dao.getUserByUsername(name, dbName);
         String response = "";
         if(user != null) {
@@ -334,10 +338,14 @@ public class UserController {
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public ModelAndView getLoginPage() {
-        Map<String, Object> model = new HashMap<>();
-        List<School> schools = schoolDAO.getAllSchools();
-        model.put("list", schools);
-        return new ModelAndView("login", model);
+        if (SecurityContextHolder.getContext().getAuthentication().getPrincipal().equals("anonymousUser")) {
+            Map<String, Object> model = new HashMap<>();
+            List<School> schools = schoolDAO.getAllSchools();
+            model.put("list", schools);
+            return new ModelAndView("login", model);
+        } else {
+            return new ModelAndView("redirect:/main");
+        }
     }
 
     @RequestMapping(value = "/admin", method = RequestMethod.POST)

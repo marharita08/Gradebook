@@ -75,7 +75,7 @@ public class PupilController {
      * @param id pupil id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/pupil/{id}/delete")
+    @RequestMapping(value = "/pupil/{id}/delete", method = RequestMethod.POST)
     @Secured("ADMIN")
     public ModelAndView deletePupil(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting pupil " + id + ".");
@@ -88,7 +88,7 @@ public class PupilController {
         }
         userDAO.deleteUser(id, dbName);
         LOGGER.info("Redirect to pupil list on page " + pageNum + ".");
-        return new ModelAndView("redirect:/viewAllPupils?page=" + pageNum);
+        return new ModelAndView("redirect:/pupils?page=" + pageNum);
     }
 
     /**

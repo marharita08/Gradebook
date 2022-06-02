@@ -4,6 +4,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
     <head>
         <title><%=request.getAttribute("title")%></title>
@@ -32,6 +33,7 @@
                     <p>Клас:<%=subjectDetails.getPupilClass().getName()%></p>
                     <p>Тема:<%=theme.getName()%></p>
                     <form:form>
+                        <sec:csrfInput />
                         <br/>
                         <div class="row">
                             <div class="col-25">

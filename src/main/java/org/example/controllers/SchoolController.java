@@ -2,7 +2,6 @@ package org.example.controllers;
 
 import org.apache.log4j.Logger;
 import org.example.dao.interfaces.SchoolDAO;
-import org.example.entities.Role;
 import org.example.entities.School;
 import org.example.entities.User;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,7 +27,7 @@ public class SchoolController {
     }
 
     /**
-     * Getting page for school adding.
+     * Getting main page.
      * @return ModelAndView
      */
     @RequestMapping(value = "/main")
@@ -95,5 +94,15 @@ public class SchoolController {
         LOGGER.info("Redirect to admin page.");
         return new ModelAndView("addSuperAdminForm", model);
     }
+
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public ModelAndView redirectToMainPage() {
+        if (SecurityContextHolder.getContext().getAuthentication().getPrincipal().equals("anonymousUser")) {
+            return new ModelAndView("redirect:/login");
+        } else {
+            return new ModelAndView("redirect:/main");
+        }
+    }
+
 
 }

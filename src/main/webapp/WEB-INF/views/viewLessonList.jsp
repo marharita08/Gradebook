@@ -146,8 +146,13 @@
                                                     </a>
                                                 </td>
                                                 <td>
-                                                    <a href=".<%=root%>lesson/<%=lesson.getId()%>/delete">
-                                                        <i class="material-icons">delete</i>
+                                                    <a>
+                                                        <form action="<%=root%>lesson/<%=lesson.getId()%>/delete" method=post>
+                                                            <sec:csrfInput />
+                                                            <button type="submit">
+                                                                <i class="material-icons">delete</i>
+                                                            </button>
+                                                        </form>
                                                     </a>
                                                 </td>
                                         <%

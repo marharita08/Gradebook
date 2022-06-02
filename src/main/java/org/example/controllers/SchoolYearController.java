@@ -150,7 +150,7 @@ public class SchoolYearController {
      * @param id school year id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/year/{id}/delete")
+    @RequestMapping(value = "/year/{id}/delete", method = RequestMethod.POST)
     @Secured("ADMIN")
     public ModelAndView deleteSchoolYear(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting school year " + id + ".");

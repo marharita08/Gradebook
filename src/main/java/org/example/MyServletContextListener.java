@@ -24,21 +24,6 @@ public class MyServletContextListener implements ServletContextListener {
         PropertyConfigurator.configure(properties);
         GenerateTables generateTables = new GenerateTables(new ConnectionPool());
         generateTables.generate();
-
-        /*PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        User user = new User();
-        Properties userProp = new Properties();
-        try {
-            userProp.load(
-                    Thread.currentThread()
-                            .getContextClassLoader()
-                            .getResourceAsStream("defaultAdmin.properties"));
-            user.setPassword(passwordEncoder.encode(userProp.getProperty("password")));
-            user.setUsername(userProp.getProperty("username"));
-            generateTables.initDefaultUser(user);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }*/
     }
 
     @Override

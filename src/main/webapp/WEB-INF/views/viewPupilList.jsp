@@ -136,10 +136,14 @@
                     if (<%=isAdmin%>) {
                         html.push("<td>",
                             "<a href='<%=root%>user/", id, "'><i class='material-icons'>edit</i></a>",
-                            "</td><td>",
-                            "<a href='<%=root%>pupil/", id,
-                            "delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a></td>",
-                            "</td>"
+                            "</td><td><a>",
+                            "<form action='<%=root%>pupil/", id, "/delete' method=post>",
+                            '<sec:csrfInput />',
+                            "<input type='hidden' value='<%=pageNum%>' name='page'/>",
+                            "<button type='submit'>",
+                            "<i class='material-icons'>delete</i>",
+                            "</button>",
+                            "</form></a></td>"
                         );
                     }
                     html.push("<td>");

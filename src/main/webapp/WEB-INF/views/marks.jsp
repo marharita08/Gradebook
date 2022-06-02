@@ -4,6 +4,7 @@
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
     <head>
         <title>Mark list</title>
@@ -45,6 +46,7 @@
                 </table>
                 <ul class="pagination"><%=request.getAttribute("pagination")%></ul>
                 <form action="save-marks?page=<%=request.getAttribute("page")%>" method="post">
+                    <sec:csrfInput />
                     <table class="borders">
                         <%
                             Map<Integer, List<Lesson>> lessons = (Map<Integer, List<Lesson>>)request.getAttribute("lessons");

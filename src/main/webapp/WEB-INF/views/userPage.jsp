@@ -39,6 +39,7 @@
                     </div>
                     <div class="user-data card" style="width: 60%" align="center">
                         <form action="<%=action%>" method="post" accept-charset="UTF-8">
+                            <sec:csrfInput />
                             <br/>
                             <% if(action.contains(String.valueOf(id))) { %>
                                 <div class="row">

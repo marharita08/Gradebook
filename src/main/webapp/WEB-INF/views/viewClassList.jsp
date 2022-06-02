@@ -3,6 +3,7 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
     <head>
         <title>Список класів</title>
@@ -138,10 +139,14 @@
                         html.push(
                             "<td>",
                             "<a href='<%=root%>class/", id, "'><i class='material-icons'>edit</i></a>",
-                            "</td><td>",
-                            "<a href='<%=root%>class/", id,
-                            "/delete?page=<%=pageNum%>'><i class='material-icons'>delete</i></a>",
-                            "</td>"
+                            "</td><td><a>",
+                            "<form action='<%=root%>class/", id, "/delete' method=post>",
+                            '<sec:csrfInput />',
+                            "<input type='hidden' value='<%=pageNum%>' name='page'/>",
+                            "<button type='submit'>",
+                            "<i class='material-icons'>delete</i>",
+                            "</button>",
+                            "</form></a></td>"
                         );
                     }
                     if (<%=isAdmin||isTeacher%>) {

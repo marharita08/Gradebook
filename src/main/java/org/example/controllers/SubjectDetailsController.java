@@ -189,7 +189,7 @@ public class SubjectDetailsController {
      * @param id subject details id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/subject-detail/{id}/delete")
+    @RequestMapping(value = "/subject-detail/{id}/delete", method = RequestMethod.POST)
     @Secured("ADMIN")
     public ModelAndView deleteSubjectDetails(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting subject details " + id + ".");

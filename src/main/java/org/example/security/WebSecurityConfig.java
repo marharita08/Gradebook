@@ -33,8 +33,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.addFilterBefore(new EncodingFilter(), ChannelProcessingFilter.class);
 
-        http.csrf()
-                .disable();
         http.addFilterBefore(authenticationFilter(),
                         UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
@@ -48,18 +46,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
-                .defaultSuccessUrl("/main")
                 .and().logout().logoutUrl("/logout");
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(new AuthProvider(userService, passwordEncoder()));
-    }
-
-    @Autowired
-    protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
     }
 
     public AuthenticationFilter authenticationFilter() throws Exception {

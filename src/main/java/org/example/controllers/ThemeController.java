@@ -165,7 +165,7 @@ public class ThemeController {
      * @param id semester id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/theme/{id}/delete")
+    @RequestMapping(value = "/theme/{id}/delete", method = RequestMethod.POST)
     @Secured("TEACHER")
     public ModelAndView deleteTheme(@PathVariable int id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
