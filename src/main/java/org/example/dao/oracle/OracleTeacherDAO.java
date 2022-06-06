@@ -64,7 +64,8 @@ public class OracleTeacherDAO implements TeacherDAO {
             int id = resultSet.getInt("TEACHER_ID");
             String name = resultSet.getString("NAME");
             String position = resultSet.getString("POSITION");
-            teacher = new Teacher(id, name, position);
+            String photo = resultSet.getString("photo");
+            teacher = new Teacher(id, name, position, photo);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }

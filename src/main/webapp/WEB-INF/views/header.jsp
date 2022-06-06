@@ -70,20 +70,26 @@
                 <li>
                     <a href="<%=root%>users?page=1">
                         <div class="inline"><i class='material-icons'>groups</i></div>
-                        <div class="inline">Всі користувачі</div>
+                        <div class="inline">Користувачі</div>
                     </a>
                 </li>
                 <li>
                     <a href="<%=root%>subject-details?page=1">
                         <div class="inline"><i class='material-icons'>import_contacts</i></div>
-                        <div class="inline">Всі деталі предметів</div>
+                        <div class="inline">Деталі предметів</div>
                     </a>
                 </li>
             </sec:authorize>
             <sec:authorize access="isAuthenticated()">
                 <li class="logout">
                     <a href="<%=root%>user/<%=currUser.getId()%>" class="username">
-                        <div class="inline"><i class='material-icons'>account_circle</i></div>
+                        <div class="inline">
+                            <img
+                                alt="avatar"
+                                src='<%=root + (currUser.getPhoto() != null ? currUser.getPhoto() : "images/user.png")%>'
+                                class="avatar-30"
+                            >
+                        </div>
                         <div class="inline"><%=" " + currUser.getUsername() + " "%></div>
                     </a>
                     <a>

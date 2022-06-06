@@ -35,11 +35,40 @@
                 <h2>Сторінка користувача</h2>
                 <div class="box-index">
                     <div class="user-div">
-                        <img alt="user image" src="<%=root%>images/user.png" class="user-img">
+                        <img
+                            alt="user image"
+                            src='<%=root + (user.getPhoto() != null ? user.getPhoto() : "images/user.png")%>'
+                            class="user-img"
+                            id="avatar"
+                        >
+                        <%
+                            if (user.getId() == currUser.getId()) {
+                        %>
+                        <br/><br/>
+                        <form enctype="multipart/form-data" method="post" action="<%=root%>user/photo">
+                            <label class="bg-primary button" id="imgBtn">
+                                <div class="inline"><i class='material-icons'>add_a_photo</i></div>
+                                <div class="inline">Змінити фото</div>
+                                <input type="file" name="file" accept="image/*" id="imgInp" style="display:none"/>
+                            </label>
+                            <br/><br/>
+                            <button class="bg-primary" style="display:none" id="imgSave" type="submit">
+                                <div class="inline"><i class='material-icons'>save</i></div>
+                                <div class="inline">Зберегти фото</div>
+                            </button>
+                            <button class="bg-primary" style="display:none" id="imgDel" type="reset">
+                                <div class="inline"><i class='material-icons'>delete</i></div>
+                                <div class="inline">Видалити фото</div>
+                            </button>
+                        </form>
+                        <%
+                            }
+                        %>
                     </div>
                     <div class="user-data card" style="width: 60%" align="center">
                         <form action="<%=action%>" method="post" accept-charset="UTF-8">
                             <sec:csrfInput />
+                            <input value="<%=user.getPhoto()%>" name="photo" type="hidden"/>
                             <br/>
                             <% if(action.contains(String.valueOf(id))) { %>
                                 <div class="row">
@@ -132,7 +161,7 @@
                                     </div>
                                 </div>
                                 <% if(pupil.getPupilClass() != null) {%>
-                                    <sec:authorize access="hasAnyAuthority('PUPIL', 'TEACHER')">
+                                    <sec:authorize access="!hasAuthority('ADMIN')">
                                         <div class="row">
                                             <div class="col-25">
                                                 <label>Клас</label>
@@ -200,6 +229,21 @@
                 div.style.display = "none";
                 name.removeAttribute("required");
             }
+        }
+        imgInp.onchange = evt => {
+          const [file] = imgInp.files
+          if (file) {
+            imgSave.style.display = "block";
+            imgBtn.style.display = "none";
+            imgDel.style.display = "block";
+            avatar.src = URL.createObjectURL(file);
+          }
+        }
+        imgDel.onclick = evt => {
+            imgSave.style.display = "none";
+            imgBtn.style.display = "block";
+            imgDel.style.display = "none";
+            avatar.src = '<%=root + (user.getPhoto() != null ? user.getPhoto() : "images/user.png")%>';
         }
     </script>
 </html>

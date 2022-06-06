@@ -2,27 +2,19 @@ package org.example.entities;
 
 import java.util.Objects;
 
-public class Teacher {
-    private int id;
+public class Teacher extends User {
     private String name;
     private String position;
 
-    public Teacher(int id, String name, String position) {
+    public Teacher(int id, String name, String position, String photo) {
         this.id = id;
         this.name = name;
         this.position = position;
+        this.photo = photo;
     }
 
     public Teacher(){
         super();
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -40,7 +32,6 @@ public class Teacher {
     public void setPosition(String position) {
         this.position = position;
     }
-
 
     public Teacher(int id) {
         this.id = id;

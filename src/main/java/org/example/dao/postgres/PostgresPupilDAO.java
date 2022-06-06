@@ -14,17 +14,17 @@ import java.util.List;
 import java.util.Locale;
 
 public class PostgresPupilDAO implements PupilDAO {
-    private static final String GET_ALL_PUPILS = "SELECT * FROM PUPIL order by PUPIL_ID";
-    private static final String GET_PUPIL = "SELECT * FROM PUPIL where PUPIL_ID=?";
+    private static final String GET_ALL_PUPILS = "SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id order by PUPIL_ID";
+    private static final String GET_PUPIL = "SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id where PUPIL_ID=?";
     private static final String INSERT_PUPIL = "Insert into PUPIL (pupil_id, class_id, name) values (?, ?, ?)";
     private static final String UPDATE_PUPIL = "UPDATE PUPIL set CLASS_ID = ?, NAME = ? where PUPIL_ID = ?";
     private static final String DELETE_PUPIL = "Delete from PUPIL where PUPIL_ID = ?";
-    private static final String GET_PUPILS_BY_CLASS = "SELECT * FROM PUPIL where CLASS_ID = ? order by NAME";
+    private static final String GET_PUPILS_BY_CLASS = "SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id where CLASS_ID = ? order by NAME";
     private static final String GET_COUNT_OF_PUPILS = "select count(PUPIL_ID) as AMOUNT from PUPIL ";
-    private static final String GET_PUPILS_BY_PAGE = "SELECT * FROM PUPIL ORDER BY PUPIL_ID limit ? offset ?";
-    private static final String SEARCH_PUPIL_BY_ID = " SELECT * FROM PUPIL where to_char(PUPIL_ID, '99999') like ? order by PUPIL_ID";
-    private static final String SEARCH_PUPIL_BY_NAME = "SELECT * FROM PUPIL where upper(NAME) like ? order by PUPIL_ID";
-    private static final String SEARCH_PUPIL_BY_CLASS = "SELECT * FROM PUPIL " +
+    private static final String GET_PUPILS_BY_PAGE = "SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id ORDER BY PUPIL_ID limit ? offset ?";
+    private static final String SEARCH_PUPIL_BY_ID = " SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id where to_char(PUPIL_ID, '99999') like ? order by PUPIL_ID";
+    private static final String SEARCH_PUPIL_BY_NAME = "SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id where upper(NAME) like ? order by PUPIL_ID";
+    private static final String SEARCH_PUPIL_BY_CLASS = "SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id " +
             "join CLASS c using (CLASS_ID) where upper(c.NAME) like ? order by PUPIL_ID";
     private final PupilClassDAO pupilClassDAO;
     private final ConnectionPool connectionPool;
@@ -63,11 +63,12 @@ public class PostgresPupilDAO implements PupilDAO {
             int id = resultSet.getInt("Pupil_ID");
             int classID = resultSet.getInt("class_id");
             String name = resultSet.getString("NAME");
+            String photo = resultSet.getString("photo");
             if (classID == 0) {
-                pupil = new Pupil(id, name, null);
+                pupil = new Pupil(id, name, null, photo);
             } else {
                 PupilClass pupilClass = pupilClassDAO.getPupilClass(classID, dbName);
-                pupil = new Pupil(id, name, pupilClass);
+                pupil = new Pupil(id, name, pupilClass, photo);
             }
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);

@@ -12,21 +12,17 @@ import java.util.List;
 import java.util.Locale;
 
 public class PostgresTeacherDAO implements TeacherDAO {
-    private static final String GET_ALL_TEACHERS = "SELECT * FROM TEACHER order by teacher_id";
-    private static final String GET_TEACHER = "SELECT * FROM TEACHER where teacher_id = ?";
+    private static final String GET_ALL_TEACHERS = "SELECT * FROM TEACHER join gradebook_user on user_id=teacher_id order by teacher_id";
+    private static final String GET_TEACHER = "SELECT * FROM TEACHER join gradebook_user on user_id=teacher_id where teacher_id = ?";
     private static final String INSERT_TEACHER = "Insert into TEACHER(teacher_id, name, position) values (?, ?, ?)";
     private static final String UPDATE_TEACHER = "UPDATE TEACHER set name = ?, position = ? where teacher_id = ?";
     private static final String UPDATE_SUBJECT_DETAILS_OF_DELETING_TEACHER = "update SUBJECT_DETAILS set TEACHER_ID = null where TEACHER_ID = ?";
     private static final String DELETE_TEACHER = "Delete from TEACHER where teacher_id = ?";
-    private static final String GET_TEACHERS_BY_CLASS = "select distinct TEACHER_ID, NAME, POSITION " +
-            "from TEACHER join SUBJECT_DETAILS using(teacher_id) where CLASS_ID = ? order by TEACHER_ID";
-    private static final String GET_TEACHERS_BY_SUBJECT = "select distinct TEACHER_ID, NAME, POSITION " +
-            "from TEACHER join SUBJECT_DETAILS using(teacher_id) where SUBJECT_ID = ? order by TEACHER_ID";
     private static final String GET_COUNT_OF_TEACHERS = "select count(TEACHER_ID) as AMOUNT from TEACHER ";
-    private static final String GET_TEACHERS_BY_PAGE = "SELECT * FROM TEACHER ORDER BY TEACHER_ID limit ? offset ?";
-    private static final String SEARCH_TEACHERS_BY_ID = " SELECT * FROM TEACHER where to_char(teacher_id, '99999') like ? order by teacher_id";
-    private static final String SEARCH_TEACHERS_BY_NAME = " SELECT * FROM TEACHER where upper(name) like ? order by teacher_id";
-    private static final String SEARCH_TEACHERS_BY_POSITION = " SELECT * FROM TEACHER where upper(position) like ? order by teacher_id";
+    private static final String GET_TEACHERS_BY_PAGE = "SELECT * FROM TEACHER join gradebook_user on user_id=teacher_id ORDER BY TEACHER_ID limit ? offset ?";
+    private static final String SEARCH_TEACHERS_BY_ID = " SELECT * FROM TEACHER join gradebook_user on user_id=teacher_id where to_char(teacher_id, '99999') like ? order by teacher_id";
+    private static final String SEARCH_TEACHERS_BY_NAME = " SELECT * FROM TEACHER join gradebook_user on user_id=teacher_id where upper(name) like ? order by teacher_id";
+    private static final String SEARCH_TEACHERS_BY_POSITION = " SELECT * FROM TEACHER join gradebook_user on user_id=teacher_id where upper(position) like ? order by teacher_id";
     private final ConnectionPool connectionPool;
     private static final Logger LOGGER = Logger.getLogger(PostgresTeacherDAO.class.getName());
 
@@ -61,7 +57,8 @@ public class PostgresTeacherDAO implements TeacherDAO {
             int id = resultSet.getInt("TEACHER_ID");
             String name = resultSet.getString("NAME");
             String position = resultSet.getString("POSITION");
-            teacher = new Teacher(id, name, position);
+            String photo = resultSet.getString("photo");
+            teacher = new Teacher(id, name, position, photo);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }

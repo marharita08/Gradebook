@@ -4,14 +4,18 @@ import org.apache.log4j.Logger;
 import org.example.dao.interfaces.SchoolDAO;
 import org.example.entities.School;
 import org.example.entities.User;
+import org.example.services.FileUploadUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -53,6 +57,7 @@ public class SchoolController {
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
         model.put("command", new School());
+        model.put("action", "school");
         model.put("title", "Додати школу");
         LOGGER.info("Printing form for input school data.");
         return new ModelAndView("schoolForm", model);
@@ -63,12 +68,25 @@ public class SchoolController {
      * @param school added school
      * @return ModelAndView
      */
-    @RequestMapping(value = "/school", method = RequestMethod.POST)
-    public ModelAndView saveAddedSchool(@ModelAttribute School school) {
+    @RequestMapping(value = "/school", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ModelAndView saveAddedSchool(@ModelAttribute School school, @RequestParam(required = false) MultipartFile file) {
         LOGGER.info("Saving added school.");
         dao.addSchool(school);
         school = dao.getSchoolByName(school.getName());
         String strID = String.valueOf(school.getId());
+        if (file != null) {
+            String uploadDir = "public/schools/" + strID;
+            String[] arr = file.getOriginalFilename().split("\\.");
+            String ext = arr[arr.length-1];
+            String fileName = strID + "." + ext;
+            school.setPhoto(uploadDir + "/" + fileName);
+            try {
+                FileUploadUtil.saveFile(uploadDir, fileName, file);
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+            dao.updateSchool(school);
+        }
         dao.createDB(strID);
         try {
             ProcessBuilder builder = new ProcessBuilder(
@@ -80,10 +98,10 @@ public class SchoolController {
             while (true) {
                 line = r.readLine();
                 if (line == null) { break; }
-                System.out.println(line);
+                LOGGER.info(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage(), e);
         }
         dao.initTables(strID);
         Map<String, Object> model = new HashMap<>();
@@ -95,6 +113,63 @@ public class SchoolController {
         return new ModelAndView("addSuperAdminForm", model);
     }
 
+    /**
+     * Getting page for school editing.
+     * @return ModelAndView
+     */
+    @Secured("ADMIN")
+    @RequestMapping(value = "/school/{id}")
+    public ModelAndView editSchool(@PathVariable int id) {
+        User currUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!currUser.getDbName().equals(String.valueOf(id))) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
+        LOGGER.info("Edit school.");
+        LOGGER.info("Form a model.");
+        School school = dao.getSchool(id);
+        Map<String, Object> model = new HashMap<>();
+        model.put("command", school);
+        model.put("title", "Редагувати школу");
+        model.put("action", "../school/" + id);
+        LOGGER.info("Printing form for input school data.");
+        return new ModelAndView("schoolForm", model);
+    }
+
+    /**
+     * Saving edited school.
+     * @param school edited school
+     * @return ModelAndView
+     */
+    @Secured("ADMIN")
+    @RequestMapping(value = "/school/{id}", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ModelAndView saveEditedSchool(@ModelAttribute School school, @RequestParam(required = false) MultipartFile file) {
+        LOGGER.info("Saving edited school.");
+        String strID = String.valueOf(school.getId());
+        if (file != null) {
+            if (school.getPhoto() != null) {
+                File myObj = new File(school.getPhoto());
+                if (myObj.delete()) {
+                    LOGGER.info("Deleted the file: " + myObj.getName());
+                } else {
+                    LOGGER.error("Failed to delete the file.");
+                }
+            }
+            String uploadDir = "public/schools/" + strID;
+            String[] arr = file.getOriginalFilename().split("\\.");
+            String ext = arr[arr.length-1];
+            String fileName = strID + "." + ext;
+            school.setPhoto(uploadDir + "/" + fileName);
+            try {
+                FileUploadUtil.saveFile(uploadDir, fileName, file);
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+        dao.updateSchool(school);
+        LOGGER.info("Redirect to main page.");
+        return new ModelAndView("redirect:../main");
+    }
+
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ModelAndView redirectToMainPage() {
         if (SecurityContextHolder.getContext().getAuthentication().getPrincipal().equals("anonymousUser")) {
@@ -103,6 +178,4 @@ public class SchoolController {
             return new ModelAndView("redirect:/main");
         }
     }
-
-
 }

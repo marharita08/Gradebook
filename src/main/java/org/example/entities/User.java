@@ -11,22 +11,24 @@ import java.util.Set;
 
 public class User implements UserDetails {
 
-    private int id;
+    protected int id;
     private String username;
     private String password;
     private Set<Role> roles;
     private String dbName;
+    protected String photo;
 
     public User() {
         roles = new HashSet<>();
     }
 
-    public User(int id, String username, String password, Set<Role> roles, String dbName) {
+    public User(int id, String username, String password, Set<Role> roles, String dbName, String photo) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.roles = roles;
         this.dbName = dbName;
+        this.photo = photo;
     }
 
     public int getId() {
@@ -100,6 +102,14 @@ public class User implements UserDetails {
         this.dbName = dbName;
     }
 
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
     public boolean hasRole(String role) {
         for (Role userRole:roles) {
             if (role.equals(userRole.getName())) {
@@ -114,12 +124,12 @@ public class User implements UserDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && username.equals(user.username) && password.equals(user.password) && Objects.equals(roles, user.roles) && Objects.equals(dbName, user.dbName);
+        return id == user.id && username.equals(user.username) && password.equals(user.password) && Objects.equals(roles, user.roles) && dbName.equals(user.dbName) && Objects.equals(photo, user.photo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, password, roles, dbName);
+        return Objects.hash(id, username, password, roles, dbName, photo);
     }
 
     @Override
@@ -130,6 +140,7 @@ public class User implements UserDetails {
                 ", password='" + password + '\'' +
                 ", roles=" + roles +
                 ", dbName='" + dbName + '\'' +
+                ", photo='" + photo + '\'' +
                 '}';
     }
 }

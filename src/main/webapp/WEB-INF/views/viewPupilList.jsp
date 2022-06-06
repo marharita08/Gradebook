@@ -129,7 +129,18 @@
                     }
                     html.push(
                         "<td>",
-                        "<div class='inline'>", "<i class='material-icons'>person</i>", "</div>",
+                        "<div class='inline'>",
+                        "<img alt='avatar'",
+                        "src='<%=root%>"
+                    );
+                    if (obj[i].photo != null) {
+                        html.push (obj[i].photo, "'");
+                    } else {
+                        html.push ("images/user.png'");
+                    }
+                    html.push (
+                        "class='avatar-50'>",
+                        "</div>",
                         "<div class='inline'>", obj[i].name, "</div>",
                         "</td>"
                     );

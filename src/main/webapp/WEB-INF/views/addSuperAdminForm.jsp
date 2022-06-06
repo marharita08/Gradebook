@@ -1,7 +1,6 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8"%>
-<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
     <head>
         <title>Додати адміністратора</title>
@@ -21,7 +20,6 @@
                     <p>Введіть дані користувача, який буде головним адміністратором вашої школи.</p>
                     <br/>
                     <form:form>
-                        <sec:csrfInput />
                         <form:input path="dbName" type="hidden"/>
                         <div class="row">
                             <div class="col-25">

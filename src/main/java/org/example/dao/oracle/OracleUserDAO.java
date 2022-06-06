@@ -126,7 +126,8 @@ public class OracleUserDAO implements UserDAO {
             String password = resultSet.getString("PASSWORD");
             String dbName = resultSet.getString("dbName");
             Set<Role> roles = roleDAO.getRolesByUser(id, dbName);
-            user = new User(id, username, password, roles, dbName);
+            String photo = resultSet.getString("photo");
+            user = new User(id, username, password, roles, dbName, photo);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }

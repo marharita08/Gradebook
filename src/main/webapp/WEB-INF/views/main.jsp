@@ -46,8 +46,17 @@
                 </div>
                 <div align="center" class="school-div">
                     <figure>
-                        <img src="images/school.jpg" class="school">
-                        <figcaption><%=currSchool.getName()%></figcaption>
+                        <img src='<%=currSchool.getPhoto()!=null?currSchool.getPhoto():"images/school.jpg"%>' class="school">
+                        <figcaption>
+                            <div class="inline">
+                                <%=currSchool.getName() + " "%>
+                            </div>
+                            <div class="inline">
+                                <sec:authorize access="hasAuthority('ADMIN')">
+                                    <a href='<%=root%>school/<%=currSchool.getId()%>'><i class='material-icons'>edit</i></a>
+                                </sec:authorize>
+                            </div>
+                        </figcaption>
                     </figure>
                 </div>
             </div>

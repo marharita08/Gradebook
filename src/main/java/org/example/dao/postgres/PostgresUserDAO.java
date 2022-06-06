@@ -21,7 +21,7 @@ public class PostgresUserDAO implements UserDAO {
     private static final String GET_USER_BY_USERNAME = "SELECT * FROM GRADEBOOK_USER where USERNAME=?";
     private static final String GET_USER = "SELECT * FROM GRADEBOOK_USER where USER_ID=?";
     private static final String INSERT_USER = "Insert into GRADEBOOK_USER (username, password, dbname) values (?, ?, ?)";
-    private static final String UPDATE_USER = "UPDATE GRADEBOOK_USER set username = ?, password = ? where user_id = ?";
+    private static final String UPDATE_USER = "UPDATE GRADEBOOK_USER set username = ?, password = ?, photo = ? where user_id = ?";
     private static final String DELETE_USER = "Delete from GRADEBOOK_USER where user_id = ?";
     private static final String DELETE_ROLE_OF_USER = "Delete from USER_ROLE where user_id = ? and  role_id = ?";
     private static final String CHECK_ROLE_OF_USER = "select count(user_id) AMOUNT from USER_ROLE where user_id=? and role_id=?";
@@ -122,7 +122,8 @@ public class PostgresUserDAO implements UserDAO {
             String password = resultSet.getString("PASSWORD");
             String dbName = resultSet.getString("dbName");
             Set<Role> roles = roleDAO.getRolesByUser(id, dbName);
-            user = new User(id, username, password, roles, dbName);
+            String photo = resultSet.getString("photo");
+            user = new User(id, username, password, roles, dbName, photo);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -169,7 +170,8 @@ public class PostgresUserDAO implements UserDAO {
                  PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_USER)) {
                 preparedStatement.setString(1, user.getUsername());
                 preparedStatement.setString(2, user.getPassword());
-                preparedStatement.setInt(3, user.getId());
+                preparedStatement.setString(3, user.getPhoto());
+                preparedStatement.setInt(4, user.getId());
                 preparedStatement.executeUpdate();
                 LOGGER.info("Updating complete.");
             } catch (SQLException throwables) {

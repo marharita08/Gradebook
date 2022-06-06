@@ -67,11 +67,12 @@ public class OraclePupilDAO implements PupilDAO {
             int id = resultSet.getInt("Pupil_ID");
             int classID = resultSet.getInt("class_id");
             String name = resultSet.getString("NAME");
+            String photo = resultSet.getString("photo");
             if (classID == 0) {
-                pupil = new Pupil(id, name, null);
+                pupil = new Pupil(id, name, null, photo);
             } else {
                 PupilClass pupilClass = pupilClassDAO.getPupilClass(classID, dbName);
-                pupil = new Pupil(id, name, pupilClass);
+                pupil = new Pupil(id, name, pupilClass, photo);
             }
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);

@@ -159,7 +159,18 @@
                         "<div class='inline'>", obj[i].pupilClass.name, "</div>",
                         "</td>",
                         "<td>",
-                        "<div class='inline'>", "<i class='material-icons'>person</i>", "</div>",
+                        "<div class='inline'>",
+                        "<img alt='avatar'",
+                        "src='<%=root%>"
+                    );
+                    if (obj[i].teacher.photo != null) {
+                        html.push (obj[i].teacher.photo, "'");
+                    } else {
+                        html.push ("images/user.png'");
+                    }
+                    html.push (
+                        "class='avatar-30'>",
+                        "</div>",
                         "<div class='inline'>"
                     );
                     if (obj[i].teacher != null) {

@@ -18,10 +18,9 @@ public class PostgresSchoolDAO implements SchoolDAO {
     private static final String GET_SCHOOL = "SELECT * FROM schools where school_ID = ?";
     private static final String GET_SCHOOL_BY_NAME = "SELECT * FROM schools where name = ?";
     private static final String INSERT_SCHOOL = "Insert into schools (name) values (?)";
-    private static final String UPDATE_SCHOOL = "UPDATE schools set name = ?";
+    private static final String UPDATE_SCHOOL = "UPDATE schools set name = ?, photo = ? where school_id = ?";
     private static final String DELETE_SCHOOL = "Delete from schools where school_ID = ?";
     private static final String GET_ALL_SCHOOLS = "select * from schools order by name";
-    private static final String CREATE_DB = "create database ?";
     private static final Logger LOGGER = Logger.getLogger(PostgresSchoolDAO.class.getName());
     private final ConnectionPool connectionPool;
 
@@ -34,7 +33,8 @@ public class PostgresSchoolDAO implements SchoolDAO {
         try {
             int id = resultSet.getInt("school_ID");
             String name = resultSet.getString("NAME");
-            school = new School(id, name);
+            String photo = resultSet.getString("photo");
+            school = new School(id, name, photo);
         } catch (SQLException throwables) {
             LOGGER.error(throwables.getMessage(), throwables);
         }
@@ -84,7 +84,6 @@ public class PostgresSchoolDAO implements SchoolDAO {
         LOGGER.info("Creating database " + name + ".");
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement("create database \"" + name + "\"")) {
-            //preparedStatement.setString(1, "\"" + name + "\"");
             preparedStatement.executeUpdate();
             LOGGER.info("Creating complete.");
         } catch (SQLException throwables) {
@@ -129,7 +128,8 @@ public class PostgresSchoolDAO implements SchoolDAO {
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_SCHOOL)) {
             preparedStatement.setString(1, school.getName());
-            preparedStatement.setInt(2, school.getId());
+            preparedStatement.setString(2, school.getPhoto());
+            preparedStatement.setInt(3, school.getId());
             preparedStatement.executeUpdate();
             LOGGER.info("Updating complete.");
         } catch (SQLException throwables) {

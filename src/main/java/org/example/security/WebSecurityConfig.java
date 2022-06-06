@@ -33,6 +33,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.addFilterBefore(new EncodingFilter(), ChannelProcessingFilter.class);
 
+        http.csrf().ignoringAntMatchers("/school*", "/user/photo*", "/school/**");
+
         http.addFilterBefore(authenticationFilter(),
                         UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()

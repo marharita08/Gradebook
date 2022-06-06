@@ -3,6 +3,7 @@ package org.example.controllers;
 import org.apache.log4j.Logger;
 import org.example.dao.interfaces.*;
 import org.example.entities.*;
+import org.example.services.FileUploadUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
@@ -11,10 +12,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -291,7 +295,12 @@ public class UserController {
         if (pupil == null) {
             pupil = new Pupil();
         }
-        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        Map<String, String> crumbsMap;
+        if (currUser.hasRole("ADMIN")) {
+            crumbsMap = getBasicCrumbsMap();
+        } else {
+            crumbsMap = new LinkedHashMap<>();
+        }
         crumbsMap.put("Сторінка користувача", "");
         model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("teacher", teacher);
@@ -364,5 +373,31 @@ public class UserController {
             LOGGER.error("Error while login ", e);
         }
         return new ModelAndView("redirect:/main");
+    }
+
+    @RequestMapping(value = "/user/photo", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ModelAndView saveUserPhoto(@RequestParam MultipartFile file) throws Exception {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user.getPhoto() != null) {
+            File myObj = new File(user.getPhoto());
+            if (myObj.delete()) {
+                LOGGER.info("Deleted the file: " + myObj.getName());
+            } else {
+                LOGGER.error("Failed to delete the file.");
+            }
+        }
+        String schoolNum = user.getDbName();
+        String uploadDir = "public/schools/" + schoolNum + "/" + user.getId();
+        String[] arr = file.getOriginalFilename().split("\\.");
+        String ext = arr[arr.length-1];
+        String fileName = user.getId() + "." + ext;
+        user.setPhoto(uploadDir + "/" + fileName);
+        try {
+            FileUploadUtil.saveFile(uploadDir, fileName, file);
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        dao.updateUser(user, schoolNum);
+        return new ModelAndView("redirect:/user/" + user.getId());
     }
 }

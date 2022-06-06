@@ -49,7 +49,7 @@
                     String msg = (String) request.getAttribute("message");
                 %>
                 <p><%=msg != null ? "Message: " + msg : ""%></p>
-                <img alt="user image" src="<%=root%>images/Oopsbutton.jpg" class="user-img">
+                <img alt="error image" src="<%=root%>images/Oopsbutton.jpg">
                 <br/>
                 <button onclick="history.back()" type="button" class="bg-primary">
                     <div class="inline"><i class='material-icons'>keyboard_return</i></div>

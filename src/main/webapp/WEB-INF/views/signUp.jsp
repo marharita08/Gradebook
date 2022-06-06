@@ -1,7 +1,6 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8"%>
-<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
     <head>
         <title>Реєстрація</title>
@@ -20,7 +19,6 @@
                     <h2>Реєстрація</h2>
                     <br/>
                     <form:form>
-                        <sec:csrfInput />
                         <div class="row">
                             <div class="col-25">
                                 <label>Школа</label>

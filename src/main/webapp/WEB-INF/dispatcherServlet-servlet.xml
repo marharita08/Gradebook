@@ -14,6 +14,7 @@
     <mvc:annotation-driven/>
     <mvc:resources mapping="/images/**" location="/WEB-INF/images/"/>
 
+
     <context:component-scan base-package = "org.example" />
 
     <bean id="lessonDAO" class="org.example.dao.postgres.PostgresLessonDAO"/>
@@ -29,5 +30,6 @@
     <bean id="themeDAO" class="org.example.dao.postgres.PostgresThemeDAO"/>
     <bean id="userDAO" class="org.example.dao.postgres.PostgresUserDAO"/>
     <bean id="schoolDAO" class="org.example.dao.postgres.PostgresSchoolDAO"/>
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
 
 </beans>
