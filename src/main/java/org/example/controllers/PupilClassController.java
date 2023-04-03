@@ -1,15 +1,20 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.*;
+import org.example.dao.interfaces.PupilClassDAO;
+import org.example.dao.interfaces.SchoolDAO;
+import org.example.dao.interfaces.SubjectDAO;
+import org.example.dao.interfaces.TeacherDAO;
 import org.example.entities.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,63 +22,79 @@ import java.util.Map;
 public class PupilClassController {
     private final PupilClassDAO dao;
     private final SubjectDAO subjectDAO;
-    private final UserDAO userDAO;
-    private int pupilClassPerPage = 15;
+    private final TeacherDAO teacherDAO;
+    private final SchoolDAO schoolDAO;
+    private static final int pupilClassPerPage = 25;
+    private static final String CLASSES_LINK = "/classes?page=1";
     private static final Logger LOGGER = Logger.getLogger(PupilClassController.class.getName());
 
     public PupilClassController(PupilClassDAO dao,
-                                SubjectDAO subjectDAO,
-                                UserDAO userDAO) {
+                                SubjectDAO subjectDAO, TeacherDAO teacherDAO, SchoolDAO schoolDAO) {
         this.dao = dao;
         this.subjectDAO = subjectDAO;
-        this.userDAO = userDAO;
+        this.teacherDAO = teacherDAO;
+        this.schoolDAO = schoolDAO;
     }
 
     /**
      * Getting page to view all classes list.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewAllClasses")
+    @RequestMapping(value = "/classes")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewAllClasses(@RequestParam("page") int page) {
         LOGGER.info("Getting list of classes for " + page + " page.");
         LOGGER.info("Form a model.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfPupilClasses();
+        int count = dao.getCountOfPupilClasses(dbName);
         PaginationController paginationController = new PaginationController(count, pupilClassPerPage, page);
         List<PupilClass> list;
         if(count <= pupilClassPerPage) {
-            list = dao.getAllPupilClasses();
+            list = dao.getAllPupilClasses(dbName);
         } else {
-            list = dao.getPupilClassesByPage(page, pupilClassPerPage);
+            list = dao.getPupilClassesByPage(page, pupilClassPerPage, dbName);
         }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllClasses"));
-        model.put("header", "All classes");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
+        model.put("pagination", paginationController.makePagingLinks("classes"));
+        model.put("header", "Всі класи");
         model.put("pageNum", page);
         LOGGER.info("Printing class list.");
         return new ModelAndView("viewClassList", model);
     }
 
     /**
-     * Get page to view classes which learn subject with set id.
+     * Get page to view classes by teacher.
      * @param id subject id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewPupilClassesBySubject/{id}")
-    public ModelAndView viewPupilClassesBySubject(@PathVariable int id) {
-        LOGGER.info("Getting list of classes by " + id + " subject.");
-        Subject subject = subjectDAO.getSubject(id);
-        if (subject == null) {
-            LOGGER.error("Subject " + id + " not found.");
+    @RequestMapping(value = "/teacher/{id}/classes")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
+    public ModelAndView viewPupilClassesByTeacher(@PathVariable int id) {
+        LOGGER.info("Getting list of classes by " + id + " teacher.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Teacher teacher = teacherDAO.getTeacher(id, dbName);
+        if (teacher == null) {
+            LOGGER.error("Teacher " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        model.put("list", dao.getPupilClassesBySubject(id));
-        model.put("header", "Classes which learn " + subject.getName());
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Вчителі", "/teachers?page=1");
+        crumbsMap.put("Класи", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("list", dao.getPupilClassesByTeacher(id, dbName));
+        model.put("header", "Класи в яких викладає " + teacher.getName());
         model.put("pagination", "");
         model.put("pageNum", 1);
-        model.put("toRoot", "../");
         LOGGER.info("Printing class list.");
         return new ModelAndView("viewClassList", model);
     }
@@ -82,15 +103,22 @@ public class PupilClassController {
      * Getting page for class adding.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/addClass")
+    @RequestMapping(value = "/class")
+    @Secured("ADMIN")
     public ModelAndView addClass() {
         LOGGER.info("Add new class.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Додати клас", "");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        School school = schoolDAO.getSchool(Integer.parseInt(user.getDbName()));
+        model.put("school", school);
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new PupilClass());
         model.put("selectedGrade", 1);
-        model.put("title", "Add class");
-        model.put("formAction", "saveAddedClass");
+        model.put("title", "Додати клас");
+        model.put("formAction", "class");
         LOGGER.info("Printing form for input class data.");
         return new ModelAndView("classForm", model);
     }
@@ -100,12 +128,14 @@ public class PupilClassController {
      * @param pupilClass added class
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveAddedClass", method = RequestMethod.POST)
+    @RequestMapping(value = "/class", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveAddedClass(@ModelAttribute PupilClass pupilClass) {
         LOGGER.info("Saving added class.");
-        dao.addPupilClass(pupilClass);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.addPupilClass(pupilClass, user.getDbName());
         LOGGER.info("Redirect to list of classes.");
-        return new ModelAndView("redirect:/viewAllClasses?page=1");
+        return new ModelAndView("redirect:/classes?page=1");
     }
 
     /**
@@ -113,20 +143,28 @@ public class PupilClassController {
      * @param id class id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/editClass/{id}")
+    @RequestMapping(value = "/class/{id}")
+    @Secured("ADMIN")
     public ModelAndView editClass(@PathVariable int id) {
         LOGGER.info("Edit class.");
-        PupilClass pupilClass = dao.getPupilClass(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        PupilClass pupilClass = dao.getPupilClass(id, dbName);
         if (pupilClass == null) {
             LOGGER.error("Class " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Редагувати клас", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", pupilClass);
         model.put("selectedGrade", pupilClass.getGrade());
-        model.put("title", "Edit class");
-        model.put("formAction", "../saveEditedClass");
+        model.put("title", "Редагувати клас");
+        model.put("formAction", "../class/" + pupilClass.getId());
         LOGGER.info("Printing form for changing class data.");
         return new ModelAndView("classForm", model);
     }
@@ -136,12 +174,14 @@ public class PupilClassController {
      * @param pupilClass edited class
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveEditedClass", method = RequestMethod.POST)
+    @RequestMapping(value = "/class/{id}", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveEditedClass(@ModelAttribute PupilClass pupilClass) {
         LOGGER.info("Saving edited class.");
-        dao.updatePupilClass(pupilClass);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.updatePupilClass(pupilClass, user.getDbName());
         LOGGER.info("Redirect to list of classes.");
-        return new ModelAndView("redirect:/viewAllClasses?page=1");
+        return new ModelAndView("redirect:/classes?page=1");
     }
 
     /**
@@ -149,63 +189,42 @@ public class PupilClassController {
      * @param id class id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deleteClass/{id}")
+    @RequestMapping(value = "/class/{id}/delete", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView deleteClass(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting class " + id + ".");
-        PupilClass pupilClass = dao.getPupilClass(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        PupilClass pupilClass = dao.getPupilClass(id, dbName);
         if (pupilClass == null) {
             LOGGER.error("Class " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        dao.deletePupilClass(id);
+        dao.deletePupilClass(id, dbName);
         LOGGER.info("Redirect to list of classes on page " + pageNum + ".");
-        return new ModelAndView("redirect:/viewAllClasses?page=" + pageNum);
+        return new ModelAndView("redirect:/classes?page=" + pageNum);
     }
 
-    @RequestMapping(value = "/searchPupilClasses")
+    @RequestMapping(value = "classes/search")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
-    public String searchPupilClasses(@RequestParam("page") int pageNum,
-                                 @RequestParam("val") String val,
+    public List<PupilClass> searchPupilClasses(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching classes by " + param + ".");
-        StringBuilder sb = new StringBuilder();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
         List<PupilClass> list;
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userDAO.getUserByUsername(username);
         if(!val.isEmpty()) {
-            list = dao.searchPupilClasses(val, param);
+            list = dao.searchPupilClasses(val, param, dbName);
         } else {
-            list = dao.getPupilClassesByPage(pageNum, pupilClassPerPage);
+            list = dao.getPupilClassesByPage(1, pupilClassPerPage, dbName);
         }
-        LOGGER.info("Forming response.");
-        for (PupilClass pupilClass:list) {
-            int id = pupilClass.getId();
-            sb.append("<tr>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>").append(id).append("</td>");
-                sb.append("<td>").append(pupilClass.getGrade()).append("</td>");
-            }
-            sb.append("<td>").append(pupilClass.getName()).append("</td>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>");
-                sb.append("<a href=\"editClass/").append(id).append("\">Edit</a>");
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"deleteClass/").append(id).append("?page=").append(pageNum).append("\">Delete</a></td>");
-                sb.append("</td>");
-            }
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewPupilsByPupilClass/").append(id).append("\">view pupil list</a>");
-            sb.append("</td>").append("<td>");
-            sb.append("<a href=\"/Gradebook/viewSubjectsByPupilClass/").append(id).append("\">view subjects</a>");
-            sb.append("</td>");
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewTeachersByPupilClass/").append(id).append("\">view teacher list</a>");
-            sb.append("</td>").append("<td>");
-            sb.append("<a href=\"/Gradebook/viewSubjectDetailsByPupilClass/").append(id).append("\">view teacher-subject list</a>");
-            sb.append("</td>");
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+        return list;
+    }
+
+    private Map<String, String> getBasicCrumbsMap() {
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Класи", CLASSES_LINK);
+        return crumbsMap;
     }
 }

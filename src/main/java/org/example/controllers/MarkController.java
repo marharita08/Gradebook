@@ -1,135 +1,42 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.*;
-import org.example.entities.Lesson;
-import org.example.entities.Mark;
-import org.example.entities.Pupil;
-import org.example.entities.SubjectDetails;
+import org.example.dao.interfaces.*;
+import org.example.entities.*;
+import org.example.services.MarkService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class MarkController {
     private final MarkDAO dao;
+    private final SchoolDAO schoolDAO;
     private final LessonDAO lessonDAO;
     private final PupilDAO pupilDAO;
     private final SubjectDAO subjectDAO;
     private final SubjectDetailsDAO subjectDetailsDAO;
+    private final MarkService markService;
+    private static final int marksPerPage = 12;
     private static final Logger LOGGER = Logger.getLogger(MarkController.class.getName());
 
     public MarkController(MarkDAO dao,
-                          LessonDAO lessonDAO,
+                          SchoolDAO schoolDAO, LessonDAO lessonDAO,
                           PupilDAO pupilDAO,
                           SubjectDAO subjectDAO,
-                          SubjectDetailsDAO subjectDetailsDAO) {
+                          SubjectDetailsDAO subjectDetailsDAO, MarkService markService) {
         this.dao = dao;
+        this.schoolDAO = schoolDAO;
         this.lessonDAO = lessonDAO;
         this.pupilDAO = pupilDAO;
         this.subjectDAO = subjectDAO;
         this.subjectDetailsDAO = subjectDetailsDAO;
-    }
-
-    /**
-     * Getting page for mark adding.
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/addMark/{id}")
-    public ModelAndView addMark(@PathVariable int id) {
-        LOGGER.info("Add new mark for lesson " + id + ".");
-        Lesson lesson = lessonDAO.getLesson(id);
-        if (lesson == null) {
-            LOGGER.error("Lesson " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        LOGGER.info("Form a model.");
-        Map<String, Object> model = new HashMap<>();
-        model.put("command", new Mark(lesson));
-        model.put("list", pupilDAO.getPupilsByPupilClass(lesson.getSubjectDetails().getPupilClass().getId()));
-        model.put("selectedPupil", 0);
-        model.put("selectedMark", 0);
-        model.put("title", "Add mark");
-        model.put("formAction", "../saveAddedMark/");
-        LOGGER.info("Printing form for input mark's data.");
-        return new ModelAndView("markForm", model);
-    }
-
-    /**
-     * Saving added mark.
-     * @param mark added mark
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/saveAddedMark", method = RequestMethod.POST)
-    public ModelAndView saveAddedMark(@ModelAttribute Mark mark) throws Exception {
-        LOGGER.info("Saving added mark.");
-        dao.addMark(mark);
-        LOGGER.info("Redirect to list of marks for " + mark.getLesson().getId() + " lesson.");
-        return new ModelAndView("redirect:/viewMarksByLesson/" + mark.getLesson().getId());
-    }
-
-    /**
-     * Getting page for mark editing.
-     * @param id mark id
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/editMark/{id}")
-    public ModelAndView editMark(@PathVariable int id) {
-        LOGGER.info("Edit mark " + id + ".");
-        Mark mark = dao.getMark(id);
-        if (mark == null) {
-            LOGGER.error("Mark " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        LOGGER.info("Form a model.");
-        Map<String, Object> model = new HashMap<>();
-        model.put("command", mark);
-        model.put("selectedPupil", mark.getPupil().getId());
-        model.put("selectedMark", mark.getMark());
-        model.put("list", pupilDAO.getPupilsByPupilClass(mark.getPupil().getPupilClass().getId()));
-        model.put("title", "Edit mark");
-        model.put("formAction", "../saveEditedMark/");
-        LOGGER.info("Printing form for changing mark's data.");
-        return new ModelAndView("markForm", model);
-    }
-
-    /**
-     * Saving edited mark.
-     * @param mark edited mark
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/saveEditedMark", method = RequestMethod.POST)
-    public ModelAndView saveEditedMark(@ModelAttribute Mark mark) throws Exception {
-        LOGGER.info("Saving edited mark.");
-        dao.updateMark(mark);
-        LOGGER.info("Redirect to list of marks for " + mark.getLesson().getId() + " lesson.");
-        return new ModelAndView("redirect:/viewMarksByLesson/" + mark.getLesson().getId());
-    }
-
-    /**
-     * Delete mark by id.
-     * @param id mark id
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/deleteMark/{id}")
-    public ModelAndView deleteMark(@PathVariable int id) {
-        LOGGER.info("Deleting mark " + id + ".");
-        Mark mark = dao.getMark(id);
-        if (mark == null) {
-            LOGGER.error("Mark " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        int lessonID = mark.getLesson().getId();
-        dao.deleteMark(id);
-        LOGGER.info("Redirect to list of marks for " + lessonID + " lesson.");
-        return new ModelAndView("redirect:/viewMarksByLesson/" + lessonID);
+        this.markService = markService;
     }
 
     /**
@@ -137,19 +44,33 @@ public class MarkController {
      * @param id pupil id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewMarksByPupil/{id}")
+    @RequestMapping(value = "/pupil/{id}/marks")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewMarksByPupil(@PathVariable int id) {
         LOGGER.info("Getting list of marks for " + id + " pupil.");
-        Pupil pupil = pupilDAO.getPupil(id);
-        if (pupil == null) {
-            LOGGER.error("Pupil " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        LOGGER.info("Form a model.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Pupil pupil = pupilDAO.getPupil(id, dbName);
         Map<String, Object> model = new HashMap<>();
-        model.put("list", dao.getMarksByPupil(id));
-        model.put("header", "Marks for " + pupil.getName());
-        model.put("subjectList", subjectDAO.getSubjectByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
+        if (pupil == null) {
+            String msg = "Pupil with id - " + id + " not found.";
+            LOGGER.error(msg);
+            model.put("message", msg);
+            return new  ModelAndView("errorPage", model, HttpStatus.NOT_FOUND);
+        }
+        if (user.hasRole("PUPIL") && user.getId() != pupil.getId()) {
+            return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Класи", "/classes?page=1");
+        crumbsMap.put("Учні", "/class/" + pupil.getPupilClass().getId() + "/pupils");
+        crumbsMap.put("Оцінки", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("list", dao.getMarksByPupil(id, dbName));
+        model.put("header", pupil.getName());
+        model.put("subjectList", subjectDAO.getSubjectsByPupilClass(pupil.getPupilClass().getId(), dbName));
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForPupil", model);
     }
@@ -159,27 +80,59 @@ public class MarkController {
      * @param id lesson id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewMarksByLesson/{id}")
+    @RequestMapping(value = "/lesson/{id}/marks")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewMarksByLesson(@PathVariable int id) {
         LOGGER.info("Getting list of marks for " + id + " lesson.");
-        Lesson lesson = lessonDAO.getLesson(id);
-        if (lesson == null) {
-            LOGGER.error("Lesson " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        LOGGER.info("Form a model.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Lesson lesson = lessonDAO.getLesson(id, dbName);
         Map<String, Object> model = new HashMap<>();
-        model.put("list", dao.getMarksByLesson(id));
-        model.put("header", "Marks for lesson");
-        model.put("pupilList", pupilDAO.getPupilsByPupilClass(lesson.getSubjectDetails().getPupilClass().getId()));
-        model.put("subject", lesson.getSubjectDetails().getSubject().getName());
-        model.put("teacher", lesson.getSubjectDetails().getTeacher().getName());
-        model.put("date", lesson.getDate());
-        model.put("topic", lesson.getTopic());
-        model.put("lesson", id);
-        model.put("subjectList", subjectDAO.getSubjectByPupilClass(pupilDAO.getPupil(id).getPupilClass().getId()));
+        if (lesson == null) {
+            String msg = "Lesson with id - " + id + " not found.";
+            LOGGER.error(msg);
+            model.put("message", msg);
+            return new  ModelAndView("errorPage", model, HttpStatus.NOT_FOUND);
+        }
+        if (user.hasRole("PUPIL") &&
+                pupilDAO.getPupil(user.getId(), dbName).getPupilClass().getId() !=
+                        lesson.getTheme().getSubjectDetails().getPupilClass().getId()){
+            return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        if (user.hasRole("ADMIN")) {
+            crumbsMap.put("Деталі предметів", "/subject-details?page=1");
+        } else if (user.hasRole("TEACHER")) {
+            crumbsMap.put("Деталі предметів", "/teacher/" + user.getId() + "/subject-details");
+        } else if (user.hasRole("PUPIL")) {
+            crumbsMap.put("Деталі предметів", "/pupil/" + user.getId() + "/subject-details");
+        }
+        crumbsMap.put("Теми", "/subject-details/" + lesson.getTheme().getSubjectDetails().getId() + "/themes");
+        crumbsMap.put("Уроки", "/theme/" + lesson.getTheme().getId() + "/lessons");
+        crumbsMap.put("Оцінки", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("list", new MarkList(dao.getMarksByLesson(id, dbName)));
+        model.put("header", "Оцінки за урок");
+        model.put("lesson", lesson);
         LOGGER.info("Printing marks.");
         return new ModelAndView("markListForLesson", model);
+    }
+
+    /**
+     * Saving added mark.
+     * @param list added marks
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "lesson/{id}/save-marks", method = RequestMethod.POST)
+    @Secured("TEACHER")
+    public ModelAndView saveAddedMarks(@ModelAttribute MarkList list, @PathVariable int id) throws Exception {
+        LOGGER.info("Saving added marks.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        markService.saveMarks(list, user.getDbName());
+        LOGGER.info("Redirect to list of marks for " + id + " lesson.");
+        return new ModelAndView("redirect:/lesson/" + id + "/marks");
     }
 
     /**
@@ -187,24 +140,67 @@ public class MarkController {
      * @param id subject details id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewMarksBySubjectDetails/{id}")
-    public ModelAndView viewMarksBySubjectDetails(@PathVariable int id) {
+    @RequestMapping(value = "/subject-details/{id}/marks")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
+    public ModelAndView viewMarksBySubjectDetails(@PathVariable int id, @RequestParam("page") int page) {
         LOGGER.info("Getting list of marks for " + id + " subject details.");
-        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
-        if (subjectDetails == null) {
-            LOGGER.error("Subject details " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        LOGGER.info("Form a model.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id, dbName);
         Map<String, Object> model = new HashMap<>();
-        model.put("header", "Mark list");
-        model.put("lessonList", lessonDAO.getLessonsBySubjectDetails(subjectDetails.getId()));
-        model.put("pupilList", pupilDAO.getPupilsByPupilClass(subjectDetails.getPupilClass().getId()));
-        model.put("markList", dao.getMarksBySubjectDetails(id));
-        model.put("subject", subjectDetails.getSubject().getName());
-        model.put("teacher", subjectDetails.getTeacher().getName());
-        model.put("class", subjectDetails.getPupilClass().getName());
+        if (subjectDetails == null) {
+            String msg = "Subject details with id - " + id + " not found.";
+            LOGGER.error(msg);
+            model.put("message", msg);
+            return new  ModelAndView("errorPage", model, HttpStatus.NOT_FOUND);
+        }
+        if (user.hasRole("PUPIL") &&
+                pupilDAO.getPupil(user.getId(), dbName).getPupilClass().getId() !=
+                        subjectDetails.getPupilClass().getId()){
+            return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        model.put("header", "Список оцінок");
+        Map<String, Map<Integer, List<Mark>>> marks = markService.getMarksForSubject(subjectDetails, page, marksPerPage, dbName);
+        Map<Integer, List<Lesson>> lessons = markService.getLessonsForSubject(subjectDetails, page, marksPerPage, dbName);
+        Map<String, Mark> semesterMarks = markService.getSemesterMarks(subjectDetails, dbName);
+        int count = markService.getCountOfMarks(subjectDetails.getId(), dbName);
+        PaginationController paginationController = new PaginationController(count, marksPerPage, page);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        if (user.hasRole("ADMIN")) {
+            crumbsMap.put("Деталі предметів", "/subject-details?page=1");
+        } else if (user.hasRole("TEACHER")) {
+            crumbsMap.put("Деталі предметів", "/teacher/" + user.getId() + "/subject-details");
+        } else if (user.hasRole("PUPIL")) {
+            crumbsMap.put("Деталі предметів", "/pupil/" + user.getId() + "/subject-details");
+        }
+        crumbsMap.put("Оцінки", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("pagination", paginationController.makePagingLinks("marks"));
+        model.put("page", page);
+        model.put("marks", marks);
+        model.put("lessons", lessons);
+        model.put("semesterMarks", semesterMarks);
+        model.put("subjectDetails", subjectDetails);
+        model.put("list", new MarkList(new ArrayList<>()));
         LOGGER.info("Printing marks.");
         return new ModelAndView("marks", model);
+    }
+
+    /**
+     * View marks for subject details.
+     * @param id subject details id
+     * @return ModelAndView
+     */
+    @RequestMapping(value = "/subject-details/{id}/save-marks")
+    @Secured("TEACHER")
+    public ModelAndView saveMarksBySubjectDetails(@PathVariable int id,
+                                                  @ModelAttribute MarkList list,
+                                                  @RequestParam("page") int page) throws Exception {
+        LOGGER.info("Saving added marks.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        markService.saveMarks(list, user.getDbName());
+        return new ModelAndView("redirect:/subject-details/" + id + "/marks?page=" + page);
     }
 }

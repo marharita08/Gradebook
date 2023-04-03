@@ -1,28 +1,93 @@
-form{
-    text-align:center;
-    width: 300px;
-    background-color:#e6f2ff;
-    border: 1px solid #000066;
+.card {
+    box-shadow:0 0 5px 1px rgba(0,0,0,0.16),0 0 10px 2px rgba(0,0,0,0.12);
+    background-color: white;
 }
 body {
-    background-color: #F0F8FF;
+    background-image:url(/Gradebook/images/blackboard.jpg);
 }
 p {
     margin: 5px 10px;
 }
 table {
-    margin: 3px;
-    border: solid black 1px;
+    margin: 10px;
 }
 td, th {
     padding: 4px;
-    border: solid black 1px;
 }
-button {
-    margin: 5px;
+.borders {
+    border: 1px solid black;
+}
+a button{
+    padding: 0;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 14px;
+}
+a button:hover {
+    box-shadow: none;
+}
+a form {
+    margin: 0;
+}
+button, .button {
+    border-radius: 15px;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    -webkit-transition-duration: 0.4s;
+    transition-duration: 0.4s;
+}
+button:hover, .button:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+button:disabled,
+button[disabled]{
+  background-color: #cccccc;
+}
+button:disabled:hover,
+button[disabled]:hover{
+  box-shadow: none;
+}
+.col-25 {
+    float: left;
+    width: 25%;
+    margin-top: 6px;
+}
+
+.col-75 {
+    float: left;
+    width: 75%;
+    margin-top: 6px;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+form input[type=text], input[type=date], input[type=password], select {
+    width: 70%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+label {
+    padding: 12px 12px 12px 0;
+    display: inline-block;
 }
 .dates{
     writing-mode: vertical-rl;
+    transform: rotate(180deg);
 }
 header li{
     display: inline;
@@ -66,7 +131,6 @@ header ul{
     padding-bottom: 14px;
 }
 footer{
-    position: fixed;
     left: 0; bottom: 0;
     padding: 10px;
     width: 100%;
@@ -74,11 +138,171 @@ footer{
 }
 .clear{
     clear: both;
-    height: 60px;
+    height: 52px;
 }
 .warning{
     color: red;
 }
-.slim{
+.search-slim {
+    width: 80px;
+}
+.search {
+    width: 150px;
+}
+.box {
+    background-color: #F0F8FF;
+    width: 80%;
+    min-height: 95%;
+    padding: 10px;
+}
+.push {
+    padding: 5px;
+}
+.push a {
+    position: relative;
+    padding: 20px 0 20px 40px;
+    cursor: pointer;
+    display: list-item;
+    list-style: none;
+    color: #23527c;
+    font-weight: bold;
+}
+.push a:before {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4F5151;
+    content: "";
+    left: 0;
+    transition: .3s ease-in-out;
+    top: 27px;
+}
+.push a:after {
+    position: absolute;
+    border-left: 1px dotted #4F5151;
+    width: 1px;
+    bottom: -12px;
+    content: "";
+    left: 3px;
+    top: 48px;
+}
+.push a:hover:before{box-shadow: 0 0 0 10px rgba(0,0,0,.2)}
+.push a:last-child:after {content: none;}
+.push a:hover {
+    text-decoration: none;
+}
+.menu {
+    width: 300px;
+    padding: 5px;
+    margin: 5px;
+    font-size: 16px;
+}
+.school {
+    width: 500px;
+    padding: 10px;
+}
+.school-div {
+    padding: 10px;
+}
+td a, td a button {
+    color: #23527c;
+    font-weight: bold;
+}
+td a button {
+    background-color: white;
+}
+td, tr {
+    font-size: 16px;
+}
+.search-middle {
+    width: 120px;
+}
+@media screen and (min-width: 992px) {
+    .box-index{
+        display: flex;
+    }
+    .menu {
+        flex-grow: 1;
+    }
+    .school-div {
+        flex-grow: 2;
+    }
+    td, tr, .menu {
+        font-size: 14px;
+    }
+}
+@media screen and (min-width: 1200px) {
+    .school {
+        width: 700px;
+    }
+    .search, .search-middle {
+        width: 200px;
+    }
+    .box {
+        min-height: 87.6%;
+    }
+}
+.user-img {
+    object-fit: cover;
+    border-radius:50%;
+    width: 250px;
+    height: 250px;
+}
+.user-div {
+    margin: 10px;
+}
+.user-data {
+    margin: 10px;
+}
+h2 {
+    text-align: center;
+}
+.username {
+    text-transform: none;
+}
+.inline {
+    display: inline-block;
+    vertical-align: middle;
+    padding-right: 2px;
+}
+.width-40 {
+    width: 40px;
+}
+.success {
+    color: green;
+}
+ul.breadcrumb {
+    padding: 10px 16px;
+    list-style: none;
+    background-color: #eee;
+}
+ul.breadcrumb li {
+    display: inline;
+    font-size: 18px;
+}
+ul.breadcrumb li+li:before {
+    padding: 8px;
+    color: black;
+    content: "/\00a0";
+}
+ul.breadcrumb li a {
+    color: #0275d8;
+    text-decoration: none;
+}
+ul.breadcrumb li a:hover {
+    color: #01447e;
+    text-decoration: underline;
+}
+.avatar-30 {
+    object-fit: cover;
+    border-radius:50%;
+    width: 30px;
+    height: 30px;
+}
+.avatar-50 {
+    object-fit: cover;
+    border-radius:50%;
     width: 50px;
+    height: 50px;
 }

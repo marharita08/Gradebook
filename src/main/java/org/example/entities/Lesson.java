@@ -6,13 +6,13 @@ import java.util.Objects;
 
 public class Lesson {
     private int id;
-    private SubjectDetails subjectDetails;
+    private Theme theme;
     private Date date;
     private String topic;
 
-    public Lesson(int id, SubjectDetails subjectDetails, Date date, String topic) {
+    public Lesson(int id, Theme theme, Date date, String topic) {
         this.id = id;
-        this.subjectDetails = subjectDetails;
+        this.theme = theme;
         this.date = date;
         this.topic = topic;
     }
@@ -20,8 +20,8 @@ public class Lesson {
     public Lesson() {
     }
 
-    public Lesson(SubjectDetails subjectDetails) {
-        this.subjectDetails = subjectDetails;
+    public Lesson(Theme theme) {
+        this.theme = theme;
     }
 
     public int getId() {
@@ -32,12 +32,12 @@ public class Lesson {
         this.id = id;
     }
 
-    public SubjectDetails getSubjectDetails() {
-        return subjectDetails;
+    public Theme getTheme() {
+        return theme;
     }
 
-    public void setSubjectDetails(SubjectDetails subjectDetails) {
-        this.subjectDetails = subjectDetails;
+    public void setTheme(Theme theme) {
+        this.theme = theme;
     }
 
     public Date getDate() {
@@ -60,7 +60,7 @@ public class Lesson {
     public String toString() {
         return "Lesson{" +
                 "id=" + id +
-                ", subjectDetails=" + subjectDetails +
+                ", subjectDetails=" + theme +
                 ", date=" + date +
                 ", topic='" + topic + '\'' +
                 '}';
@@ -71,11 +71,11 @@ public class Lesson {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Lesson lesson = (Lesson) o;
-        return id == lesson.id && subjectDetails.equals(lesson.subjectDetails) && date.equals(lesson.date) && topic.equals(lesson.topic);
+        return id == lesson.id && theme.equals(lesson.theme) && date.equals(lesson.date) && topic.equals(lesson.topic);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, subjectDetails, date, topic);
+        return Objects.hash(id, theme, date, topic);
     }
 }

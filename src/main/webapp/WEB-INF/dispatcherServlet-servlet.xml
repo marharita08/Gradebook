@@ -12,11 +12,24 @@
 
 
     <mvc:annotation-driven/>
-<context:component-scan base-package = "org.example" />
+    <mvc:resources mapping="/images/**" location="/WEB-INF/images/"/>
 
-    <bean class = "org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name = "prefix" value = "/WEB-INF/views/" />
-        <property name = "suffix" value = ".jsp" />
-    </bean>
+
+    <context:component-scan base-package = "org.example" />
+
+    <bean id="lessonDAO" class="org.example.dao.postgres.PostgresLessonDAO"/>
+    <bean id="markDAO" class="org.example.dao.postgres.PostgresMarkDAO"/>
+    <bean id="pupilClassDAO" class="org.example.dao.postgres.PostgresPupilClassDAO"/>
+    <bean id="pupilDAO" class="org.example.dao.postgres.PostgresPupilDAO"/>
+    <bean id="roleDAO" class="org.example.dao.postgres.PostgresRoleDAO"/>
+    <bean id="schoolYearDAO" class="org.example.dao.postgres.PostgresSchoolYearDAO"/>
+    <bean id="semesterDAO" class="org.example.dao.postgres.PostgresSemesterDAO"/>
+    <bean id="subjectDAO" class="org.example.dao.postgres.PostgresSubjectDAO"/>
+    <bean id="subjectDetailsDAO" class="org.example.dao.postgres.PostgresSubjectDetailsDAO"/>
+    <bean id="teacherDAO" class="org.example.dao.postgres.PostgresTeacherDAO"/>
+    <bean id="themeDAO" class="org.example.dao.postgres.PostgresThemeDAO"/>
+    <bean id="userDAO" class="org.example.dao.postgres.PostgresUserDAO"/>
+    <bean id="schoolDAO" class="org.example.dao.postgres.PostgresSchoolDAO"/>
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
 
 </beans>

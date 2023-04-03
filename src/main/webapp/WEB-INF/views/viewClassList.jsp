@@ -1,106 +1,175 @@
 <%@ page import="java.util.List" %>
 <%@ page import="org.example.entities.PupilClass" %>
+<%@ page import="com.google.gson.Gson" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
-<head>
-    <title>Class List</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <style><%@include file="../css/style.css"%></style>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-</head>
-<body>
-<%@include file="header.jsp"%>
-<h2 align="center"><%=request.getAttribute("header")%></h2>
-<div align="center">
-
-    <%int pageNum = (int)request.getAttribute("pageNum");
-        String pagination = (String) request.getAttribute("pagination");
-        String toRoot = (String) request.getAttribute("toRoot");
-    %>
-    <ul class="pagination"><%=pagination%></ul>
-    <table id="myTable">
-        <tr>
-            <sec:authorize access="hasAuthority('ADMIN')">
-            <th>ID</th>
-            <th>Grade</th>
-            </sec:authorize>
-            <th>Name</th>
-            <sec:authorize access="hasAuthority('ADMIN')">
-            <th>EDIT</th>
-            <th>DELETE</th>
-             </sec:authorize>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-        </tr>
-        <tr>
-            <%
-                String searchFunc;
-                int i = 0;
-                if(pagination.equals("")) {
-                    searchFunc = "filter(id," + i++ + ")";
-                } else {
-                    searchFunc = "search(id, " + pageNum + ", 'searchClasses')";
+    <head>
+        <title>Список класів</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="icon" type="img/png" href="/Gradebook/images/icon.png">
+        <style><%@include file="../css/style.css"%></style>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <%@include file="header.jsp"%>
+        <div align="center">
+            <div align="center" class="box">
+                <br/>
+                <ul class="breadcrumb"><%=request.getAttribute("crumbs")%></ul>
+                <h2 align="center"><%=request.getAttribute("header")%></h2>
+                <%
+                    int pageNum = (int)request.getAttribute("pageNum");
+                    String pagination = (String) request.getAttribute("pagination");
+                    boolean isAdmin = currUser.hasRole("ADMIN");
+                    boolean isTeacher = currUser.hasRole("TEACHER");
+                    List<PupilClass> list = (List<PupilClass>) request.getAttribute("list");
+                    int colspan = 3;
+                    String entity = "'classes'";
+                %>
+                <ul class="pagination"><%=pagination%></ul>
+                <table id="myTable">
+                    <tr>
+                        <sec:authorize access="hasAuthority('ADMIN')">
+                            <th>ID</th>
+                        </sec:authorize>
+                        <th>Клас</th>
+                        <th>Назва</th>
+                        <sec:authorize access="hasAuthority('ADMIN')">
+                            <th></th>
+                            <th></th>
+                            <%colspan += 3;%>
+                        </sec:authorize>
+                        <sec:authorize access="hasAnyAuthority('ADMIN', 'TEACHER')">
+                            <th></th>
+                            <%colspan ++;%>
+                        </sec:authorize>
+                        <th></th>
+                    </tr>
+                    <%
+                        if (pageNum == 1) {
+                            int i = 0;
+                    %>
+                    <tr>
+                        <sec:authorize access="hasAuthority('ADMIN')">
+                            <th>
+                                <input type="text"
+                                       id="id"
+                                       onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                       class="search-slim"
+                                       placeholder="Пошук...">
+                            </th>
+                        </sec:authorize>
+                        <th>
+                            <input type="text"
+                                   id="grade"
+                                   onkeyup="<%=pagination.equals("")?"filter(id," + i++ + ")" : "search(id," + entity +")"%>"
+                                   class="search-slim"
+                                   placeholder="Пошук...">
+                        </th>
+                        <th>
+                            <input type="text"
+                                   id="name"
+                                   onkeyup="<%=pagination.equals("")?"filter(id," + i + ")" : "search(id," + entity +")"%>"
+                                   class="search-slim"
+                                   placeholder="Пошук...">
+                        </th>
+                        <sec:authorize access="hasAuthority('ADMIN')">
+                            <th></th>
+                            <th></th>
+                        </sec:authorize>
+                        <sec:authorize access="hasAnyAuthority('ADMIN', 'TEACHER')">
+                            <th></th>
+                        </sec:authorize>
+                        <th></th>
+                    </tr>
+                    <%
+                        }
+                    %>
+                    <tbody id="placeToShow">
+                    </tbody>
+                </table>
+                <br/>
+                <button onclick='location.href="<%=root%>main"' class="bg-primary">
+                    <div class="inline"><i class='material-icons'>list</i></div>
+                    <div class="inline">Меню</div>
+                </button>
+                <button onclick='history.back()' class="bg-primary">
+                    <div class="inline"><i class='material-icons'>keyboard_return</i></div>
+                    <div class="inline">Назад</div>
+                </button>
+                <sec:authorize access="hasAuthority('ADMIN')">
+                    <button onclick='location.href="<%=root%>class"' class="bg-primary">
+                        <div class="inline"><i class='material-icons'>group_add</i></div>
+                        <div class="inline">Додати</div>
+                    </button>
+                </sec:authorize>
+            </div>
+        </div>
+        <%@include file="footer.jsp"%>
+    </body>
+    <script>
+        function showTable(obj) {
+            var html = [];
+            if (!obj.length) {
+                html.push(
+                    "<tr class='card'>",
+                    "<td colspan='<%=colspan%>'>Список класів пустий</td>",
+                    "</tr>"
+                );
+            } else {
+                for (let i in obj) {
+                    var id = obj[i].id;
+                    html.push("<tr class='card'>");
+                    if (<%=isAdmin%>) {
+                        html.push("<td>", id, "</td>");
+                    }
+                    html.push(
+                        "<td>",
+                        "<div class='inline'>", "<i class='material-icons'>school</i>", "</div>",
+                        "<div class='inline'>", obj[i].grade, "</div>",
+                        "</td>",
+                        "<td>",
+                        "<div class='inline'>", "<i class='material-icons'>group</i>", "</div>",
+                        "<div class='inline'>", obj[i].name, "</div>",
+                        "</td>",
+                    );
+                    if (<%=isAdmin%>) {
+                        html.push(
+                            "<td>",
+                            "<a href='<%=root%>class/", id, "'><i class='material-icons'>edit</i></a>",
+                            "</td><td><a>",
+                            "<form action='<%=root%>class/", id, "/delete' method=post>",
+                            '<sec:csrfInput />',
+                            "<input type='hidden' value='<%=pageNum%>' name='page'/>",
+                            "<button type='submit'>",
+                            "<i class='material-icons'>delete</i>",
+                            "</button>",
+                            "</form></a></td>"
+                        );
+                    }
+                    if (<%=isAdmin||isTeacher%>) {
+                        html.push(
+                            "<td>",
+                            "<a href='<%=root%>class/", id, "/pupils'>учні</a>",
+                            "</td>"
+                        );
+                    }
+                    html.push(
+                        "<td>",
+                        "<a href='<%=root%>class/", id, "/subject-details'>предмети</a>",
+                        "</td>",
+                        "</tr>"
+                    );
                 }
-            %>
-            <sec:authorize access="hasAuthority('ADMIN')">
-            <th><input type="text" id="id" onkeyup="<%=searchFunc%>" class="slim"></th>
-                <%
-                    if(pagination.equals("")) {
-                        searchFunc = "filter(id," + i++ + ")";
-                    }
-                %>
-            <th><input type="text" id="grade" onkeyup="<%=searchFunc%>" class="slim"></th>
-                <%
-                    if(pagination.equals("")) {
-                        searchFunc = "filter(id," + i++ + ")";
-                    }
-                %>
-            </sec:authorize>
-            <th><input type="text" id="name" onkeyup="<%=searchFunc%>" class="slim"></th>
-            <sec:authorize access="hasAuthority('ADMIN')">
-            <th></th>
-            <th></th>
-            </sec:authorize>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-        </tr>
-        <tbody id="placeToShow">
-        <% for (PupilClass pupilClass:(List<PupilClass>)request.getAttribute("list")) { %>
-        <tr>
-            <sec:authorize access="hasAuthority('ADMIN')">
-            <td><%=pupilClass.getId()%></td>
-            <td><%=pupilClass.getGrade()%></td>
-            </sec:authorize>
-            <td><%=pupilClass.getName()%></td>
-            <sec:authorize access="hasAuthority('ADMIN')">
-            <td><a href="<%=toRoot%>editClass/<%=pupilClass.getId()%>">Edit</a></td>
-            <td><a href="<%=toRoot%>deleteClass/<%=pupilClass.getId()%>?page=<%=pageNum%>">Delete</a></td>
-            </sec:authorize>
-            <td><a href="<%=toRoot%>viewPupilsByPupilClass/<%=pupilClass.getId()%>">view pupil list</a></td>
-            <td><a href="<%=toRoot%>viewSubjectsByPupilClass/ <%=pupilClass.getId()%>">view subjects</a></td>
-            <td><a href="<%=toRoot%>viewTeachersByPupilClass/ <%= pupilClass.getId()%>">view teacher list</a></td>
-            <td><a href="<%=toRoot%>viewSubjectDetailsByPupilClass/<%= pupilClass.getId()%>">view teacher-subject list</a></td>
-        </tr>
-        <% } %>
-        </tbody>
-    </table>
-    <br/>
-    <button onclick='location.href="<%=toRoot%>index.jsp"'>Menu</button>
-    <button onclick='history.back()'>Back</button>
-    <sec:authorize access="hasAuthority('ADMIN')">
-    <button onclick='location.href="<%=toRoot%>addClass"'>Add</button>
-    </sec:authorize>
-</div>
-<%@include file="footer.jsp"%>
-
-</body>
-<script>
-    <%@include file="../js/search.js"%>
-    <%@include file="../js/filter.js"%>
-</script>
+            }
+            document.getElementById("placeToShow").innerHTML = html.join("");
+        }
+        <%@include file="../js/search.js"%>
+        <%@include file="../js/filter.js"%>
+        window.onload = function load() {
+            showTable(<%=new Gson().toJson(list)%>);
+        }
+    </script>
 </html>

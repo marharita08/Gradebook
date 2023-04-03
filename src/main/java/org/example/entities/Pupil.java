@@ -2,26 +2,18 @@ package org.example.entities;
 
 import java.util.Objects;
 
-public class Pupil {
-    private int id;
+public class Pupil extends User {
     private String name;
     private PupilClass pupilClass;
 
-    public Pupil(int id, String name, PupilClass pupilClass) {
+    public Pupil(int id, String name, PupilClass pupilClass, String photo) {
         this.id = id;
         this.pupilClass = pupilClass;
         this.name = name;
+        this.photo = photo;
     }
 
     public Pupil() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {

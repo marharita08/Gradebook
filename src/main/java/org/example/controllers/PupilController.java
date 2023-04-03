@@ -1,17 +1,23 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.*;
+import org.example.dao.interfaces.PupilClassDAO;
+import org.example.dao.interfaces.PupilDAO;
+import org.example.dao.interfaces.SchoolDAO;
+import org.example.dao.interfaces.UserDAO;
 import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
+import org.example.entities.School;
 import org.example.entities.User;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,111 +26,48 @@ public class PupilController {
     private final PupilDAO dao;
     private final PupilClassDAO classDAO;
     private final UserDAO userDAO;
-    private int pupilPerPage = 15;
+    private final SchoolDAO schoolDAO;
+    private static final int pupilPerPage = 25;
     private static final Logger LOGGER = Logger.getLogger(PupilController.class.getName());
 
-    public PupilController(PupilDAO dao, PupilClassDAO classDAO, UserDAO userDAO) {
+    public PupilController(PupilDAO dao, PupilClassDAO classDAO, UserDAO userDAO, SchoolDAO schoolDAO) {
         this.dao = dao;
         this.classDAO = classDAO;
         this.userDAO = userDAO;
+        this.schoolDAO = schoolDAO;
     }
 
     /**
      * Getting page to view all pupils list.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewAllPupils")
+    @RequestMapping(value = "/pupils")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewAllPupils(@RequestParam("page") int page) {
         LOGGER.info("Getting list of pupils for " + page + " page.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfPupils();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        int count = dao.getCountOfPupils(dbName);
         PaginationController paginationController = new PaginationController(count, pupilPerPage, page);
         List<Pupil> list;
         if(count <= pupilPerPage) {
-            list = dao.getAllPupils();
+            list = dao.getAllPupils(dbName);
         } else {
-            list = dao.getPupilsByPage(page, pupilPerPage);
+            list = dao.getPupilsByPage(page, pupilPerPage, dbName);
         }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllPupils"));
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Учні", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("pagination", paginationController.makePagingLinks("pupils"));
         model.put("pageNum", page);
-        model.put("header", "Pupil List");
-        model.put("toRoot", "");
+        model.put("header", "Список учнів");
         LOGGER.info("Printing pupil list.");
         return new ModelAndView("viewPupilList", model);
-    }
-
-    /**
-     * Getting page for pupil adding.
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/addPupil")
-    public ModelAndView addPupil() {
-        LOGGER.info("Add new pupil.");
-        LOGGER.info("Form a model.");
-        Map<String, Object> model = new HashMap<>();
-        model.put("command", new Pupil());
-        model.put("list", classDAO.getAllPupilClasses());
-        model.put("selectedClass", 0);
-        model.put("title", "Add pupil");
-        model.put("formAction", "saveAddedPupil");
-        LOGGER.info("Printing form for input pupil data.");
-        return new ModelAndView("pupilForm", model);
-    }
-
-    /**
-     * Saving added pupil.
-     * @param pupil added class
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/saveAddedPupil", method = RequestMethod.POST)
-    public ModelAndView saveAddedPupil(@ModelAttribute Pupil pupil) {
-        LOGGER.info("Saving added pupil.");
-        dao.addPupil(pupil);
-        LOGGER.info("Redirect to pupil list.");
-        return new ModelAndView("redirect:/viewAllPupils?page=1");
-    }
-
-    /**
-     * Getting page for pupil editing.
-     * @param id pupil id
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/editPupil/{id}")
-    public ModelAndView editPupil(@PathVariable int id) {
-        LOGGER.info("Edit pupil.");
-        Pupil pupil = dao.getPupil(id);
-        if (pupil == null) {
-            LOGGER.error("Pupil " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        LOGGER.info("Form a model.");
-        Map<String, Object> model = new HashMap<>();
-        model.put("command", pupil);
-        if(pupil.getPupilClass() != null) {
-            model.put("selectedClass", pupil.getPupilClass().getId());
-        } else {
-            model.put("selectedClass", 0);
-        }
-        model.put("list", classDAO.getAllPupilClasses());
-        model.put("title", "Edit pupil");
-        model.put("formAction", "../saveEditedPupil");
-        LOGGER.info("Printing form for changing pupil data.");
-        return new ModelAndView("pupilForm", model);
-    }
-
-    /**
-     * Saving edited pupil.
-     * @param pupil edited pupil
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "/saveEditedPupil", method = RequestMethod.POST)
-    public ModelAndView saveEditedPupil(@ModelAttribute Pupil pupil) {
-        LOGGER.info("Saving edited pupil.");
-        dao.updatePupil(pupil);
-        LOGGER.info("Redirect to pupil list.");
-        return new ModelAndView("redirect:/viewAllPupils?page=1");
     }
 
     /**
@@ -132,17 +75,20 @@ public class PupilController {
      * @param id pupil id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deletePupil/{id}")
+    @RequestMapping(value = "/pupil/{id}/delete", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView deletePupil(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting pupil " + id + ".");
-        Pupil pupil = dao.getPupil(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Pupil pupil = dao.getPupil(id, dbName);
         if (pupil == null) {
             LOGGER.error("Pupil " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        dao.deletePupil(id);
+        userDAO.deleteUser(id, dbName);
         LOGGER.info("Redirect to pupil list on page " + pageNum + ".");
-        return new ModelAndView("redirect:/viewAllPupils?page=" + pageNum);
+        return new ModelAndView("redirect:/pupils?page=" + pageNum);
     }
 
     /**
@@ -150,68 +96,71 @@ public class PupilController {
      * @param id class id
      * @return List<Pupil>
      */
-    @RequestMapping(value = "viewPupilsByPupilClass/{id}")
+    @RequestMapping(value = "class/{id}/pupils")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewPupilsByPupilClass(@PathVariable int id) {
         LOGGER.info("Getting list of pupils by " + id + " class.");
-        PupilClass pupilClass = classDAO.getPupilClass(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        PupilClass pupilClass = classDAO.getPupilClass(id, dbName);
         if (pupilClass == null) {
             LOGGER.error("Class " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
+        if (user.hasRole("PUPIL") && !user.hasRole("ADMIN")) {
+            Pupil pupil = dao.getPupil(user.getId(), dbName);
+            if (!pupil.getPupilClass().equals(pupilClass)) {
+                return new  ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+            }
+        }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        model.put("header", "Pupils of " + pupilClass.getName() + " form");
-        model.put("list", dao.getPupilsByPupilClass(id));
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Класи", "/classes?page=1");
+        crumbsMap.put("Учні", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("header", "Учні " + pupilClass.getName() + " класу");
+        model.put("list", dao.getPupilsByPupilClass(id, dbName));
         model.put("pagination", "");
         model.put("pageNum", 1);
-        model.put("toRoot", "../");
         LOGGER.info("Printing pupil list.");
         return new ModelAndView("viewPupilList", model);
     }
 
-    @RequestMapping(value = "/searchPupils")
+    /**
+     * Get list of pupils studying in the class with set pupil.
+     * @param id pupil id
+     * @return List<Pupil>
+     */
+    @RequestMapping(value = "pupil/{id}/pupils")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
+    public ModelAndView viewPupilsByPupil(@PathVariable int id) {
+        LOGGER.info("Getting list of pupils by " + id + " pupil.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Pupil pupil = dao.getPupil(id, user.getDbName());
+        if (pupil == null) {
+            LOGGER.error("Pupil " + id + " not found.");
+            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        return new ModelAndView("redirect:../../class/" + pupil.getPupilClass().getId() + "/pupils");
+    }
+
+    @RequestMapping(value = "pupils/search")
     @ResponseBody
-    public String searchPupils(@RequestParam("page") int pageNum,
-                                 @RequestParam("val") String val,
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
+    public List<Pupil> searchPupils(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching pupils by " + param + ".");
-        StringBuilder sb = new StringBuilder();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
         List<Pupil> list;
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userDAO.getUserByUsername(username);
         if(!val.isEmpty()) {
-            list = dao.searchPupils(val, param);
+            list = dao.searchPupils(val, param, dbName);
         } else {
-            list = dao.getPupilsByPage(pageNum, pupilPerPage);
+            list = dao.getPupilsByPage(1, pupilPerPage, dbName);
         }
-        LOGGER.info("Forming response.");
-        for (Pupil pupil:list) {
-            int id = pupil.getId();
-            sb.append("<tr>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>").append(id).append("</td>");
-                sb.append("<td>");
-                if (pupil.getPupilClass() != null) {
-                    sb.append(pupil.getPupilClass().getName());
-                } else {
-                    sb.append("-");
-                }
-                sb.append("</td>");
-            }
-            sb.append("<td>").append(pupil.getName()).append("</td>");
-            if (user.hasRole("ADMIN")) {
-               sb.append("<td>");
-                sb.append("<a href=\"editPupil/").append(id).append("\">Edit</a>");
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"deletePupil/").append(id).append("?page=").append(pageNum).append("\">Delete</a></td>");
-                sb.append("</td>");
-            }
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewMarksByPupil/").append(id).append("\">view marks</a>");
-            sb.append("</td>");
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+       return list;
     }
 }

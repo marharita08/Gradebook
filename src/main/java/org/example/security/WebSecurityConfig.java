@@ -11,6 +11,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,16 +31,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        http.authorizeRequests()
-                .antMatchers("/").authenticated()
-                .antMatchers(  "/add*", "/edit*", "/delete*", "/save*", "/viewAllUsers").hasAuthority("ADMIN")
-                .antMatchers("/addLesson/*", "/addMark/*",
-                        "/editLesson/*", "/editMark/*", "/deleteLesson/*", "/deleteMark/*",
-                        "/save*Lesson", "/save*Mark").hasAuthority("TEACHER")
-                .anyRequest().authenticated()
+        http.addFilterBefore(new EncodingFilter(), ChannelProcessingFilter.class);
+
+        http.csrf().ignoringAntMatchers("/school*", "/user/photo*", "/school/**");
+
+        http.addFilterBefore(authenticationFilter(),
+                        UsernamePasswordAuthenticationFilter.class)
+                .authorizeRequests()
+                .antMatchers("/login*").permitAll()
+                .antMatchers("/registration*").permitAll()
+                .antMatchers("/checkUsername*").permitAll()
+                .antMatchers("/school*").permitAll()
+                .antMatchers("/admin*").permitAll()
+                .antMatchers("/*").authenticated()
                 .and()
                 .formLogin()
-                .defaultSuccessUrl("/")
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
                 .and().logout().logoutUrl("/logout");
     }
 
@@ -46,8 +56,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         auth.authenticationProvider(new AuthProvider(userService, passwordEncoder()));
     }
 
-    @Autowired
-    protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
+    public AuthenticationFilter authenticationFilter() throws Exception {
+        AuthenticationFilter filter = new AuthenticationFilter();
+        filter.setAuthenticationManager(authenticationManagerBean());
+        filter.setAuthenticationFailureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"));
+        return filter;
     }
 }

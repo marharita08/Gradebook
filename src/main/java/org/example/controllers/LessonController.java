@@ -1,56 +1,63 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.*;
-import org.example.entities.Lesson;
-import org.example.entities.SubjectDetails;
-import org.example.entities.User;
+import org.example.dao.interfaces.LessonDAO;
+import org.example.dao.interfaces.SchoolDAO;
+import org.example.dao.interfaces.ThemeDAO;
+import org.example.entities.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Controller
 public class LessonController {
     private final LessonDAO dao;
-    private final SubjectDetailsDAO subjectDetailsDAO;
-    private final UserDAO userDAO;
-    private int lessonsPerPage = 20;
+    private final ThemeDAO themeDAO;
+    private final SchoolDAO schoolDAO;
     private static final Logger LOGGER = Logger.getLogger(LessonController.class.getName());
 
-    public LessonController(LessonDAO dao,
-                            SubjectDetailsDAO subjectDetailsDAO,
-                            UserDAO userDAO) {
+    public LessonController(LessonDAO dao, ThemeDAO themeDAO, SchoolDAO schoolDAO) {
         this.dao = dao;
-        this.subjectDetailsDAO = subjectDetailsDAO;
-        this.userDAO = userDAO;
+        this.themeDAO = themeDAO;
+        this.schoolDAO = schoolDAO;
     }
 
     /**
      * Getting page for lesson adding.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/addLesson/{id}")
+    @RequestMapping(value = "/theme/{id}/lesson")
+    @Secured("TEACHER")
     public ModelAndView addLesson(@PathVariable int id) {
-        LOGGER.info("Add new lesson for subject details " + id + ".");
-        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
-        if (subjectDetails == null) {
-            LOGGER.error("Subject details " + id + " not found.");
+        LOGGER.info("Add new lesson for theme " + id + ".");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Theme theme = themeDAO.getTheme(id, dbName);
+        if (theme == null) {
+            LOGGER.error("Theme " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
+        }
+        if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        model.put("command", new Lesson(subjectDetails));
-        model.put("teacher", subjectDetails.getTeacher().getName());
-        model.put("subject", subjectDetails.getSubject().getName());
-        model.put("class", subjectDetails.getPupilClass().getName());
-        model.put("title", "Add lesson");
-        model.put("formAction", "../saveAddedLesson");
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        Map<String, String> crumbsMap = getBasicCrumbsMap(theme);
+        crumbsMap.put("Додати урок", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("command", new Lesson(theme));
+        model.put("title", "Додати урок");
+        model.put("formAction", "../../lesson");
         LOGGER.info("Printing form for input lesson's data.");
         return new ModelAndView("lessonForm", model);
     }
@@ -60,12 +67,14 @@ public class LessonController {
      * @param lesson added lesson
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveAddedLesson", method = RequestMethod.POST)
+    @RequestMapping(value = "/lesson", method = RequestMethod.POST)
+    @Secured("TEACHER")
     public ModelAndView saveAddedLesson(@ModelAttribute Lesson lesson) {
         LOGGER.info("Saving added lesson.");
-        dao.addLesson(lesson);
-        LOGGER.info("Redirect to list of lessons for " + lesson.getSubjectDetails().getId() + " subject details.");
-        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + lesson.getSubjectDetails().getId() + "?page=1");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.addLesson(lesson, user.getDbName());
+        LOGGER.info("Redirect to list of lessons for " + lesson.getTheme().getId() + " theme.");
+        return new ModelAndView("redirect:/theme/" + lesson.getTheme().getId() + "/lessons");
     }
 
     /**
@@ -73,23 +82,30 @@ public class LessonController {
      * @param id lesson id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/editLesson/{id}")
+    @RequestMapping(value = "/lesson/{id}", method = RequestMethod.GET)
+    @Secured("TEACHER")
     public ModelAndView editLesson(@PathVariable int id) {
         LOGGER.info("Edit lesson " + id + ".");
-        Lesson lesson = dao.getLesson(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Lesson lesson = dao.getLesson(id, dbName);
         if (lesson == null) {
             LOGGER.error("Lesson " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        LOGGER.info("Form a model.");
+        Theme theme = lesson.getTheme();
+        if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
         Map<String, Object> model = new HashMap<>();
-        SubjectDetails subjectDetails = lesson.getSubjectDetails();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        Map<String, String> crumbsMap = getBasicCrumbsMap(theme);
+        crumbsMap.put("Редагувати урок", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("title", "Редагувати урок");
         model.put("command", lesson);
-        model.put("teacher", subjectDetails.getTeacher().getName());
-        model.put("subject", subjectDetails.getSubject().getName());
-        model.put("class", subjectDetails.getPupilClass().getName());
-        model.put("title", "Edit lesson");
-        model.put("formAction", "../saveEditedLesson");
+        model.put("formAction", "../lesson/" + lesson.getId());
         LOGGER.info("Printing form for changing lesson's data.");
         return new ModelAndView("lessonForm", model);
     }
@@ -99,12 +115,14 @@ public class LessonController {
      * @param lesson edited lesson
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveEditedLesson", method = RequestMethod.POST)
+    @RequestMapping(value = "/lesson/{id}", method = RequestMethod.POST)
+    @Secured("TEACHER")
     public ModelAndView saveEditedLesson(@ModelAttribute Lesson lesson) {
         LOGGER.info("Saving edited lesson.");
-        dao.updateLesson(lesson);
-        LOGGER.info("Redirect to list of lessons for " + lesson.getSubjectDetails().getId() + " subject details.");
-        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + lesson.getSubjectDetails().getId() + "?page=1");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.updateLesson(lesson, user.getDbName());
+        LOGGER.info("Redirect to list of lessons for " + lesson.getTheme().getId() + " theme.");
+        return new ModelAndView("redirect:/theme/" + lesson.getTheme().getId() + "/lessons");
     }
 
     /**
@@ -112,18 +130,23 @@ public class LessonController {
      * @param id lesson id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deleteLesson/{id}")
-    public ModelAndView deleteLesson(@PathVariable int id, @RequestParam("page") int pageNum) {
+    @RequestMapping(value = "/lesson/{id}/delete", method = RequestMethod.POST)
+    @Secured("TEACHER")
+    public ModelAndView deleteLesson(@PathVariable int id) {
         LOGGER.info("Deleting lesson " + id);
-        Lesson lesson = dao.getLesson(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Lesson lesson = dao.getLesson(id, user.getDbName());
         if (lesson == null) {
             LOGGER.error("Lesson " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        int subjectDetails = lesson.getSubjectDetails().getId();
-        dao.deleteLesson(id);
-        LOGGER.info("Redirect to list of lessons for " + subjectDetails + " subject details on page " + pageNum + ".");
-        return new ModelAndView("redirect:/viewLessonsBySubjectDetails/" + subjectDetails + "?page=" + pageNum);
+        Theme theme = lesson.getTheme();
+        if (user.getId() != theme.getSubjectDetails().getTeacher().getId()) {
+            return new ModelAndView("errorPage", HttpStatus.FORBIDDEN);
+        }
+        dao.deleteLesson(id, user.getDbName());
+        LOGGER.info("Redirect to list of lessons for " + theme.getId() + " theme.");
+        return new ModelAndView("redirect:/theme/" + theme.getId() + "/lessons");
     }
 
     /**
@@ -131,79 +154,41 @@ public class LessonController {
      * @param id subject details id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewLessonsBySubjectDetails/{id}")
-    public ModelAndView viewLessonsBySubjectDetails(@PathVariable int id, @RequestParam("page") int page) {
-        LOGGER.info("Getting list of lessons for " + id + " subject details and " + page + " page.");
-        SubjectDetails subjectDetails = subjectDetailsDAO.getSubjectDetails(id);
-        if (subjectDetails == null) {
-            LOGGER.error("Subject details " + id + " not found.");
+    @RequestMapping(value = "/theme/{id}/lessons")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
+    public ModelAndView viewLessonsByTheme(@PathVariable int id) {
+        LOGGER.info("Getting list of lessons for " + id + " theme.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Theme theme = themeDAO.getTheme(id, user.getDbName());
+        if (theme == null) {
+            LOGGER.error("Theme " + id + " not found.");
             return new ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        LOGGER.info("Form a model.");
         List<Lesson> list;
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfLessons(id);
-        if (count <= lessonsPerPage) {
-            list = dao.getLessonsBySubjectDetails(id);
-        } else {
-            list = dao.getLessonsBySubjectDetailsAndPage(id, page, lessonsPerPage);
-        }
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        list = dao.getLessonsByTheme(id, dbName);
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap(theme)));
         model.put("list", list);
-        model.put("header", "Lessons of "
-                    + subjectDetails.getSubject().getName()
-                    + " " + subjectDetails.getPupilClass().getName());
-        if (subjectDetails.getTeacher() != null) {
-            model.put("teacher", "Teacher: " + subjectDetails.getTeacher().getName());
-        }
-        model.put("subjectDetails", subjectDetails.getId());
-        PaginationController paginationController = new PaginationController(count, lessonsPerPage, page);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewLessonsBySubjectDetails/" + subjectDetails.getId()));
-        model.put("pageNum", page);
+        model.put("theme", theme);
         LOGGER.info("Printing lessons list.");
-        return new ModelAndView("lessonList", model);
+        return new ModelAndView("viewLessonList", model);
     }
 
-    @RequestMapping(value = "/searchLessons")
-    @ResponseBody
-    public String searchLessons(@RequestParam("page") int pageNum,
-                                @RequestParam("val") String val,
-                                @RequestParam("param") String param,
-                                @RequestParam("sd") int sd) throws Exception {
-        LOGGER.info("Searching lessons by " + param + " for " + sd + " subject details.");
-        StringBuilder sb = new StringBuilder();
-        List<Lesson> list;
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userDAO.getUserByUsername(username);
-        if(!val.isEmpty()) {
-            list = dao.searchLessons(val, param, sd);
-        } else {
-            list = dao.getLessonsBySubjectDetailsAndPage(sd, pageNum, lessonsPerPage);
+    private Map<String, String> getBasicCrumbsMap(Theme theme) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        if (user.hasRole("ADMIN")) {
+            crumbsMap.put("Деталі предметів", "/subject-details?page=1");
+        } else if (user.hasRole("TEACHER")) {
+            crumbsMap.put("Деталі предметів", "/teacher/" + user.getId() + "/subject-details");
+        } else if (user.hasRole("PUPIL")) {
+            crumbsMap.put("Деталі предметів", "/pupil/" + user.getId() + "/subject-details");
         }
-        LOGGER.info("Forming response.");
-        for (Lesson lesson:list) {
-            int id = lesson.getId();
-            sb.append("<tr>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>").append(id).append("</td>");
-            }
-            sb.append("<td>").append(lesson.getDate()).append("</td>");
-            sb.append("<td>").append(lesson.getTopic()).append("</td>");
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewMarksByLesson/").append(id).append("\">view marks</a>");
-            sb.append("</td>");
-            if (user.hasRole("TEACHER")) {
-                sb.append("<td>");
-                sb.append("<a href=\"/Gradebook/addMark/").append(id).append("\">add mark</a>");
-                sb.append("</td>");
-                sb.append("<td>");
-                sb.append("<a href=\"/Gradebook/editLesson/").append(id).append("\">edit lesson</a>");
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"/Gradebook/deleteLesson/").append(id).append("?page=").append(pageNum).append("\">delete lesson</a>");
-                sb.append("</td>");
-            }
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+        crumbsMap.put("Теми", "/subject-details/" + theme.getSubjectDetails().getId() + "/themes");
+        crumbsMap.put("Уроки", "/theme/" + theme.getId() + "/lessons");
+        return crumbsMap;
     }
 }

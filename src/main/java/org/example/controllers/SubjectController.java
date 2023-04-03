@@ -1,18 +1,23 @@
 package org.example.controllers;
 
 import org.apache.log4j.Logger;
-import org.example.dao.*;
+import org.example.dao.interfaces.PupilClassDAO;
+import org.example.dao.interfaces.SchoolDAO;
+import org.example.dao.interfaces.SubjectDAO;
+import org.example.dao.interfaces.TeacherDAO;
 import org.example.entities.PupilClass;
+import org.example.entities.School;
 import org.example.entities.Subject;
-import org.example.entities.Teacher;
 import org.example.entities.User;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,42 +26,47 @@ public class SubjectController {
     private final SubjectDAO dao;
     private final PupilClassDAO pupilClassDAO;
     private final TeacherDAO teacherDAO;
-    private final UserDAO userDAO;
-    private int subjectPerPage = 15;
+    private final SchoolDAO schoolDAO;
+    private static final int subjectPerPage = 25;
+    private static final String SUBJECTS_LINK = "/subjects?page=1";
     private static final Logger LOGGER = Logger.getLogger(SubjectController.class.getName());
 
     public SubjectController(SubjectDAO dao,
                              PupilClassDAO pupilClassDAO,
-                             TeacherDAO teacherDAO,
-                             UserDAO userDAO) {
+                             TeacherDAO teacherDAO, SchoolDAO schoolDAO) {
         this.dao = dao;
         this.pupilClassDAO = pupilClassDAO;
         this.teacherDAO = teacherDAO;
-        this.userDAO = userDAO;
+        this.schoolDAO = schoolDAO;
     }
 
     /**
      * Getting page to view all subject list.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/viewAllSubjects")
+    @RequestMapping(value = "/subjects")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     public ModelAndView viewAllSubjects(@RequestParam("page") int page) {
         LOGGER.info("Getting list of subjects for " + page + " page.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        int count = dao.getCountOfSubjects();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        int count = dao.getCountOfSubjects(dbName);
         PaginationController paginationController = new PaginationController(count, subjectPerPage, page);
         List<Subject> list;
-        if(count <= subjectPerPage) {
-            list = dao.getAllSubjects();
+        if (count <= subjectPerPage) {
+            list = dao.getAllSubjects(dbName);
         } else {
-            list = dao.getSubjectsByPage(page, subjectPerPage);
+            list = dao.getSubjectsByPage(page, subjectPerPage, dbName);
         }
         model.put("list", list);
-        model.put("pagination", paginationController.makePagingLinks("/Gradebook/viewAllSubjects"));
-        model.put("header", "Subject list");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(getBasicCrumbsMap()));
+        model.put("pagination", paginationController.makePagingLinks("viewAllSubjects"));
+        model.put("header", "Список предметів");
         model.put("pageNum", page);
-        model.put("toRoot", "");
         LOGGER.info("Printing subject list.");
         return new ModelAndView("viewSubjectList", model);
     }
@@ -65,14 +75,21 @@ public class SubjectController {
      * Getting page for subject adding.
      * @return ModelAndView
      */
-    @RequestMapping(value = "/addSubject")
+    @RequestMapping(value = "/subject")
+    @Secured("ADMIN")
     public ModelAndView addSubject() {
         LOGGER.info("Add new subject.");
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        School school = schoolDAO.getSchool(Integer.parseInt(user.getDbName()));
+        model.put("school", school);
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Додати предмет", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
         model.put("command", new PupilClass());
-        model.put("title", "Add subject");
-        model.put("formAction", "saveAddedSubject");
+        model.put("title", "Додати предмет");
+        model.put("formAction", "subject");
         LOGGER.info("Printing form for input subject data.");
         return new ModelAndView("subjectForm", model);
     }
@@ -82,12 +99,14 @@ public class SubjectController {
      * @param subject added subject
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveAddedSubject", method = RequestMethod.POST)
+    @RequestMapping(value = "/subject", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveAddedSubject(@ModelAttribute Subject subject) {
         LOGGER.info("Saving added subject.");
-        dao.addSubject(subject);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.addSubject(subject, user.getDbName());
         LOGGER.info("Redirect to subject list.");
-        return new ModelAndView("redirect:/viewAllSubjects?page=1");
+        return new ModelAndView("redirect:" + SUBJECTS_LINK);
     }
 
     /**
@@ -95,19 +114,27 @@ public class SubjectController {
      * @param id subject id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/editSubject/{id}")
+    @RequestMapping(value = "/subject/{id}")
+    @Secured("ADMIN")
     public ModelAndView editSubject(@PathVariable int id) {
         LOGGER.info("Edit subject.");
-        Subject subject = dao.getSubject(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Subject subject = dao.getSubject(id, dbName);
         if (subject == null) {
             LOGGER.error("Subject " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
         LOGGER.info("Form a model.");
         Map<String, Object> model = new HashMap<>();
-        model.put("command", dao.getSubject(id));
-        model.put("title", "Edit subject");
-        model.put("formAction", "../saveEditedSubject");
+        School school = schoolDAO.getSchool(Integer.parseInt(dbName));
+        model.put("school", school);
+        Map<String, String> crumbsMap = getBasicCrumbsMap();
+        crumbsMap.put("Редагувати предмет", "");
+        model.put("crumbs", BreadcrumbsController.getBreadcrumbs(crumbsMap));
+        model.put("command", dao.getSubject(id, dbName));
+        model.put("title", "Редагувати предмет");
+        model.put("formAction", "../subject/" + subject.getId());
         LOGGER.info("Printing form for changing subject data.");
         return new ModelAndView("subjectForm", model);
     }
@@ -117,12 +144,14 @@ public class SubjectController {
      * @param subject edited subject
      * @return ModelAndView
      */
-    @RequestMapping(value = "/saveEditedSubject", method = RequestMethod.POST)
+    @RequestMapping(value = "/subject/{id}", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView saveEditedSubject(@ModelAttribute Subject subject) {
         LOGGER.info("Saving edited subject.");
-        dao.updateSubject(subject);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        dao.updateSubject(subject, user.getDbName());
         LOGGER.info("Redirect to subject list.");
-        return new ModelAndView("redirect:/viewAllSubjects?page=1");
+        return new ModelAndView("redirect:" + SUBJECTS_LINK);
     }
 
     /**
@@ -130,110 +159,42 @@ public class SubjectController {
      * @param id subject id
      * @return ModelAndView
      */
-    @RequestMapping(value = "/deleteSubject/{id}")
+    @RequestMapping(value = "/subject/{id}/delete", method = RequestMethod.POST)
+    @Secured("ADMIN")
     public ModelAndView deleteSubject(@PathVariable int id, @RequestParam("page") int pageNum) {
         LOGGER.info("Deleting subject " + id + ".");
-        Subject subject = dao.getSubject(id);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
+        Subject subject = dao.getSubject(id, dbName);
         if (subject == null) {
             LOGGER.error("Subject " + id + " not found.");
             return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
         }
-        dao.deleteSubject(id);
+        dao.deleteSubject(id, dbName);
         LOGGER.info("Redirect to subject list on page " + pageNum + ".");
-        return new ModelAndView("redirect:/viewAllSubjects?page=" + pageNum);
+        return new ModelAndView("redirect:/subjects?page=" + pageNum);
     }
 
-    /**
-     * View subject list by class.
-     * @param id class id
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "viewSubjectsByPupilClass/{id}")
-    public ModelAndView viewSubjectsByPupilClass(@PathVariable int id) {
-        LOGGER.info("Getting list of subjects by " + id + " class.");
-        PupilClass pupilClass = pupilClassDAO.getPupilClass(id);
-        if (pupilClass == null) {
-            LOGGER.error("Class " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        LOGGER.info("Form a model.");
-        Map<String, Object> model = new HashMap<>();
-        model.put("header", "Subjects of " + pupilClass.getName());
-        model.put("id", pupilClass.getId());
-        model.put("list", dao.getSubjectByPupilClass(id));
-        model.put("param", "class");
-        model.put("pagination", "");
-        model.put("pageNum", 1);
-        model.put("toRoot", "../");
-        LOGGER.info("Printing subject list.");
-        return new ModelAndView("viewSubjectList", model);
-    }
-
-    /**
-     * View subject list by teacher.
-     * @param id teacher id
-     * @return ModelAndView
-     */
-    @RequestMapping(value = "viewSubjectsByTeacher/{id}")
-    public ModelAndView viewSubjectsByTeacher(@PathVariable int id) {
-        LOGGER.info("Getting list of subjects by " + id + " teacher.");
-        Teacher teacher = teacherDAO.getTeacher(id);
-        if (teacher == null) {
-            LOGGER.error("Teacher " + id + " not found.");
-            return new  ModelAndView("errorPage", HttpStatus.NOT_FOUND);
-        }
-        LOGGER.info("Form a model.");
-        Map<String, Object> model = new HashMap<>();
-        model.put("header", "Subjects of " + teacherDAO.getTeacher(id).getName());
-        model.put("list", dao.getSubjectByTeacher(id));
-        model.put("param", "teacher");
-        model.put("pagination", "");
-        model.put("pageNum", 1);
-        model.put("toRoot", "../");
-        LOGGER.info("Printing subject list.");
-        return new ModelAndView("viewSubjectList", model);
-    }
-
-    @RequestMapping(value = "/searchSubjects")
+    @RequestMapping(value = "/subjects/search")
+    @Secured({"ADMIN", "TEACHER", "PUPIL"})
     @ResponseBody
-    public String searchSubjects(@RequestParam("page") int pageNum,
-                                 @RequestParam("val") String val,
+    public List<Subject> searchSubjects(@RequestParam("val") String val,
                                  @RequestParam("param")String param) throws Exception {
         LOGGER.info("Searching subjects by " + param + ".");
-        StringBuilder sb = new StringBuilder();
         List<Subject> list;
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userDAO.getUserByUsername(username);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String dbName = user.getDbName();
         if(!val.isEmpty()) {
-            list = dao.searchSubjects(val, param);
+            list = dao.searchSubjects(val, param, dbName);
         } else {
-            list = dao.getSubjectsByPage(pageNum, subjectPerPage);
+            list = dao.getSubjectsByPage(1, subjectPerPage, dbName);
         }
-        LOGGER.info("Forming response.");
-        for (Subject subject:list) {
-            int id = subject.getId();
-            sb.append("<tr>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("<td>").append(id).append("</td>");
-            }
-            sb.append("<td>").append(subject.getName()).append("</td>");
-            if (user.hasRole("ADMIN")) {
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"editSubject/").append(id).append("\">Edit</a>");
-                sb.append("</td>").append("<td>");
-                sb.append("<a href=\"deleteSubject/").append(id).append("?page=").append(pageNum).append("\">Delete</a></td>");
-                sb.append("</td>");
-            }
-            sb.append("<td>");
-            sb.append("<a href=\"/Gradebook/viewPupilClassesBySubject/").append(id).append("\">view classes</a>");
-            sb.append("</td>").append("<td>");
-            sb.append("<a href=\"/Gradebook/viewTeachersBySubject/").append(id).append("\">view teachers</a>");
-            sb.append("</td>").append("<td>");
-            sb.append("<a href=\"/Gradebook/viewSubjectDetailsBySubject/").append(id).append("\">view class-teacher list</a>");
-            sb.append("</td>");
-            sb.append("</tr>");
-        }
-        LOGGER.info("Printing response.");
-        return sb.toString();
+        return list;
+    }
+
+    private Map<String, String> getBasicCrumbsMap() {
+        Map<String, String> crumbsMap = new LinkedHashMap<>();
+        crumbsMap.put("Предмети", SUBJECTS_LINK);
+        return crumbsMap;
     }
 }
