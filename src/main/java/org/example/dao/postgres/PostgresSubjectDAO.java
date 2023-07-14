@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.SubjectDAO;
 import org.example.entities.Subject;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Repository
 public class PostgresSubjectDAO implements SubjectDAO {
     private final static String GET_ALL_SUBJECTS = "SELECT * FROM SUBJECT order by SUBJECT_ID";
     private final static String GET_SUBJECT = "SELECT * FROM SUBJECT where SUBJECT_ID=?";

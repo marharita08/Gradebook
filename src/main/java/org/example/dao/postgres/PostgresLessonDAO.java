@@ -5,11 +5,13 @@ import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.LessonDAO;
 import org.example.dao.interfaces.ThemeDAO;
 import org.example.entities.Lesson;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class PostgresLessonDAO implements LessonDAO {
     private static final String GET_LESSON = "SELECT * FROM LESSON where LESSON_ID = ?";
     private static final String INSERT_LESSON = "Insert into LESSON (theme_id, lesson_date, topic) values (?, ?, ?)";

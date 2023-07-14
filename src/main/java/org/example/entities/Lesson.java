@@ -60,7 +60,7 @@ public class Lesson {
     public String toString() {
         return "Lesson{" +
                 "id=" + id +
-                ", subjectDetails=" + theme +
+                ", theme=" + theme +
                 ", date=" + date +
                 ", topic='" + topic + '\'' +
                 '}';

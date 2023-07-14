@@ -90,7 +90,7 @@ public class SchoolController {
         dao.createDB(strID);
         try {
             ProcessBuilder builder = new ProcessBuilder(
-                    "java", "weblogic.WLST", "gradebook/createDataSource.py", strID);
+                    "java", "weblogic.WLST", "createDataSource.py", strID);
             builder.redirectErrorStream(true);
             Process p = builder.start();
             BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));

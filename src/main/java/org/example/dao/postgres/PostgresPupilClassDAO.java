@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.PupilClassDAO;
 import org.example.entities.PupilClass;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Repository
 public class PostgresPupilClassDAO implements PupilClassDAO {
     private static final String GET_ALL_CLASSES = "SELECT * FROM CLASS order by GRADE, NAME";
     private static final String GET_CLASS = "SELECT * FROM CLASS where CLASS_ID=?";

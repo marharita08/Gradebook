@@ -6,6 +6,7 @@ import org.example.dao.interfaces.SchoolYearDAO;
 import org.example.dao.interfaces.SemesterDAO;
 import org.example.entities.SchoolYear;
 import org.example.entities.Semester;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Repository
 public class PostgresSemesterDAO implements SemesterDAO {
     private static final String GET_ALL_SEMESTERS = "SELECT * FROM SEMESTER order by SEMESTER_ID";
     private static final String GET_SEMESTER = "SELECT * FROM SEMESTER where SEMESTER_ID=?";
