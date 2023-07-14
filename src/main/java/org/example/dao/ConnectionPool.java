@@ -1,6 +1,9 @@
 package org.example.dao;
 
 import org.apache.log4j.Logger;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import javax.naming.InitialContext;
@@ -10,9 +13,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 @Component
+@PropertySource("classpath:datasource.properties")
 public class ConnectionPool {
 
     private static final Logger LOGGER = Logger.getLogger(ConnectionPool.class.getName());
+
+    @Value("${datasource.jndiname}")
+    private String dataSourceJNDIName;
+
+    @Value("${app.name}")
+    private String appName;
 
     /**
      * Getting connection using DataSource.
@@ -22,7 +32,7 @@ public class ConnectionPool {
         Connection conn = null;
         try {
             InitialContext initContext = new InitialContext();
-            DataSource ds = (DataSource) initContext.lookup("Gradebook/jdbcDS");
+            DataSource ds = (DataSource) initContext.lookup(dataSourceJNDIName);
             conn = ds.getConnection();
         } catch (NamingException | SQLException e) {
             LOGGER.error(e.getMessage(), e);
@@ -34,7 +44,8 @@ public class ConnectionPool {
         Connection conn = null;
         try {
             InitialContext initContext = new InitialContext();
-            DataSource ds = (DataSource) initContext.lookup(dbName);
+            String JNDIName = appName + "/" + dbName;
+            DataSource ds = (DataSource) initContext.lookup(JNDIName);
             conn = ds.getConnection();
         } catch (NamingException | SQLException e) {
             LOGGER.error(e.getMessage(), e);

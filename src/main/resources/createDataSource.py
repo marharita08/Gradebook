@@ -1,7 +1,7 @@
 from java.io import FileInputStream
 import sys
  
-propInputStream = FileInputStream("src/main/resources/datasource.properties")
+propInputStream = FileInputStream("datasource.properties")
 configProps = Properties()
 configProps.load(propInputStream)
  
@@ -10,18 +10,19 @@ adminURL=configProps.get("admin.url")
 adminUserName=configProps.get("admin.username")
 adminPassword=configProps.get("admin.password")
 
-if len(sys.argv) == 0:
+if len(sys.argv) == 1:
    dsName=configProps.get("datasource.name")
    dsJNDIName=configProps.get("datasource.jndiname")
    dsDatabaseName=configProps.get("datasource.database.name")
+   dsFileName=configProps.get("datasource.filename")
 else:
    dsName=sys.argv[1]
-   dsJNDIName=configProps.get("datasource.jndiname") + '/' + sys.argv[1]
-   dsDatabaseName=sys.argv[1]
-dsFileName=configProps.get("datasource.filename")
+   dsJNDIName=configProps.get("app.name") + '/' + dsName
+   dsDatabaseName=dsName
+   dsFileName=configProps.get("datasource.filename") + dsName
 datasourceTarget=configProps.get("datasource.target")
 dsDriverName=configProps.get("datasource.driver.class")
-dsURL=configProps.get("datasource.url") + dsName
+dsURL=configProps.get("datasource.url") + dsDatabaseName
 dsUserName=configProps.get("datasource.username")
 dsPassword=configProps.get("datasource.password")
 dsTestQuery=configProps.get("datasource.test.query")

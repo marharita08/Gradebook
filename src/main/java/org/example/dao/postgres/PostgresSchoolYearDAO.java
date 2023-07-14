@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.SchoolYearDAO;
 import org.example.entities.SchoolYear;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Repository
 public class PostgresSchoolYearDAO implements SchoolYearDAO {
     private static final String GET_ALL_SCHOOL_YEARS = "SELECT * FROM SCHOOL_YEAR order by SCHOOL_YEAR_ID";
     private static final String GET_SCHOOL_YEAR = "SELECT * FROM SCHOOL_YEAR where SCHOOL_YEAR_ID=?";

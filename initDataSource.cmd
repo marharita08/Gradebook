@@ -1,2 +1,3 @@
-wlst src/main/resources/createDataSource.py
+cd src/main/resources
+wlst createDataSource.py
 

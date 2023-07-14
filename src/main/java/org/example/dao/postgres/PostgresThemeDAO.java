@@ -6,12 +6,14 @@ import org.example.dao.interfaces.SubjectDetailsDAO;
 import org.example.dao.interfaces.ThemeDAO;
 import org.example.entities.SubjectDetails;
 import org.example.entities.Theme;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class PostgresThemeDAO implements ThemeDAO {
     private static final String GET_THEME = "SELECT * FROM THEME where THEME_ID=?";
     private static final String INSERT_THEME = "Insert into THEME (SUBJECT_DETAILS_id, name) values (?, ?)";

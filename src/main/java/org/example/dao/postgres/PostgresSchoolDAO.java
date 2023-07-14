@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.SchoolDAO;
 import org.example.entities.School;
+import org.springframework.stereotype.Repository;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Repository
 public class PostgresSchoolDAO implements SchoolDAO {
     private static final String GET_SCHOOL = "SELECT * FROM schools where school_ID = ?";
     private static final String GET_SCHOOL_BY_NAME = "SELECT * FROM schools where name = ?";

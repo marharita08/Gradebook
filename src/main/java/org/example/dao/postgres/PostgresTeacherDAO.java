@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.TeacherDAO;
 import org.example.entities.Teacher;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Repository
 public class PostgresTeacherDAO implements TeacherDAO {
     private static final String GET_ALL_TEACHERS = "SELECT * FROM TEACHER join gradebook_user on user_id=teacher_id order by teacher_id";
     private static final String GET_TEACHER = "SELECT * FROM TEACHER join gradebook_user on user_id=teacher_id where teacher_id = ?";

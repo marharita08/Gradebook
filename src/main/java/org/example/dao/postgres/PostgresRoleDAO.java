@@ -4,11 +4,13 @@ import org.apache.log4j.Logger;
 import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.RoleDAO;
 import org.example.entities.Role;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.HashSet;
 import java.util.Set;
 
+@Repository
 public class PostgresRoleDAO implements RoleDAO {
     private static final String GET_ROLES_BY_USER = "SELECT * FROM ROLE" +
             " join USER_ROLE using(ROLE_ID) where USER_ID=?";

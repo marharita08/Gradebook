@@ -1,8 +1,9 @@
 package org.example;
 
 import org.apache.log4j.PropertyConfigurator;
-import org.example.dao.ConnectionPool;
 import org.example.dao.GenerateTables;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -22,7 +23,9 @@ public class MyServletContextListener implements ServletContextListener {
             e.printStackTrace();
         }
         PropertyConfigurator.configure(properties);
-        GenerateTables generateTables = new GenerateTables(new ConnectionPool());
+        WebApplicationContext context =
+                WebApplicationContextUtils.getRequiredWebApplicationContext(servletContextEvent.getServletContext());
+        GenerateTables generateTables = context.getBean(GenerateTables.class);
         generateTables.generate();
     }
 

@@ -30,11 +30,11 @@
   </resource-ref>
 
   <listener>
-    <listener-class>org.example.MyServletContextListener</listener-class>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
 
   <listener>
-    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    <listener-class>org.example.MyServletContextListener</listener-class>
   </listener>
 
   <context-param>

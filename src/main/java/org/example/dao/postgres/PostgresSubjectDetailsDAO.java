@@ -4,12 +4,14 @@ import org.apache.log4j.Logger;
 import org.example.dao.ConnectionPool;
 import org.example.dao.interfaces.*;
 import org.example.entities.*;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Repository
 public class PostgresSubjectDetailsDAO implements SubjectDetailsDAO {
 
     private static final String GET_ALL_SUBJECT_DETAILS = "SELECT * FROM SUBJECT_DETAILS order by  SUBJECT_DETAILS_ID";

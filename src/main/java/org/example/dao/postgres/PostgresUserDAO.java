@@ -8,6 +8,7 @@ import org.example.dao.interfaces.TeacherDAO;
 import org.example.dao.interfaces.UserDAO;
 import org.example.entities.Role;
 import org.example.entities.User;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+@Repository
 public class PostgresUserDAO implements UserDAO {
 
     private static final String GET_ALL_USERS = "SELECT * FROM GRADEBOOK_USER order by user_id";

@@ -6,13 +6,14 @@ import org.example.dao.interfaces.PupilClassDAO;
 import org.example.dao.interfaces.PupilDAO;
 import org.example.entities.Pupil;
 import org.example.entities.PupilClass;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
+@Repository
 public class PostgresPupilDAO implements PupilDAO {
     private static final String GET_ALL_PUPILS = "SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id order by PUPIL_ID";
     private static final String GET_PUPIL = "SELECT * FROM PUPIL join gradebook_user on user_id=pupil_id where PUPIL_ID=?";

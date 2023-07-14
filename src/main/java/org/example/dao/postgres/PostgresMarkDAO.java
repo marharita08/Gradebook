@@ -7,11 +7,13 @@ import org.example.dao.interfaces.MarkDAO;
 import org.example.dao.interfaces.PupilDAO;
 import org.example.entities.Lesson;
 import org.example.entities.Mark;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class PostgresMarkDAO implements MarkDAO {
     private static final String GET_MARK = "SELECT * FROM MARK where MARK_ID = ?";
     private static final String UPSERT_MARK = "Insert into MARK (lesson_id, pupil_id, mark) values (?, ?, ?) " +
