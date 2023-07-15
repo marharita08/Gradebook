@@ -61,12 +61,12 @@ To get a local copy of the Gradebook application up and running, follow these st
    | datasource.password      | The password for accessing the database                   |
    | datasource.test.query    | The SQL query used to test the database connection        | 
 
-  4. Run `build.cmd` file
-5. Download [ODBC Driver for PostgreSQL](https://jdbc.postgresql.org/download/). Place driver into `domain_name/lib` folder (by default `base_domain/lib`).
-6. Start Weblogic
-7. Run `initDataSource.cmd` file
-8. Run `deploy.cmd` file
-9. Access the application in your web browser at `http://localhost:7001/Gradebook`
+  4. Run `build.cmd` file.
+5. Download [JDBC Driver for PostgreSQL](https://jdbc.postgresql.org/download/). Place driver into `domain_name/lib` folder (by default `base_domain/lib`).
+6. Start Weblogic.
+7. Run `initDataSource.cmd` file.
+8. Run `deploy.cmd` file.
+9. Access the application in your web browser at `http://localhost:7001/Gradebook`.
 
 ## Screenshots
 
