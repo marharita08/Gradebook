@@ -387,7 +387,7 @@ public class UserController {
             }
         }
         String schoolNum = user.getDbName();
-        String uploadDir = "public/schools/" + schoolNum + "/" + user.getId();
+        String uploadDir = "public/schools/" + schoolNum + "/users";
         String[] arr = file.getOriginalFilename().split("\\.");
         String ext = arr[arr.length-1];
         String fileName = user.getId() + "." + ext;
