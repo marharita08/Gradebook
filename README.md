@@ -2,6 +2,10 @@
 
 Gradebook is an online journal application developed using the Spring framework. It serves as a digital gradebook for school students. The application uses a PostgreSQL database and is deployed on the Weblogic web server.
 
+## Reasons for Development
+
+This project was initially developed as a laboratory work during the Java development courses. Over time, it was further refined and expanded, eventually evolving into a Bachelor's thesis project.
+
 ## Features
 
   - User authentication: Students, teachers, and administrators can create accounts and log in to the application.
@@ -41,7 +45,7 @@ To get a local copy of the Gradebook application up and running, follow these st
 
  1. Clone this repository: `git clone https://github.com/marharita08/Gradebook`.
  2. Create database for the application.
- 3. Configure `datasource.properties` with following properties:
+ 3. Configure `src/main/resources/datasource.properties` with following properties:
 
    | Property                 | Description                                               |
    |--------------------------|-----------------------------------------------------------|
@@ -61,12 +65,12 @@ To get a local copy of the Gradebook application up and running, follow these st
    | datasource.password      | The password for accessing the database                   |
    | datasource.test.query    | The SQL query used to test the database connection        | 
 
-  4. Run `build.cmd` file.
-5. Download [JDBC Driver for PostgreSQL](https://jdbc.postgresql.org/download/). Place driver into `domain_name/lib` folder (by default `base_domain/lib`).
-6. Start Weblogic.
-7. Run `initDataSource.cmd` file.
-8. Run `deploy.cmd` file.
-9. Access the application in your web browser at `http://localhost:7001/Gradebook`.
+ 4. Run `build.cmd` or `./build.sh` depending on your OS.
+ 5. Download [JDBC Driver for PostgreSQL](https://jdbc.postgresql.org/download/). Place driver into `domain_name/lib` folder (by default `base_domain/lib`).
+ 6. Start Weblogic.
+ 7. Run `initDataSource.cmd` or `./initDataSource.sh`.
+ 8. Run `deploy.cmd` or `./deploy.sh`.
+ 9. Access the application in your web browser at `http://localhost:7001/Gradebook`.
 
 ## Screenshots
 
